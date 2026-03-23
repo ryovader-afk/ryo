@@ -1,0 +1,1587 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>出張旅費精算書 自動生成アプリ</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+            min-height: 100vh;
+            color: #e2e8f0;
+        }
+
+        .header {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(99, 179, 237, 0.2);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-inner {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(90deg, #63b3ed, #4fd1c5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        .card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(99, 179, 237, 0.15);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px;
+            transition: border-color 0.3s;
+        }
+
+        .card:hover {
+            border-color: rgba(99, 179, 237, 0.35);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #63b3ed;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 20px;
+            background: linear-gradient(180deg, #63b3ed, #4fd1c5);
+            border-radius: 2px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #94a3b8;
+        }
+
+        label .required {
+            color: #f87171;
+            margin-left: 4px;
+        }
+
+        input, select, textarea {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 179, 237, 0.2);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: #e2e8f0;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #63b3ed;
+            box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.15);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        .transport-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            align-items: end;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(99, 179, 237, 0.1);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(99, 179, 237, 0.1);
+            color: #63b3ed;
+            border: 1px solid rgba(99, 179, 237, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(99, 179, 237, 0.2);
+        }
+
+        .btn-danger {
+            background: rgba(248, 113, 113, 0.1);
+            color: #f87171;
+            border: 1px solid rgba(248, 113, 113, 0.3);
+            padding: 8px 12px;
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .btn-danger:hover {
+            background: rgba(248, 113, 113, 0.2);
+        }
+
+        .btn-ai {
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            color: white;
+            box-shadow: 0 4px 12px rgba(109, 40, 217, 0.3);
+        }
+
+        .btn-ai:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(109, 40, 217, 0.4);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .generate-section {
+            text-align: center;
+            padding: 40px 0 20px;
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            font-size: 18px;
+            padding: 16px 48px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(5, 150, 105, 0.3);
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(5, 150, 105, 0.4);
+        }
+
+        .summary-box {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 16px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+
+        .summary-row.total {
+            font-size: 18px;
+            font-weight: 700;
+            color: #10b981;
+            padding-top: 12px;
+            border-top: 2px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(99, 179, 237, 0.3);
+            border-top-color: #63b3ed;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .fee-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .fee-display input {
+            width: 140px;
+        }
+
+        .nights-calc {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 179, 237, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .checkbox-item:hover {
+            border-color: rgba(99, 179, 237, 0.4);
+        }
+
+        .checkbox-item.checked {
+            border-color: #63b3ed;
+            background: rgba(99, 179, 237, 0.1);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #63b3ed;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .checkbox-item span {
+            font-size: 13px;
+            color: #e2e8f0;
+        }
+
+        .transport-extras {
+            grid-column: 1 / -1;
+            display: none;
+            gap: 8px;
+        }
+
+        .transport-extras.visible {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .transport-extras .form-group label {
+            font-size: 12px;
+            color: #7c8ba1;
+        }
+
+        .transport-extras input, .transport-extras select {
+            font-size: 13px;
+            padding: 8px 10px;
+        }
+
+        .extras-toggle {
+            grid-column: 1 / -1;
+            font-size: 12px;
+            color: #8b5cf6;
+            cursor: pointer;
+            background: none;
+            border: none;
+            text-align: left;
+            padding: 4px 0;
+            font-family: inherit;
+        }
+
+        .extras-toggle:hover {
+            color: #a78bfa;
+        }
+
+        /* flatpickr カスタム */
+        .flatpickr-calendar {
+            background: #1e293b !important;
+            border: 1px solid rgba(99, 179, 237, 0.3) !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
+            border-radius: 12px !important;
+        }
+        .flatpickr-day.selected {
+            background: #3b82f6 !important;
+            border-color: #3b82f6 !important;
+        }
+        .flatpickr-day:hover {
+            background: rgba(99, 179, 237, 0.2) !important;
+        }
+        .flatpickr-day.today {
+            border-color: #63b3ed !important;
+        }
+
+        .preset-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .preset-chip {
+            padding: 4px 10px;
+            font-size: 12px;
+            border-radius: 16px;
+            background: rgba(99, 179, 237, 0.1);
+            border: 1px solid rgba(99, 179, 237, 0.25);
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .preset-chip:hover {
+            background: rgba(99, 179, 237, 0.2);
+            color: #e2e8f0;
+            border-color: rgba(99, 179, 237, 0.4);
+        }
+
+        .preset-chip.active {
+            background: rgba(59, 130, 246, 0.25);
+            border-color: #3b82f6;
+            color: #63b3ed;
+        }
+
+        .nights-chips {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .nights-chip {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 179, 237, 0.2);
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .nights-chip:hover {
+            border-color: rgba(99, 179, 237, 0.5);
+            color: #e2e8f0;
+        }
+
+        .nights-chip.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+        }
+
+        .saved-badge {
+            display: inline-block;
+            font-size: 11px;
+            color: #10b981;
+            margin-left: 8px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .saved-badge.show {
+            opacity: 1;
+        }
+
+        .history-panel {
+            margin-bottom: 24px;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 179, 237, 0.15);
+            border-radius: 10px;
+            padding: 12px 16px;
+            transition: all 0.2s;
+        }
+
+        .history-item:hover {
+            border-color: rgba(99, 179, 237, 0.35);
+        }
+
+        .history-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .history-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #e2e8f0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-meta {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .history-amount {
+            font-size: 14px;
+            font-weight: 700;
+            color: #10b981;
+            margin: 0 16px;
+            white-space: nowrap;
+        }
+
+        .history-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .history-actions .btn {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .history-empty {
+            text-align: center;
+            color: #64748b;
+            font-size: 13px;
+            padding: 20px;
+        }
+
+        .history-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: #63b3ed;
+            font-size: 14px;
+            font-weight: 600;
+            background: none;
+            border: none;
+            font-family: inherit;
+            padding: 0;
+        }
+
+        .history-toggle:hover {
+            color: #90cdf4;
+        }
+
+        .history-toggle .arrow {
+            transition: transform 0.2s;
+            font-size: 12px;
+        }
+
+        .history-toggle .arrow.open {
+            transform: rotate(90deg);
+        }
+
+        @media (max-width: 500px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .transport-row {
+                grid-template-columns: 1fr 1fr;
+            }
+            .header h1 {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-inner">
+            <div>
+                <h1>出張旅費精算書 自動生成</h1>
+                <p>入力するだけで税務署対応の旅費精算書をWord形式で出力</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 過去の履歴 -->
+        <div class="card history-panel">
+            <button class="history-toggle" onclick="toggleHistory()">
+                <span class="arrow" id="historyArrow">&#9654;</span>
+                過去の入力データ
+            </button>
+            <div id="historySection" style="display: none;">
+                <div class="history-list" id="historyList">
+                    <div class="history-empty">履歴はまだありません</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 基本情報 -->
+        <div class="card">
+            <div class="card-title">基本情報<span class="saved-badge" id="savedBadge">保存済み</span></div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>会社名<span class="required">*</span></label>
+                    <input type="text" id="companyName" placeholder="株式会社〇〇">
+                </div>
+                <div class="form-group">
+                    <label>所属部署</label>
+                    <input type="text" id="department" placeholder="営業部">
+                </div>
+                <div class="form-group">
+                    <label>氏名<span class="required">*</span></label>
+                    <input type="text" id="employeeName" placeholder="山田 太郎">
+                </div>
+                <div class="form-group">
+                    <label>役職</label>
+                    <select id="position" onchange="togglePositionOther(this)">
+                        <option value="一般社員">一般社員</option>
+                        <option value="マネージャー">マネージャー</option>
+                        <option value="部長">部長</option>
+                        <option value="取締役">取締役</option>
+                        <option value="代表取締役">代表取締役</option>
+                        <option value="代表社員">代表社員（合同会社）</option>
+                        <option value="業務執行社員">業務執行社員（合同会社）</option>
+                        <option value="その他">その他</option>
+                    </select>
+                    <input type="text" id="positionOther" placeholder="役職を入力" style="display:none; margin-top: 8px;">
+                </div>
+            </div>
+        </div>
+
+        <!-- 出張情報 -->
+        <div class="card">
+            <div class="card-title">出張情報</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>出張先<span class="required">*</span></label>
+                    <input type="text" id="destination" placeholder="大阪市北区">
+                </div>
+                <div class="form-group">
+                    <label>出張目的<span class="required">*</span>（複数選択可）</label>
+                    <div class="checkbox-grid" id="purposeCheckboxes">
+                        <label class="checkbox-item"><input type="checkbox" value="不動産会社周り" checked onchange="toggleCheckbox(this)"><span>不動産会社周り</span></label>
+                        <label class="checkbox-item checked"><input type="checkbox" value="クライアント相談" onchange="toggleCheckbox(this)"><span>クライアント相談</span></label>
+                        <label class="checkbox-item"><input type="checkbox" value="コンサル案件" onchange="toggleCheckbox(this)"><span>コンサル案件</span></label>
+                        <label class="checkbox-item"><input type="checkbox" value="セミナー・研修" onchange="toggleCheckbox(this)"><span>セミナー・研修</span></label>
+                        <label class="checkbox-item"><input type="checkbox" value="新規営業" onchange="toggleCheckbox(this)"><span>新規営業</span></label>
+                        <label class="checkbox-item"><input type="checkbox" value="現場視察" onchange="toggleCheckbox(this)"><span>現場視察</span></label>
+                        <label class="checkbox-item"><input type="checkbox" value="契約締結・交渉" onchange="toggleCheckbox(this)"><span>契約締結・交渉</span></label>
+                        <label class="checkbox-item"><input type="checkbox" value="その他" onchange="toggleOther(this)"><span>その他</span></label>
+                    </div>
+                    <input type="text" id="purposeOther" placeholder="その他の目的を入力" style="display:none; margin-top: 8px;">
+                </div>
+                <div class="form-group">
+                    <label>出発日<span class="required">*</span></label>
+                    <input type="date" id="startDate">
+                </div>
+                <div class="form-group">
+                    <label>帰着日<span class="required">*</span></label>
+                    <input type="date" id="endDate">
+                </div>
+                <div class="form-group">
+                    <label>泊数<span class="required">*</span></label>
+                    <input type="number" id="nights" min="1" value="1" onchange="updateCalc(); updateNightsChips();">
+                    <div class="nights-chips" id="nightsChips">
+                        <button class="nights-chip active" onclick="setNights(1)">1</button>
+                        <button class="nights-chip" onclick="setNights(2)">2</button>
+                        <button class="nights-chip" onclick="setNights(3)">3</button>
+                        <button class="nights-chip" onclick="setNights(4)">4</button>
+                        <button class="nights-chip" onclick="setNights(5)">5</button>
+                        <button class="nights-chip" onclick="setNights(7)">7</button>
+                        <button class="nights-chip" onclick="setNights(10)">10</button>
+                    </div>
+                    <div class="nights-calc" id="nightsCalc">1泊2日</div>
+                </div>
+                <div class="form-group">
+                    <label>目的の詳細（任意）</label>
+                    <textarea id="purposeDetail" placeholder="具体的な内容があれば記入&#10;例：○○株式会社との業務提携に関する打ち合わせ、現地物件3件の内見・調査 等" rows="4" style="resize: vertical; min-height: 80px;"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- 費用設定 -->
+        <div class="card">
+            <div class="card-title">費用設定</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>宿泊費（1泊あたり）</label>
+                    <div class="fee-display">
+                        <input type="number" id="accommodationFee" value="20000" onchange="updateCalc(); updateFeeChips();">
+                        <span>円</span>
+                    </div>
+                    <div class="preset-chips" id="accChips">
+                        <button class="preset-chip" onclick="setFee('accommodationFee', 8000)">¥8,000</button>
+                        <button class="preset-chip" onclick="setFee('accommodationFee', 10000)">¥10,000</button>
+                        <button class="preset-chip" onclick="setFee('accommodationFee', 15000)">¥15,000</button>
+                        <button class="preset-chip active" onclick="setFee('accommodationFee', 20000)">¥20,000</button>
+                        <button class="preset-chip" onclick="setFee('accommodationFee', 30000)">¥30,000</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>日当（1日あたり）</label>
+                    <div class="fee-display">
+                        <input type="number" id="dailyAllowance" value="2000" onchange="updateCalc(); updateFeeChips();">
+                        <span>円</span>
+                    </div>
+                    <div class="preset-chips" id="dailyChips">
+                        <button class="preset-chip active" onclick="setFee('dailyAllowance', 2000)">¥2,000</button>
+                        <button class="preset-chip" onclick="setFee('dailyAllowance', 2500)">¥2,500</button>
+                        <button class="preset-chip" onclick="setFee('dailyAllowance', 3000)">¥3,000</button>
+                        <button class="preset-chip" onclick="setFee('dailyAllowance', 5000)">¥5,000</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 交通費明細 -->
+        <div class="card">
+            <div class="card-title">交通費明細</div>
+            <div id="transportList">
+                <div class="transport-row" data-index="0">
+                    <div class="form-group">
+                        <label>日付</label>
+                        <input type="date" class="t-date">
+                    </div>
+                    <div class="form-group">
+                        <label>区間</label>
+                        <input type="text" class="t-route" placeholder="東京駅 → 大阪駅">
+                    </div>
+                    <div class="form-group">
+                        <label>交通機関</label>
+                        <select class="t-method" onchange="onMethodChange(this)">
+                            <option value="新幹線">新幹線</option>
+                            <option value="鉄道">鉄道</option>
+                            <option value="飛行機">飛行機</option>
+                            <option value="バス">バス</option>
+                            <option value="タクシー">タクシー</option>
+                            <option value="レンタカー">レンタカー</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>金額</label>
+                        <input type="number" class="t-amount" placeholder="0" onchange="updateCalc()">
+                    </div>
+                    <button class="extras-toggle" onclick="toggleExtras(this)">+ 詳細項目を追加（任意）</button>
+                    <div class="transport-extras" data-method="新幹線">
+                        <div class="form-group">
+                            <label>座席クラス（任意）</label>
+                            <select class="t-seat-class">
+                                <option value="">未選択</option>
+                                <option value="自由席">自由席</option>
+                                <option value="指定席">指定席</option>
+                                <option value="グリーン車">グリーン車</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>備考（任意）</label>
+                            <input type="text" class="t-note" placeholder="往復割引等">
+                        </div>
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1; display: flex; justify-content: flex-end;">
+                        <button class="btn btn-danger" onclick="removeTransport(this)" title="この交通費を削除" style="width: auto;">&times; 削除</button>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-secondary" onclick="addTransport()" style="margin-top: 8px;">+ 交通費を追加</button>
+        </div>
+
+        <!-- 出張理由（AI生成） -->
+        <div class="card">
+            <div class="card-title">出張理由・報告（AI自動生成対応）</div>
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label>出張理由</label>
+                    <textarea id="tripReason" rows="4" placeholder="「AI自動生成」ボタンで税務署対応の出張理由を自動作成できます"></textarea>
+                    <div class="btn-group">
+                        <button class="btn btn-ai" onclick="generateReason()">AI自動生成</button>
+                        <button class="btn btn-secondary" onclick="generateReason()">別のパターンを生成</button>
+                    </div>
+                </div>
+                <div class="form-group full-width">
+                    <label>出張報告</label>
+                    <textarea id="tripReport" rows="4" placeholder="「AI自動生成」ボタンで出張報告を自動作成できます"></textarea>
+                    <div class="btn-group">
+                        <button class="btn btn-ai" onclick="generateReport()">AI自動生成</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 合計表示 -->
+        <div class="card">
+            <div class="card-title">費用合計</div>
+            <div class="summary-box">
+                <div class="summary-row">
+                    <span>宿泊費</span>
+                    <span id="sumAccommodation">¥20,000</span>
+                </div>
+                <div class="summary-row">
+                    <span>日当</span>
+                    <span id="sumAllowance">¥4,000</span>
+                </div>
+                <div class="summary-row">
+                    <span>交通費</span>
+                    <span id="sumTransport">¥0</span>
+                </div>
+                <div class="summary-row total">
+                    <span>合計支給額</span>
+                    <span id="sumTotal">¥24,000</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 生成ボタン -->
+        <div class="generate-section">
+            <button class="btn btn-generate" onclick="generateDocument()">
+                Word文書を生成・ダウンロード
+            </button>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 8px; color: #94a3b8;">精算書を生成中...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 初期状態: 最初のチェックボックスをcheckedにする
+        (function() {
+            const first = document.querySelector('#purposeCheckboxes .checkbox-item input');
+            if (first) { first.checked = true; first.closest('.checkbox-item').classList.add('checked'); }
+            // 2番目はcheckedクラスだけ付いているのでリセット
+            document.querySelectorAll('#purposeCheckboxes .checkbox-item').forEach(item => {
+                const cb = item.querySelector('input');
+                if (cb.checked) item.classList.add('checked');
+                else item.classList.remove('checked');
+            });
+        })();
+
+        function toggleCheckbox(cb) {
+            const item = cb.closest('.checkbox-item');
+            if (cb.checked) item.classList.add('checked');
+            else item.classList.remove('checked');
+        }
+
+        function toggleOther(cb) {
+            toggleCheckbox(cb);
+            const otherInput = document.getElementById('purposeOther');
+            otherInput.style.display = cb.checked ? 'block' : 'none';
+            if (!cb.checked) otherInput.value = '';
+        }
+
+        function togglePositionOther(sel) {
+            const otherInput = document.getElementById('positionOther');
+            if (sel.value === 'その他') {
+                otherInput.style.display = 'block';
+                otherInput.focus();
+            } else {
+                otherInput.style.display = 'none';
+                otherInput.value = '';
+            }
+        }
+
+        function getPositionValue() {
+            const sel = document.getElementById('position');
+            if (sel.value === 'その他') {
+                return document.getElementById('positionOther').value || 'その他';
+            }
+            return sel.value;
+        }
+
+        function getSelectedPurposes() {
+            const checked = document.querySelectorAll('#purposeCheckboxes input:checked');
+            return Array.from(checked).map(cb => {
+                if (cb.value === 'その他') {
+                    const custom = document.getElementById('purposeOther').value.trim();
+                    return custom || 'その他';
+                }
+                return cb.value;
+            });
+        }
+
+        // 交通手段別の詳細項目テンプレート
+        const extrasTemplates = {
+            '新幹線': `
+                <div class="form-group">
+                    <label>座席クラス（任意）</label>
+                    <select class="t-seat-class">
+                        <option value="">未選択</option>
+                        <option value="自由席">自由席</option>
+                        <option value="指定席">指定席</option>
+                        <option value="グリーン車">グリーン車</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>備考（任意）</label>
+                    <input type="text" class="t-note" placeholder="往復割引等">
+                </div>`,
+            '飛行機': `
+                <div class="form-group">
+                    <label>航空会社（任意）</label>
+                    <input type="text" class="t-airline" placeholder="ANA, JAL等">
+                </div>
+                <div class="form-group">
+                    <label>便名（任意）</label>
+                    <input type="text" class="t-flight-no" placeholder="NH123">
+                </div>
+                <div class="form-group">
+                    <label>座席クラス（任意）</label>
+                    <select class="t-seat-class">
+                        <option value="">未選択</option>
+                        <option value="エコノミー">エコノミー</option>
+                        <option value="プレミアムエコノミー">プレミアムエコノミー</option>
+                        <option value="ビジネス">ビジネス</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>備考（任意）</label>
+                    <input type="text" class="t-note" placeholder="早割等">
+                </div>`,
+            '鉄道': `
+                <div class="form-group">
+                    <label>路線名（任意）</label>
+                    <input type="text" class="t-line" placeholder="JR山手線等">
+                </div>
+                <div class="form-group">
+                    <label>備考（任意）</label>
+                    <input type="text" class="t-note" placeholder="">
+                </div>`,
+            'タクシー': `
+                <div class="form-group">
+                    <label>利用理由（任意）</label>
+                    <input type="text" class="t-taxi-reason" placeholder="深夜のため公共交通機関なし等">
+                </div>
+                <div class="form-group">
+                    <label>備考（任意）</label>
+                    <input type="text" class="t-note" placeholder="">
+                </div>`,
+            'レンタカー': `
+                <div class="form-group">
+                    <label>レンタカー会社（任意）</label>
+                    <input type="text" class="t-rental-company" placeholder="トヨタレンタカー等">
+                </div>
+                <div class="form-group">
+                    <label>利用理由（任意）</label>
+                    <input type="text" class="t-rental-reason" placeholder="現地移動のため等">
+                </div>
+                <div class="form-group">
+                    <label>備考（任意）</label>
+                    <input type="text" class="t-note" placeholder="ガソリン代含む等">
+                </div>`,
+            'バス': `
+                <div class="form-group">
+                    <label>備考（任意）</label>
+                    <input type="text" class="t-note" placeholder="高速バス等">
+                </div>`,
+        };
+
+        function onMethodChange(sel) {
+            const row = sel.closest('.transport-row');
+            const extras = row.querySelector('.transport-extras');
+            const method = sel.value;
+            extras.setAttribute('data-method', method);
+            extras.innerHTML = extrasTemplates[method] || `
+                <div class="form-group">
+                    <label>備考（任意）</label>
+                    <input type="text" class="t-note" placeholder="">
+                </div>`;
+        }
+
+        function toggleExtras(btn) {
+            const row = btn.closest('.transport-row');
+            const extras = row.querySelector('.transport-extras');
+            if (extras.classList.contains('visible')) {
+                extras.classList.remove('visible');
+                btn.textContent = '+ 詳細項目を追加（任意）';
+            } else {
+                extras.classList.add('visible');
+                btn.textContent = '- 詳細項目を閉じる';
+            }
+        }
+
+        // 日付の自動連動
+        document.getElementById('startDate').addEventListener('change', syncDates);
+        document.getElementById('endDate').addEventListener('change', syncDates);
+        document.getElementById('nights').addEventListener('change', function() {
+            const start = document.getElementById('startDate').value;
+            if (start) {
+                const startD = new Date(start);
+                const nights = parseInt(this.value) || 1;
+                startD.setDate(startD.getDate() + nights);
+                document.getElementById('endDate').value = startD.toISOString().split('T')[0];
+            }
+            updateCalc();
+        });
+
+        function syncDates() {
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+            if (start && end) {
+                const startD = new Date(start);
+                const endD = new Date(end);
+                const diff = Math.round((endD - startD) / (1000 * 60 * 60 * 24));
+                if (diff > 0) {
+                    document.getElementById('nights').value = diff;
+                    updateCalc();
+                }
+            }
+        }
+
+        function updateCalc() {
+            const nights = parseInt(document.getElementById('nights').value) || 1;
+            const days = nights + 1;
+            const accFee = parseInt(document.getElementById('accommodationFee').value) || 0;
+            const dailyFee = parseInt(document.getElementById('dailyAllowance').value) || 0;
+
+            document.getElementById('nightsCalc').textContent = `${nights}泊${days}日`;
+
+            const totalAcc = accFee * nights;
+            const totalDaily = dailyFee * days;
+
+            let totalTransport = 0;
+            document.querySelectorAll('.t-amount').forEach(el => {
+                totalTransport += parseInt(el.value) || 0;
+            });
+
+            const grand = totalAcc + totalDaily + totalTransport;
+
+            document.getElementById('sumAccommodation').textContent = formatYen(totalAcc);
+            document.getElementById('sumAllowance').textContent = formatYen(totalDaily);
+            document.getElementById('sumTransport').textContent = formatYen(totalTransport);
+            document.getElementById('sumTotal').textContent = formatYen(grand);
+        }
+
+        function formatYen(n) {
+            return '¥' + n.toLocaleString('ja-JP');
+        }
+
+        function addTransport() {
+            const list = document.getElementById('transportList');
+            const idx = list.children.length;
+            const row = document.createElement('div');
+            row.className = 'transport-row';
+            row.dataset.index = idx;
+            row.innerHTML = `
+                <div class="form-group">
+                    <label>日付</label>
+                    <input type="date" class="t-date">
+                </div>
+                <div class="form-group">
+                    <label>区間</label>
+                    <input type="text" class="t-route" placeholder="大阪駅 → 東京駅">
+                </div>
+                <div class="form-group">
+                    <label>交通機関</label>
+                    <select class="t-method" onchange="onMethodChange(this)">
+                        <option value="新幹線">新幹線</option>
+                        <option value="鉄道">鉄道</option>
+                        <option value="飛行機">飛行機</option>
+                        <option value="バス">バス</option>
+                        <option value="タクシー">タクシー</option>
+                        <option value="レンタカー">レンタカー</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>金額</label>
+                    <input type="number" class="t-amount" placeholder="0" onchange="updateCalc()">
+                </div>
+                <button class="extras-toggle" onclick="toggleExtras(this)">+ 詳細項目を追加（任意）</button>
+                <div class="transport-extras" data-method="新幹線">
+                    ${extrasTemplates['新幹線']}
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1; display: flex; justify-content: flex-end;">
+                    <button class="btn btn-danger" onclick="removeTransport(this)" title="この交通費を削除" style="width: auto;">&times; 削除</button>
+                </div>
+            `;
+            list.appendChild(row);
+        }
+
+        function removeTransport(btn) {
+            const list = document.getElementById('transportList');
+            if (list.children.length > 1) {
+                btn.closest('.transport-row').remove();
+                updateCalc();
+            }
+        }
+
+        function getTransportDetails() {
+            const rows = document.querySelectorAll('.transport-row');
+            const details = [];
+            rows.forEach(row => {
+                const date = row.querySelector('.t-date').value;
+                const route = row.querySelector('.t-route').value;
+                const method = row.querySelector('.t-method').value;
+                const amount = parseInt(row.querySelector('.t-amount').value) || 0;
+                if (route || amount > 0) {
+                    const detail = { date, route, method, amount };
+                    // オプション項目を収集（値がある場合のみ）
+                    const extras = row.querySelector('.transport-extras');
+                    if (extras) {
+                        const seatClass = extras.querySelector('.t-seat-class');
+                        const note = extras.querySelector('.t-note');
+                        const airline = extras.querySelector('.t-airline');
+                        const flightNo = extras.querySelector('.t-flight-no');
+                        const line = extras.querySelector('.t-line');
+                        const taxiReason = extras.querySelector('.t-taxi-reason');
+                        const rentalCompany = extras.querySelector('.t-rental-company');
+                        const rentalReason = extras.querySelector('.t-rental-reason');
+
+                        if (seatClass && seatClass.value) detail.seat_class = seatClass.value;
+                        if (note && note.value) detail.note = note.value;
+                        if (airline && airline.value) detail.airline = airline.value;
+                        if (flightNo && flightNo.value) detail.flight_no = flightNo.value;
+                        if (line && line.value) detail.line = line.value;
+                        if (taxiReason && taxiReason.value) detail.taxi_reason = taxiReason.value;
+                        if (rentalCompany && rentalCompany.value) detail.rental_company = rentalCompany.value;
+                        if (rentalReason && rentalReason.value) detail.rental_reason = rentalReason.value;
+                    }
+                    details.push(detail);
+                }
+            });
+            return details;
+        }
+
+        async function generateReason() {
+            const purposes = getSelectedPurposes();
+            const destination = document.getElementById('destination').value;
+            const nights = document.getElementById('nights').value;
+
+            if (!destination) { alert('出張先を入力してください'); return; }
+            if (purposes.length === 0) { alert('出張目的を1つ以上選択してください'); return; }
+
+            try {
+                const resp = await fetch('/api/generate-reason', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ purposes, destination, nights })
+                });
+                const data = await resp.json();
+                document.getElementById('tripReason').value = data.reason;
+            } catch (e) {
+                alert('エラーが発生しました: ' + e.message);
+            }
+        }
+
+        async function generateReport() {
+            const purposes = getSelectedPurposes();
+            const destination = document.getElementById('destination').value;
+            const nights = document.getElementById('nights').value;
+
+            if (!destination) { alert('出張先を入力してください'); return; }
+            if (purposes.length === 0) { alert('出張目的を1つ以上選択してください'); return; }
+
+            try {
+                const resp = await fetch('/api/generate-report-text', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ purposes, destination, nights })
+                });
+                const data = await resp.json();
+                document.getElementById('tripReport').value = data.report;
+            } catch (e) {
+                alert('エラーが発生しました: ' + e.message);
+            }
+        }
+
+        async function generateDocument() {
+            // バリデーション
+            const required = [
+                { id: 'companyName', name: '会社名' },
+                { id: 'employeeName', name: '氏名' },
+                { id: 'destination', name: '出張先' },
+                { id: 'startDate', name: '出発日' },
+                { id: 'endDate', name: '帰着日' },
+            ];
+
+            for (const field of required) {
+                if (!document.getElementById(field.id).value) {
+                    alert(`${field.name}を入力してください`);
+                    document.getElementById(field.id).focus();
+                    return;
+                }
+            }
+
+            const loading = document.getElementById('loading');
+            loading.classList.add('active');
+
+            const purposes = getSelectedPurposes();
+            if (purposes.length === 0) {
+                alert('出張目的を1つ以上選択してください');
+                return;
+            }
+
+            const payload = {
+                company_name: document.getElementById('companyName').value,
+                employee_name: document.getElementById('employeeName').value,
+                position: getPositionValue(),
+                department: document.getElementById('department').value,
+                destination: document.getElementById('destination').value,
+                purpose: purposes.join('・'),
+                purposes: purposes,
+                purpose_detail: document.getElementById('purposeDetail').value,
+                start_date: document.getElementById('startDate').value,
+                end_date: document.getElementById('endDate').value,
+                nights: parseInt(document.getElementById('nights').value),
+                accommodation_fee: parseInt(document.getElementById('accommodationFee').value),
+                daily_allowance: parseInt(document.getElementById('dailyAllowance').value),
+                transport_details: getTransportDetails(),
+                trip_reason: document.getElementById('tripReason').value,
+                trip_report: document.getElementById('tripReport').value,
+            };
+
+            try {
+                const resp = await fetch('/api/generate-report', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+
+                if (!resp.ok) throw new Error('生成に失敗しました');
+
+                const blob = await resp.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `出張旅費精算書_${payload.employee_name}_${payload.start_date}.docx`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (e) {
+                alert('エラーが発生しました: ' + e.message);
+            } finally {
+                loading.classList.remove('active');
+            }
+        }
+
+        // === localStorage: 基本情報の自動保存・復元 ===
+        const PROFILE_KEY = 'travel_expense_profile';
+        const HISTORY_KEY = 'travel_expense_history';
+
+        function saveProfile() {
+            const profile = {
+                companyName: document.getElementById('companyName').value,
+                department: document.getElementById('department').value,
+                employeeName: document.getElementById('employeeName').value,
+                position: getPositionValue(),
+            };
+            localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+            showSavedBadge();
+        }
+
+        function loadProfile() {
+            const data = localStorage.getItem(PROFILE_KEY);
+            if (!data) return;
+            try {
+                const profile = JSON.parse(data);
+                if (profile.companyName) document.getElementById('companyName').value = profile.companyName;
+                if (profile.department) document.getElementById('department').value = profile.department;
+                if (profile.employeeName) document.getElementById('employeeName').value = profile.employeeName;
+                if (profile.position) {
+                    // 既存の選択肢にあるか確認
+                    const posSelect = document.getElementById('position');
+                    const optionValues = Array.from(posSelect.options).map(o => o.value);
+                    if (optionValues.includes(profile.position)) {
+                        posSelect.value = profile.position;
+                    } else {
+                        // カスタム役職 → 「その他」を選択して入力欄に値を入れる
+                        posSelect.value = 'その他';
+                        document.getElementById('positionOther').value = profile.position;
+                        document.getElementById('positionOther').style.display = 'block';
+                    }
+                }
+                showSavedBadge();
+            } catch (e) {}
+        }
+
+        function showSavedBadge() {
+            const badge = document.getElementById('savedBadge');
+            badge.classList.add('show');
+            setTimeout(() => badge.classList.remove('show'), 2000);
+        }
+
+        // 基本情報フィールドの変更を自動保存
+        ['companyName', 'department', 'employeeName', 'position', 'positionOther'].forEach(id => {
+            document.getElementById(id).addEventListener('change', saveProfile);
+            document.getElementById(id).addEventListener('blur', saveProfile);
+        });
+
+        // === 履歴機能 ===
+        function toggleHistory() {
+            const section = document.getElementById('historySection');
+            const arrow = document.getElementById('historyArrow');
+            if (section.style.display === 'none') {
+                section.style.display = 'block';
+                arrow.classList.add('open');
+                renderHistory();
+            } else {
+                section.style.display = 'none';
+                arrow.classList.remove('open');
+            }
+        }
+
+        function getHistory() {
+            try {
+                return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+            } catch (e) { return []; }
+        }
+
+        function saveToHistory(payload) {
+            const history = getHistory();
+            const entry = {
+                id: Date.now(),
+                savedAt: new Date().toISOString(),
+                data: payload,
+            };
+            history.unshift(entry);
+            // 最大20件に制限
+            if (history.length > 20) history.length = 20;
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+        }
+
+        function deleteHistory(id) {
+            let history = getHistory();
+            history = history.filter(h => h.id !== id);
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            const history = getHistory();
+
+            if (history.length === 0) {
+                list.innerHTML = '<div class="history-empty">履歴はまだありません</div>';
+                return;
+            }
+
+            list.innerHTML = history.map(entry => {
+                const d = entry.data;
+                const date = new Date(entry.savedAt);
+                const dateStr = `${date.getFullYear()}/${(date.getMonth()+1).toString().padStart(2,'0')}/${date.getDate().toString().padStart(2,'0')}`;
+                const nights = d.nights || 0;
+                const days = nights + 1;
+                const accTotal = (d.accommodation_fee || 0) * nights;
+                const dailyTotal = (d.daily_allowance || 0) * days;
+                const transTotal = (d.transport_details || []).reduce((s, t) => s + (t.amount || 0), 0);
+                const total = accTotal + dailyTotal + transTotal;
+
+                return `
+                    <div class="history-item">
+                        <div class="history-info">
+                            <div class="history-title">${d.destination || '未入力'} - ${d.purpose || '未入力'}</div>
+                            <div class="history-meta">${d.start_date || '?'} ～ ${d.end_date || '?'}（${nights}泊${days}日）/ 保存: ${dateStr}</div>
+                        </div>
+                        <div class="history-amount">${formatYen(total)}</div>
+                        <div class="history-actions">
+                            <button class="btn btn-secondary" onclick="loadFromHistory(${entry.id})">読込</button>
+                            <button class="btn btn-danger" style="font-size:14px; padding:6px 10px;" onclick="deleteHistory(${entry.id})">&#215;</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function loadFromHistory(id) {
+            const history = getHistory();
+            const entry = history.find(h => h.id === id);
+            if (!entry) return;
+
+            const d = entry.data;
+
+            // 基本情報
+            document.getElementById('companyName').value = d.company_name || '';
+            document.getElementById('department').value = d.department || '';
+            document.getElementById('employeeName').value = d.employee_name || '';
+            // 役職の復元
+            const posVal = d.position || '';
+            const posSelect = document.getElementById('position');
+            const posOptions = Array.from(posSelect.options).map(o => o.value);
+            if (posOptions.includes(posVal)) {
+                posSelect.value = posVal;
+                document.getElementById('positionOther').style.display = 'none';
+            } else {
+                posSelect.value = 'その他';
+                document.getElementById('positionOther').value = posVal;
+                document.getElementById('positionOther').style.display = 'block';
+            }
+
+            // 出張情報
+            document.getElementById('destination').value = d.destination || '';
+            document.getElementById('startDate').value = d.start_date || '';
+            document.getElementById('endDate').value = d.end_date || '';
+            document.getElementById('nights').value = d.nights || 1;
+            document.getElementById('purposeDetail').value = d.purpose_detail || '';
+
+            // 目的チェックボックス復元
+            const purposes = d.purposes || (d.purpose ? d.purpose.split('・') : []);
+            document.querySelectorAll('#purposeCheckboxes input').forEach(cb => {
+                cb.checked = purposes.includes(cb.value);
+                toggleCheckbox(cb);
+            });
+            // その他の処理
+            const otherCb = document.querySelector('#purposeCheckboxes input[value="その他"]');
+            if (otherCb && otherCb.checked) {
+                const customPurpose = purposes.find(p => p !== '不動産会社周り' && p !== 'クライアント相談' && p !== 'コンサル案件' && p !== 'セミナー・研修' && p !== '新規営業' && p !== '現場視察' && p !== '契約締結・交渉' && p !== 'その他');
+                if (customPurpose) {
+                    document.getElementById('purposeOther').value = customPurpose;
+                    document.getElementById('purposeOther').style.display = 'block';
+                }
+            }
+
+            // 費用
+            document.getElementById('accommodationFee').value = d.accommodation_fee || 20000;
+            document.getElementById('dailyAllowance').value = d.daily_allowance || 2000;
+
+            // 交通費復元
+            const list = document.getElementById('transportList');
+            list.innerHTML = '';
+            const transports = d.transport_details || [];
+            if (transports.length === 0) {
+                addTransport();
+            } else {
+                transports.forEach((td, i) => {
+                    addTransport();
+                    const row = list.children[i];
+                    row.querySelector('.t-date').value = td.date || '';
+                    row.querySelector('.t-route').value = td.route || '';
+                    row.querySelector('.t-method').value = td.method || '新幹線';
+                    row.querySelector('.t-amount').value = td.amount || '';
+                    onMethodChange(row.querySelector('.t-method'));
+                });
+            }
+
+            // 理由・報告
+            document.getElementById('tripReason').value = d.trip_reason || '';
+            document.getElementById('tripReport').value = d.trip_report || '';
+
+            updateCalc();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // generateDocument内で履歴保存するよう、元の関数をラップ
+        const _origGenerateDocument = generateDocument;
+        generateDocument = async function() {
+            // バリデーション（元と同じチェック）
+            const required = [
+                { id: 'companyName', name: '会社名' },
+                { id: 'employeeName', name: '氏名' },
+                { id: 'destination', name: '出張先' },
+                { id: 'startDate', name: '出発日' },
+                { id: 'endDate', name: '帰着日' },
+            ];
+            for (const field of required) {
+                if (!document.getElementById(field.id).value) {
+                    // バリデーション失敗時は元の関数に任せる
+                    return _origGenerateDocument();
+                }
+            }
+            // 履歴保存用にペイロードを先に取得
+            const purposes = getSelectedPurposes();
+            const histPayload = {
+                company_name: document.getElementById('companyName').value,
+                employee_name: document.getElementById('employeeName').value,
+                position: getPositionValue(),
+                department: document.getElementById('department').value,
+                destination: document.getElementById('destination').value,
+                purpose: purposes.join('・'),
+                purposes: purposes,
+                purpose_detail: document.getElementById('purposeDetail').value,
+                start_date: document.getElementById('startDate').value,
+                end_date: document.getElementById('endDate').value,
+                nights: parseInt(document.getElementById('nights').value),
+                accommodation_fee: parseInt(document.getElementById('accommodationFee').value),
+                daily_allowance: parseInt(document.getElementById('dailyAllowance').value),
+                transport_details: getTransportDetails(),
+                trip_reason: document.getElementById('tripReason').value,
+                trip_report: document.getElementById('tripReport').value,
+            };
+            saveToHistory(histPayload);
+            return _origGenerateDocument();
+        };
+
+        // === 泊数チップ ===
+        function setNights(n) {
+            document.getElementById('nights').value = n;
+            const start = document.getElementById('startDate').value;
+            if (start) {
+                const startD = new Date(start);
+                startD.setDate(startD.getDate() + n);
+                document.getElementById('endDate').value = startD.toISOString().split('T')[0];
+                if (window.endPicker) endPicker.setDate(startD, false);
+            }
+            updateCalc();
+            updateNightsChips();
+        }
+
+        function updateNightsChips() {
+            const n = parseInt(document.getElementById('nights').value) || 0;
+            document.querySelectorAll('#nightsChips .nights-chip').forEach(chip => {
+                const val = parseInt(chip.textContent);
+                chip.classList.toggle('active', val === n);
+            });
+        }
+
+        // === 費用プリセット ===
+        function setFee(fieldId, amount) {
+            document.getElementById(fieldId).value = amount;
+            updateCalc();
+            updateFeeChips();
+        }
+
+        function updateFeeChips() {
+            const accVal = parseInt(document.getElementById('accommodationFee').value) || 0;
+            document.querySelectorAll('#accChips .preset-chip').forEach(chip => {
+                const val = parseInt(chip.textContent.replace(/[¥,]/g, ''));
+                chip.classList.toggle('active', val === accVal);
+            });
+            const dailyVal = parseInt(document.getElementById('dailyAllowance').value) || 0;
+            document.querySelectorAll('#dailyChips .preset-chip').forEach(chip => {
+                const val = parseInt(chip.textContent.replace(/[¥,]/g, ''));
+                chip.classList.toggle('active', val === dailyVal);
+            });
+        }
+
+        // 初期計算 & プロフィール復元
+        loadProfile();
+        updateCalc();
+        updateFeeChips();
+        updateNightsChips();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ja.js"></script>
+    <script>
+        // === flatpickr カレンダー初期化 ===
+        const fpConfig = {
+            locale: 'ja',
+            dateFormat: 'Y-m-d',
+            allowInput: true,
+            disableMobile: true,
+        };
+
+        const startPicker = flatpickr('#startDate', {
+            ...fpConfig,
+            onChange: function(dates, dateStr) {
+                if (dates[0]) {
+                    const nights = parseInt(document.getElementById('nights').value) || 1;
+                    const endDate = new Date(dates[0]);
+                    endDate.setDate(endDate.getDate() + nights);
+                    endPicker.setDate(endDate, true);
+                }
+                syncDates();
+            }
+        });
+
+        const endPicker = flatpickr('#endDate', {
+            ...fpConfig,
+            onChange: function() { syncDates(); }
+        });
+
+        // 交通費の日付にもflatpickrを適用
+        function initTransportDatePickers() {
+            document.querySelectorAll('.t-date:not(.flatpickr-input)').forEach(el => {
+                flatpickr(el, fpConfig);
+            });
+        }
+        initTransportDatePickers();
+
+        // addTransportを拡張して日付ピッカーも初期化
+        const _origAddTransport = addTransport;
+        addTransport = function() {
+            _origAddTransport();
+            initTransportDatePickers();
+        };
+    </script>
+</body>
+</html>
