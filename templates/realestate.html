@@ -227,6 +227,10 @@
             border-bottom: 1px solid rgba(99, 179, 237, 0.1);
         }
 
+        .expense-row {
+            grid-template-columns: 1fr 1fr auto auto;
+        }
+
         .auto-calc {
             background: rgba(16, 185, 129, 0.1);
             border: 1px solid rgba(16, 185, 129, 0.3);
@@ -706,11 +710,28 @@
             <span class="auto-calc-value" id="totalRentValue">¥0</span>
         </div>
 
-        <div class="form-grid" style="margin-top: 16px;">
-            <div class="form-group">
-                <label>その他月額収入（駐車場・自販機等）</label>
-                <input type="text" id="otherIncome" value="0" inputmode="numeric" class="yen-input">
+        <div class="section-subtitle" style="margin-top:20px;">その他収入（月額）</div>
+        <div id="otherIncomeList">
+            <div class="room-row other-income-row">
+                <div class="form-group">
+                    <label>収入名</label>
+                    <input type="text" class="other-income-name" value="駐車場収入">
+                </div>
+                <div class="form-group">
+                    <label>月額（円）</label>
+                    <input type="text" class="other-income-amount yen-input" value="0" inputmode="numeric">
+                </div>
+                <button class="btn btn-remove btn-sm" onclick="removeOtherIncome(this)">削除</button>
             </div>
+        </div>
+        <button class="btn btn-add btn-sm" onclick="addOtherIncome()">＋ 収入項目を追加</button>
+
+        <div class="auto-calc" style="margin-top: 12px;">
+            <span class="auto-calc-label">その他収入合計（月額）</span>
+            <span class="auto-calc-value" id="totalOtherIncomeValue">¥0</span>
+        </div>
+
+        <div class="form-grid" style="margin-top: 16px;">
             <div class="form-group">
                 <label>想定満室までの月数（初年度）</label>
                 <input type="number" id="fillMonths" value="2" min="1" max="12">
@@ -768,27 +789,83 @@
     <!-- 経費 -->
     <div class="card">
         <div class="card-title">経費・支出</div>
-        <div class="form-grid">
-            <div class="form-group">
-                <label>固定資産税（年額・円）</label>
-                <input type="text" id="propertyTax" value="300,000" inputmode="numeric" class="yen-input">
+        <div id="expenseList">
+            <div class="room-row expense-row">
+                <div class="form-group">
+                    <label>経費名</label>
+                    <input type="text" class="expense-name" value="固定資産税">
+                </div>
+                <div class="form-group">
+                    <label>金額（円）</label>
+                    <input type="text" class="expense-amount yen-input" value="300,000" inputmode="numeric">
+                </div>
+                <div class="form-group" style="min-width:80px;">
+                    <label>単位</label>
+                    <select class="expense-unit">
+                        <option value="yearly" selected>年額</option>
+                        <option value="monthly">月額</option>
+                    </select>
+                </div>
+                <button class="btn btn-remove btn-sm" onclick="removeExpense(this)">削除</button>
             </div>
-            <div class="form-group">
-                <label>管理費（月額・円）</label>
-                <input type="text" id="managementFee" value="30,000" inputmode="numeric" class="yen-input">
+            <div class="room-row expense-row">
+                <div class="form-group">
+                    <label>経費名</label>
+                    <input type="text" class="expense-name" value="管理費">
+                </div>
+                <div class="form-group">
+                    <label>金額（円）</label>
+                    <input type="text" class="expense-amount yen-input" value="30,000" inputmode="numeric">
+                </div>
+                <div class="form-group" style="min-width:80px;">
+                    <label>単位</label>
+                    <select class="expense-unit">
+                        <option value="yearly">年額</option>
+                        <option value="monthly" selected>月額</option>
+                    </select>
+                </div>
+                <button class="btn btn-remove btn-sm" onclick="removeExpense(this)">削除</button>
             </div>
-            <div class="form-group">
-                <label>火災保険料（年額・円）</label>
-                <input type="text" id="insurance" value="100,000" inputmode="numeric" class="yen-input">
+            <div class="room-row expense-row">
+                <div class="form-group">
+                    <label>経費名</label>
+                    <input type="text" class="expense-name" value="火災保険料">
+                </div>
+                <div class="form-group">
+                    <label>金額（円）</label>
+                    <input type="text" class="expense-amount yen-input" value="100,000" inputmode="numeric">
+                </div>
+                <div class="form-group" style="min-width:80px;">
+                    <label>単位</label>
+                    <select class="expense-unit">
+                        <option value="yearly" selected>年額</option>
+                        <option value="monthly">月額</option>
+                    </select>
+                </div>
+                <button class="btn btn-remove btn-sm" onclick="removeExpense(this)">削除</button>
             </div>
-            <div class="form-group">
-                <label>修繕積立金（月額・円）</label>
-                <input type="text" id="repairReserve" value="20,000" inputmode="numeric" class="yen-input">
+            <div class="room-row expense-row">
+                <div class="form-group">
+                    <label>経費名</label>
+                    <input type="text" class="expense-name" value="修繕積立金">
+                </div>
+                <div class="form-group">
+                    <label>金額（円）</label>
+                    <input type="text" class="expense-amount yen-input" value="20,000" inputmode="numeric">
+                </div>
+                <div class="form-group" style="min-width:80px;">
+                    <label>単位</label>
+                    <select class="expense-unit">
+                        <option value="yearly">年額</option>
+                        <option value="monthly" selected>月額</option>
+                    </select>
+                </div>
+                <button class="btn btn-remove btn-sm" onclick="removeExpense(this)">削除</button>
             </div>
-            <div class="form-group">
-                <label>その他経費（月額・円）</label>
-                <input type="text" id="otherExpense" value="0" inputmode="numeric" class="yen-input">
-            </div>
+        </div>
+        <button class="btn btn-add btn-sm" onclick="addExpense()">＋ 経費項目を追加</button>
+
+        <div class="form-grid" style="margin-top: 16px;">
             <div class="form-group">
                 <label>シミュレーション年数</label>
                 <input type="number" id="simYears" value="10" min="1" max="50">
@@ -985,10 +1062,98 @@ function addRoom() {
 }
 
 function removeRoom(btn) {
-    const rows = document.querySelectorAll('.room-row');
+    const rows = $('roomList').querySelectorAll('.room-row');
     if (rows.length <= 1) return;
     btn.closest('.room-row').remove();
     updateLiveCalc();
+}
+
+function addOtherIncome() {
+    const list = $('otherIncomeList');
+    const row = document.createElement('div');
+    row.className = 'room-row other-income-row';
+    row.innerHTML = `
+        <div class="form-group">
+            <label>収入名</label>
+            <input type="text" class="other-income-name" value="">
+        </div>
+        <div class="form-group">
+            <label>月額（円）</label>
+            <input type="text" class="other-income-amount yen-input" value="0" inputmode="numeric">
+        </div>
+        <button class="btn btn-remove btn-sm" onclick="removeOtherIncome(this)">削除</button>
+    `;
+    list.appendChild(row);
+    const amtInput = row.querySelector('.other-income-amount');
+    amtInput.addEventListener('input', updateLiveCalc);
+    amtInput.addEventListener('input', function() { applyYenFormat(this); });
+    updateLiveCalc();
+}
+
+function removeOtherIncome(btn) {
+    const rows = $('otherIncomeList').querySelectorAll('.other-income-row');
+    if (rows.length <= 1) return;
+    btn.closest('.other-income-row').remove();
+    updateLiveCalc();
+}
+
+function getTotalOtherIncome() {
+    let total = 0;
+    document.querySelectorAll('.other-income-amount').forEach(input => {
+        total += parseFloat(stripComma(input.value)) || 0;
+    });
+    return total;
+}
+
+function addExpense() {
+    const list = $('expenseList');
+    const row = document.createElement('div');
+    row.className = 'room-row expense-row';
+    row.innerHTML = `
+        <div class="form-group">
+            <label>経費名</label>
+            <input type="text" class="expense-name" value="">
+        </div>
+        <div class="form-group">
+            <label>金額（円）</label>
+            <input type="text" class="expense-amount yen-input" value="0" inputmode="numeric">
+        </div>
+        <div class="form-group" style="min-width:80px;">
+            <label>単位</label>
+            <select class="expense-unit">
+                <option value="yearly">年額</option>
+                <option value="monthly" selected>月額</option>
+            </select>
+        </div>
+        <button class="btn btn-remove btn-sm" onclick="removeExpense(this)">削除</button>
+    `;
+    list.appendChild(row);
+    const amtInput = row.querySelector('.expense-amount');
+    amtInput.addEventListener('input', updateLiveCalc);
+    amtInput.addEventListener('input', function() { applyYenFormat(this); });
+    row.querySelector('.expense-unit').addEventListener('change', updateLiveCalc);
+    updateLiveCalc();
+}
+
+function removeExpense(btn) {
+    const rows = $('expenseList').querySelectorAll('.expense-row');
+    if (rows.length <= 1) return;
+    btn.closest('.expense-row').remove();
+    updateLiveCalc();
+}
+
+function getExpenseTotals() {
+    let monthly = 0;
+    document.querySelectorAll('.expense-row').forEach(row => {
+        const amount = parseFloat(stripComma(row.querySelector('.expense-amount')?.value)) || 0;
+        const unit = row.querySelector('.expense-unit')?.value || 'monthly';
+        if (unit === 'monthly') {
+            monthly += amount;
+        } else {
+            monthly += amount / 12;
+        }
+    });
+    return { monthly, annual: monthly * 12 };
 }
 
 function calcMonthlyPayment(principal, annualRate, termYears) {
@@ -1008,6 +1173,9 @@ function updateLiveCalc() {
     const totalRent = getTotalRent();
     $('totalRentValue').textContent = formatYen(totalRent);
 
+    const totalOtherIncome = getTotalOtherIncome();
+    $('totalOtherIncomeValue').textContent = formatYen(totalOtherIncome);
+
     const loanAmount = val('loanAmount');
     const rate = val('interestRate');
     const term = val('loanTermYears');
@@ -1018,23 +1186,16 @@ function updateLiveCalc() {
     $('monthlyPaymentValue').textContent = formatYen(monthly);
     $('totalRepaymentValue').textContent = formatYen(totalRepay);
 
-    const mgmt = val('managementFee');
-    const repair = val('repairReserve');
-    const other = val('otherExpense');
-    const tax = val('propertyTax');
-    const ins = val('insurance');
-    const monthlyExp = mgmt + repair + other + tax / 12 + ins / 12;
-    const annualExp = mgmt * 12 + repair * 12 + other * 12 + tax + ins;
-
-    $('monthlyExpenseValue').textContent = formatYen(monthlyExp);
-    $('annualExpenseValue').textContent = formatYen(annualExp);
+    const expTotals = getExpenseTotals();
+    $('monthlyExpenseValue').textContent = formatYen(expTotals.monthly);
+    $('annualExpenseValue').textContent = formatYen(expTotals.annual);
 }
 
 let lastSimData = null;
 
 function runSimulation() {
     const totalRent = getTotalRent();
-    const otherIncome = val('otherIncome');
+    const otherIncome = getTotalOtherIncome();
     const fillMonths = Math.max(1, val('fillMonths'));
     const vacancyRate = val('vacancyRate') / 100;
     const rentGrowthRate = val('rentGrowthRate') / 100;
@@ -1051,12 +1212,8 @@ function runSimulation() {
 
     const monthlyPayment = calcMonthlyPayment(loanAmount, rate, termYears);
 
-    const mgmt = val('managementFee');
-    const repair = val('repairReserve');
-    const otherExp = val('otherExpense');
-    const tax = val('propertyTax');
-    const ins = val('insurance');
-    const monthlyExpenseBase = mgmt + repair + otherExp + tax / 12 + ins / 12;
+    const expTotals = getExpenseTotals();
+    const monthlyExpenseBase = expTotals.monthly;
 
     const simYears = Math.max(1, val('simYears'));
 
@@ -1143,7 +1300,7 @@ function runSimulation() {
         }
         annualLoan = Math.round(annualLoan);
 
-        const annualExpense = Math.round(mgmt * 12 + repair * 12 + otherExp * 12 + tax + ins);
+        const annualExpense = Math.round(expTotals.annual);
         const cf = annualIncome - annualLoan - annualExpense;
         annualCumCF += cf;
 
@@ -1168,7 +1325,7 @@ function runSimulation() {
     // Summary
     const annualFullRent = totalRent * 12;
     const grossYield = totalPrice > 0 ? (annualFullRent / totalPrice * 100) : 0;
-    const annualExpenseTotal = mgmt * 12 + repair * 12 + otherExp * 12 + tax + ins;
+    const annualExpenseTotal = expTotals.annual;
     const annualLoanTotal = monthlyPayment * 12;
     const netYield = totalPrice > 0
         ? ((annualFullRent - annualExpenseTotal - annualLoanTotal) / totalPrice * 100)
@@ -1346,6 +1503,9 @@ function exportFile(format) {
 document.querySelectorAll('input').forEach(input => {
     input.addEventListener('input', updateLiveCalc);
 });
+document.querySelectorAll('select').forEach(sel => {
+    sel.addEventListener('change', updateLiveCalc);
+});
 document.querySelectorAll('.yen-input').forEach(input => {
     input.addEventListener('input', function() { applyYenFormat(this); });
     applyYenFormat(input);
@@ -1367,9 +1527,8 @@ const VAULT_KEY = 'realestate_vault';
 
 const FORM_FIELDS = [
     'propertyName','totalPrice','buildingPrice','buildingAge','taxRate',
-    'completionMonth','otherIncome','fillMonths','vacancyRate','rentGrowthRate',
-    'loanAmount','interestRate','loanTermYears','gracePeriod',
-    'propertyTax','managementFee','insurance','repairReserve','otherExpense','simYears'
+    'completionMonth','fillMonths','vacancyRate','rentGrowthRate',
+    'loanAmount','interestRate','loanTermYears','gracePeriod','simYears'
 ];
 
 function getVault() {
@@ -1386,10 +1545,23 @@ function collectFormData() {
     FORM_FIELDS.forEach(id => { data[id] = stripComma($(id).value); });
     data.isAccommodation = $('isAccommodation').checked;
     data.rooms = [];
-    document.querySelectorAll('.room-row').forEach(row => {
+    document.querySelectorAll('#roomList .room-row').forEach(row => {
         const name = row.querySelector('.room-name')?.value || '';
         const rent = stripComma(row.querySelector('.room-rent')?.value || '0');
         data.rooms.push({ name, rent });
+    });
+    data.otherIncomes = [];
+    document.querySelectorAll('.other-income-row').forEach(row => {
+        const name = row.querySelector('.other-income-name')?.value || '';
+        const amount = stripComma(row.querySelector('.other-income-amount')?.value || '0');
+        data.otherIncomes.push({ name, amount });
+    });
+    data.expenses = [];
+    document.querySelectorAll('.expense-row').forEach(row => {
+        const name = row.querySelector('.expense-name')?.value || '';
+        const amount = stripComma(row.querySelector('.expense-amount')?.value || '0');
+        const unit = row.querySelector('.expense-unit')?.value || 'monthly';
+        data.expenses.push({ name, amount, unit });
     });
     return data;
 }
@@ -1422,7 +1594,60 @@ function restoreFormData(data) {
             ri.addEventListener('input', function() { applyYenFormat(this); });
         });
     }
-    // Re-format all yen inputs after restore
+    if (data.otherIncomes && data.otherIncomes.length > 0) {
+        const list = $('otherIncomeList');
+        list.innerHTML = '';
+        data.otherIncomes.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'room-row other-income-row';
+            row.innerHTML = `
+                <div class="form-group">
+                    <label>収入名</label>
+                    <input type="text" class="other-income-name" value="${item.name}">
+                </div>
+                <div class="form-group">
+                    <label>月額（円）</label>
+                    <input type="text" class="other-income-amount yen-input" value="${formatComma(item.amount)}" inputmode="numeric">
+                </div>
+                <button class="btn btn-remove btn-sm" onclick="removeOtherIncome(this)">削除</button>
+            `;
+            list.appendChild(row);
+            const ai = row.querySelector('.other-income-amount');
+            ai.addEventListener('input', updateLiveCalc);
+            ai.addEventListener('input', function() { applyYenFormat(this); });
+        });
+    }
+    if (data.expenses && data.expenses.length > 0) {
+        const list = $('expenseList');
+        list.innerHTML = '';
+        data.expenses.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'room-row expense-row';
+            row.innerHTML = `
+                <div class="form-group">
+                    <label>経費名</label>
+                    <input type="text" class="expense-name" value="${item.name}">
+                </div>
+                <div class="form-group">
+                    <label>金額（円）</label>
+                    <input type="text" class="expense-amount yen-input" value="${formatComma(item.amount)}" inputmode="numeric">
+                </div>
+                <div class="form-group" style="min-width:80px;">
+                    <label>単位</label>
+                    <select class="expense-unit">
+                        <option value="yearly" ${item.unit === 'yearly' ? 'selected' : ''}>年額</option>
+                        <option value="monthly" ${item.unit === 'monthly' ? 'selected' : ''}>月額</option>
+                    </select>
+                </div>
+                <button class="btn btn-remove btn-sm" onclick="removeExpense(this)">削除</button>
+            `;
+            list.appendChild(row);
+            const ei = row.querySelector('.expense-amount');
+            ei.addEventListener('input', updateLiveCalc);
+            ei.addEventListener('input', function() { applyYenFormat(this); });
+            row.querySelector('.expense-unit').addEventListener('change', updateLiveCalc);
+        });
+    }
     document.querySelectorAll('.yen-input').forEach(input => applyYenFormat(input));
     updateLiveCalc();
 }
