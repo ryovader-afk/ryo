@@ -7,6 +7,7 @@ import random
 from flask import Flask, render_template, request, send_file, jsonify
 
 from generate_docx import generate_travel_expense_report
+from generate_realestate_export import generate_excel, generate_word, generate_pdf
 
 app = Flask(__name__)
 
@@ -14,6 +15,36 @@ app = Flask(__name__)
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+@app.route("/realestate")
+def realestate():
+    return render_template("realestate.html")
+
+
+@app.route("/api/realestate/export", methods=["POST"])
+def realestate_export():
+    data = request.json
+    fmt = data.get("format", "excel")
+    prop_name = data.get("property", {}).get("name", "物件")
+
+    if fmt == "excel":
+        buf = generate_excel(data)
+        return send_file(buf, as_attachment=True,
+                         download_name=f"不動産CF_{prop_name}.xlsx",
+                         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    elif fmt == "word":
+        buf = generate_word(data)
+        return send_file(buf, as_attachment=True,
+                         download_name=f"不動産CF_{prop_name}.docx",
+                         mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+    elif fmt == "pdf":
+        buf = generate_pdf(data)
+        return send_file(buf, as_attachment=True,
+                         download_name=f"不動産CF_{prop_name}.pdf",
+                         mimetype="application/pdf")
+    else:
+        return jsonify({"error": "Unknown format"}), 400
 
 
 @app.route("/api/generate-reason", methods=["POST"])
