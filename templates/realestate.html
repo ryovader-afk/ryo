@@ -959,7 +959,7 @@
 
         <!-- 初年度月別 -->
         <div class="card">
-            <div class="card-title">初年度 月別キャッシュフロー</div>
+            <div class="card-title">完成後12ヶ月 月別キャッシュフロー</div>
             <p class="note-text" id="year1Note"></p>
             <div class="table-wrapper">
                 <table>
@@ -1246,37 +1246,26 @@ function runSimulation() {
 
     const simYears = Math.max(1, val('simYears'));
 
-    // --- Year 1 monthly ---
-    // completionMonth: the month the building completes (1-12)
-    // fillMonths: months after completion to reach full occupancy
-    // gracePeriod: months after completion with ¥0 loan payment
+    // --- First 12 months from completion ---
     const months = [];
     let cumCF = 0;
     let year1Total = { income: 0, loan: 0, expense: 0, cf: 0 };
 
-    for (let m = 1; m <= 12; m++) {
-        const monthsSinceCompletion = m - completionMonth;
-
-        if (m < completionMonth) {
-            // Before completion: nothing happens
-            months.push({ month: m, rent: 0, other: 0, loan: 0, expense: 0, cf: 0, cumCF, note: '完成前' });
-            continue;
-        }
-
-        const elapsed = monthsSinceCompletion + 1;
+    for (let i = 0; i < 12; i++) {
+        const calendarMonth = ((completionMonth - 1 + i) % 12) + 1;
+        const elapsed = i + 1;
         const occupancyRate = Math.min(elapsed / fillMonths, 1.0);
         const rent = Math.round(totalRent * occupancyRate);
         const other = Math.round(otherIncome * occupancyRate);
 
-        // Grace period: ¥0 loan payment for gracePeriod months after completion
-        const inGrace = monthsSinceCompletion < gracePeriod;
+        const inGrace = i < gracePeriod;
         const loan = inGrace ? 0 : Math.round(monthlyPayment);
         const expense = Math.round(monthlyExpenseBase);
         const cf = rent + other - loan - expense;
         cumCF += cf;
 
         const note = inGrace ? '据置中' : '';
-        months.push({ month: m, rent, other, loan, expense, cf, cumCF, note });
+        months.push({ month: calendarMonth, index: i, rent, other, loan, expense, cf, cumCF, note });
         year1Total.income += rent + other;
         year1Total.loan += loan;
         year1Total.expense += expense;
@@ -1287,9 +1276,8 @@ function runSimulation() {
     const refund = isAccom ? Math.round(buildingPrice * taxRate) : 0;
 
     // Grace period benefit: months where rooms are occupied but loan is ¥0
-    const fullOccupancyMonth = completionMonth + fillMonths;
-    const graceEndMonth = completionMonth + gracePeriod;
-    const occupiedGraceMonths = Math.max(0, Math.min(graceEndMonth, 13) - Math.min(fullOccupancyMonth, 13));
+    const fullOccupancyIdx = fillMonths;
+    const occupiedGraceMonths = Math.max(0, Math.min(gracePeriod, 12) - Math.min(fullOccupancyIdx, 12));
     const graceSaving = Math.round(monthlyPayment * occupiedGraceMonths);
 
     // --- Annual summary ---
@@ -1416,24 +1404,21 @@ function runSimulation() {
     }
 
     // Year 1 note
-    const compNote = completionMonth > 1 ? `建物完成 ${completionMonth}月目、` : '';
-    $('year1Note').textContent = `想定: ${compNote}完成後${fillMonths}ヶ月で満室、据え置き期間 ${gracePeriod}ヶ月（返済¥0）、通常返済 ${formatYen(monthlyPayment)}/月`;
+    const lastMonth = ((completionMonth - 1 + 11) % 12) + 1;
+    $('year1Note').textContent = `想定: ${completionMonth}月〜${lastMonth}月（完成後12ヶ月）、${fillMonths}ヶ月で満室、据え置き ${gracePeriod}ヶ月（返済¥0）、通常返済 ${formatYen(monthlyPayment)}/月`;
 
     // Monthly table
     let monthlyHtml = '';
     months.forEach(m => {
-        const loanClass = m.loan === 0 && m.note !== '完成前' && m.note === '据置中' ? 'positive' : (m.loan > 0 ? 'negative' : '');
-        const loanDisplay = m.note === '据置中' ? '¥0（据置中）' : (m.note === '完成前' ? '-' : formatYen(-m.loan));
-        const rentDisplay = m.note === '完成前' ? '-' : formatYen(m.rent);
-        const otherDisplay = m.note === '完成前' ? '-' : formatYen(m.other);
-        const expenseDisplay = m.note === '完成前' ? '-' : formatYen(-m.expense);
+        const loanClass = m.loan === 0 && m.note === '据置中' ? 'positive' : (m.loan > 0 ? 'negative' : '');
+        const loanDisplay = m.note === '据置中' ? '¥0（据置中）' : formatYen(-m.loan);
         monthlyHtml += `<tr>
             <td>${m.month}月${m.note ? ' <small style="color:#64748b">(' + m.note + ')</small>' : ''}</td>
-            <td>${rentDisplay}</td>
-            <td>${otherDisplay}</td>
+            <td>${formatYen(m.rent)}</td>
+            <td>${formatYen(m.other)}</td>
             <td class="${loanClass}">${loanDisplay}</td>
-            <td class="negative">${expenseDisplay}</td>
-            <td class="${m.cf >= 0 ? 'positive' : 'negative'}">${m.note === '完成前' ? '-' : formatYen(m.cf)}</td>
+            <td class="negative">${formatYen(-m.expense)}</td>
+            <td class="${m.cf >= 0 ? 'positive' : 'negative'}">${formatYen(m.cf)}</td>
             <td class="${m.cumCF >= 0 ? 'positive' : 'negative'}">${formatYen(m.cumCF)}</td>
         </tr>`;
     });
