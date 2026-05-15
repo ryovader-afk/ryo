@@ -463,6 +463,117 @@
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
         }
 
+        .vault-card {
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid rgba(251, 191, 36, 0.25);
+        }
+
+        .vault-card .card-title::before {
+            background: linear-gradient(180deg, #fbbf24, #f59e0b);
+        }
+
+        .vault-card .card-title {
+            color: #fbbf24;
+        }
+
+        .vault-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .vault-header .card-title {
+            margin-bottom: 0;
+        }
+
+        .vault-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .vault-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(99, 179, 237, 0.12);
+            border-radius: 10px;
+            padding: 12px 16px;
+            transition: all 0.2s;
+        }
+
+        .vault-item:hover {
+            border-color: rgba(99, 179, 237, 0.3);
+            background: rgba(15, 23, 42, 0.7);
+        }
+
+        .vault-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .vault-item-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #e2e8f0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .vault-item-meta {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .vault-item-actions {
+            display: flex;
+            gap: 8px;
+            margin-left: 12px;
+            flex-shrink: 0;
+        }
+
+        .btn-vault-load {
+            background: rgba(99, 179, 237, 0.15);
+            color: #63b3ed;
+            border: 1px solid rgba(99, 179, 237, 0.3);
+        }
+
+        .btn-vault-load:hover {
+            background: rgba(99, 179, 237, 0.25);
+        }
+
+        .btn-vault-delete {
+            background: rgba(248, 113, 113, 0.1);
+            color: #f87171;
+            border: 1px solid rgba(248, 113, 113, 0.2);
+        }
+
+        .btn-vault-delete:hover {
+            background: rgba(248, 113, 113, 0.2);
+        }
+
+        .vault-empty {
+            text-align: center;
+            color: #64748b;
+            font-size: 13px;
+            padding: 20px;
+        }
+
+        .btn-save {
+            background: rgba(251, 191, 36, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        .btn-save:hover {
+            background: rgba(251, 191, 36, 0.25);
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.15);
+        }
+
         .hidden { display: none; }
 
         @media (max-width: 600px) {
@@ -499,6 +610,17 @@
 </div>
 
 <div class="container">
+
+    <!-- データ格納庫 -->
+    <div class="card vault-card">
+        <div class="vault-header">
+            <div class="card-title">データ格納庫</div>
+            <button class="btn btn-save btn-sm" onclick="saveToVault()">現在のデータを保存</button>
+        </div>
+        <div class="vault-list" id="vaultList">
+            <div class="vault-empty">保存されたデータはありません</div>
+        </div>
+    </div>
 
     <!-- 物件情報 -->
     <div class="card">
@@ -1213,8 +1335,131 @@ $('buildingAge').addEventListener('input', function() {
     updateLiveCalc();
 });
 
-// Initial calculation
+// ── Data Vault ──
+
+const VAULT_KEY = 'realestate_vault';
+
+const FORM_FIELDS = [
+    'propertyName','totalPrice','buildingPrice','buildingAge','taxRate',
+    'completionMonth','otherIncome','fillMonths','vacancyRate','rentGrowthRate',
+    'loanAmount','interestRate','loanTermYears','gracePeriod',
+    'propertyTax','managementFee','insurance','repairReserve','otherExpense','simYears'
+];
+
+function getVault() {
+    try { return JSON.parse(localStorage.getItem(VAULT_KEY)) || []; }
+    catch { return []; }
+}
+
+function setVault(data) {
+    localStorage.setItem(VAULT_KEY, JSON.stringify(data));
+}
+
+function collectFormData() {
+    const data = {};
+    FORM_FIELDS.forEach(id => { data[id] = $(id).value; });
+    data.isAccommodation = $('isAccommodation').checked;
+    data.rooms = [];
+    document.querySelectorAll('.room-row').forEach(row => {
+        const name = row.querySelector('.room-name')?.value || '';
+        const rent = row.querySelector('.room-rent')?.value || '0';
+        data.rooms.push({ name, rent });
+    });
+    return data;
+}
+
+function restoreFormData(data) {
+    FORM_FIELDS.forEach(id => {
+        if ($(id) && data[id] !== undefined) $(id).value = data[id];
+    });
+    if (data.isAccommodation !== undefined) $('isAccommodation').checked = data.isAccommodation;
+    if (data.rooms && data.rooms.length > 0) {
+        const list = $('roomList');
+        list.innerHTML = '';
+        data.rooms.forEach(r => {
+            const row = document.createElement('div');
+            row.className = 'room-row';
+            row.innerHTML = `
+                <div class="form-group">
+                    <label>部屋名</label>
+                    <input type="text" class="room-name" value="${r.name}">
+                </div>
+                <div class="form-group">
+                    <label>月額家賃（円）</label>
+                    <input type="number" class="room-rent" value="${r.rent}" step="1000">
+                </div>
+                <button class="btn btn-remove btn-sm" onclick="removeRoom(this)">削除</button>
+            `;
+            list.appendChild(row);
+            row.querySelector('.room-rent').addEventListener('input', updateLiveCalc);
+        });
+    }
+    updateLiveCalc();
+}
+
+function saveToVault() {
+    const name = $('propertyName').value.trim() || '無名物件';
+    const vault = getVault();
+    const now = new Date();
+    const entry = {
+        id: Date.now(),
+        name: name,
+        date: now.toISOString().slice(0, 10),
+        time: now.toTimeString().slice(0, 5),
+        totalPrice: $('totalPrice').value,
+        data: collectFormData(),
+    };
+    vault.unshift(entry);
+    setVault(vault);
+    renderVault();
+}
+
+function loadFromVault(id) {
+    const vault = getVault();
+    const entry = vault.find(e => e.id === id);
+    if (!entry) return;
+    restoreFormData(entry.data);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function deleteFromVault(id) {
+    if (!confirm('このデータを削除しますか？')) return;
+    const vault = getVault().filter(e => e.id !== id);
+    setVault(vault);
+    renderVault();
+}
+
+function formatYenShort(n) {
+    n = parseInt(n) || 0;
+    if (n >= 100000000) return (n / 100000000).toFixed(1) + '億';
+    if (n >= 10000) return (n / 10000).toFixed(0) + '万';
+    return n.toLocaleString();
+}
+
+function renderVault() {
+    const vault = getVault();
+    const list = $('vaultList');
+    if (vault.length === 0) {
+        list.innerHTML = '<div class="vault-empty">保存されたデータはありません</div>';
+        return;
+    }
+    list.innerHTML = vault.map(e => `
+        <div class="vault-item">
+            <div class="vault-item-info">
+                <div class="vault-item-name">${e.name}</div>
+                <div class="vault-item-meta">${e.date} ${e.time || ''}　${e.totalPrice ? '物件価格: ¥' + formatYenShort(e.totalPrice) : ''}</div>
+            </div>
+            <div class="vault-item-actions">
+                <button class="btn btn-sm btn-vault-load" onclick="loadFromVault(${e.id})">読込</button>
+                <button class="btn btn-sm btn-vault-delete" onclick="deleteFromVault(${e.id})">削除</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Initial calculation & vault render
 updateLiveCalc();
+renderVault();
 </script>
 
 </body>
