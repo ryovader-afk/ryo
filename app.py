@@ -7,6 +7,7 @@ import random
 from flask import Flask, render_template, request, send_file, jsonify
 
 from generate_docx import generate_travel_expense_report
+from generate_pdf import generate_travel_expense_pdf
 from generate_realestate_export import generate_excel, generate_word, generate_pdf
 
 app = Flask(__name__)
@@ -56,8 +57,9 @@ def generate_reason():
         purposes = [data.get("purpose", "")]
     destination = data.get("destination", "")
     nights = int(data.get("nights", 1))
+    purpose_detail = data.get("purpose_detail", "")
 
-    reason = _generate_trip_reason(purposes, destination, nights)
+    reason = _generate_trip_reason(purposes, destination, nights, purpose_detail)
     return jsonify({"reason": reason})
 
 
@@ -70,8 +72,9 @@ def generate_report_text():
         purposes = [data.get("purpose", "")]
     destination = data.get("destination", "")
     nights = int(data.get("nights", 1))
+    purpose_detail = data.get("purpose_detail", "")
 
-    report = _generate_trip_report(purposes, destination, nights)
+    report = _generate_trip_report(purposes, destination, nights, purpose_detail)
     return jsonify({"report": report})
 
 
@@ -99,10 +102,10 @@ def generate_report():
     purposes = data.get("purposes", [purpose] if purpose else [])
 
     if not trip_reason:
-        trip_reason = _generate_trip_reason(purposes, destination, nights)
+        trip_reason = _generate_trip_reason(purposes, destination, nights, purpose_detail)
 
     if not trip_report:
-        trip_report = _generate_trip_report(purposes, destination, nights)
+        trip_report = _generate_trip_report(purposes, destination, nights, purpose_detail)
 
     buf = generate_travel_expense_report(
         company_name=company_name,
@@ -130,8 +133,63 @@ def generate_report():
     )
 
 
-def _generate_trip_reason(purposes: list, destination: str, nights: int) -> str:
-    """出張理由を自動生成（複数目的対応）"""
+@app.route("/api/generate-report-pdf", methods=["POST"])
+def generate_report_pdf():
+    """出張旅費精算書をPDF文書として生成"""
+    data = request.json
+
+    company_name = data.get("company_name", "")
+    employee_name = data.get("employee_name", "")
+    position = data.get("position", "一般社員")
+    department = data.get("department", "")
+    destination = data.get("destination", "")
+    purpose = data.get("purpose", "")
+    purpose_detail = data.get("purpose_detail", "")
+    start_date = data.get("start_date", "")
+    end_date = data.get("end_date", "")
+    nights = int(data.get("nights", 1))
+    accommodation_fee = int(data.get("accommodation_fee", 20000))
+    daily_allowance = int(data.get("daily_allowance", 2000))
+    transport_details = data.get("transport_details", [])
+    trip_reason = data.get("trip_reason", "")
+    trip_report = data.get("trip_report", "")
+
+    purposes = data.get("purposes", [purpose] if purpose else [])
+
+    if not trip_reason:
+        trip_reason = _generate_trip_reason(purposes, destination, nights, purpose_detail)
+
+    if not trip_report:
+        trip_report = _generate_trip_report(purposes, destination, nights, purpose_detail)
+
+    buf = generate_travel_expense_pdf(
+        company_name=company_name,
+        employee_name=employee_name,
+        position=position,
+        department=department,
+        destination=destination,
+        purpose=purpose,
+        purpose_detail=purpose_detail,
+        start_date=start_date,
+        end_date=end_date,
+        nights=nights,
+        accommodation_fee=accommodation_fee,
+        daily_allowance=daily_allowance,
+        transport_details=transport_details,
+        trip_reason=trip_reason,
+        trip_report=trip_report,
+    )
+
+    return send_file(
+        buf,
+        as_attachment=True,
+        download_name=f"出張旅費精算書_{employee_name}_{start_date}.pdf",
+        mimetype="application/pdf",
+    )
+
+
+def _generate_trip_reason(purposes: list, destination: str, nights: int, purpose_detail: str = "") -> str:
+    """出張理由を自動生成（複数目的対応・詳細反映）"""
     reason_snippets = {
         "不動産会社周り": [
             "不動産物件の現地調査および不動産会社との打ち合わせ",
@@ -171,27 +229,31 @@ def _generate_trip_reason(purposes: list, destination: str, nights: int) -> str:
         detail_parts.append(random.choice(snippets))
 
     purpose_text = "、".join(detail_parts)
-    purpose_label = "・".join(purposes)
+
+    # 詳細が入力されている場合、具体的な内容を文章に組み込む
+    detail_sentence = ""
+    if purpose_detail and purpose_detail.strip():
+        detail_sentence = f"\n具体的には、{purpose_detail.strip()}を予定しており、現地での直接対応が不可欠である。"
 
     templates = [
-        f"{destination}において、{purpose_text}を行うため。"
+        f"{destination}において、{purpose_text}を行うため。{detail_sentence}"
         f"現地での対面による打ち合わせ・調査が不可欠であり、"
         f"効率的な業務遂行のため{nights}泊の出張を要する。",
 
-        f"{destination}にて、{purpose_text}を実施するため。"
+        f"{destination}にて、{purpose_text}を実施するため。{detail_sentence}"
         f"リモートでは対応困難な現地確認事項があり、"
         f"所期の目的を達成するために{nights}泊の日程で出張を行う必要がある。",
 
         f"{destination}への出張目的は以下のとおりである。"
-        f"{purpose_text}。"
+        f"{purpose_text}。{detail_sentence}"
         f"上記業務はいずれも現地での対面実施が必要であり、{nights}泊の日程とする。",
     ]
 
     return random.choice(templates)
 
 
-def _generate_trip_report(purposes: list, destination: str, nights: int) -> str:
-    """出張報告内容を自動生成（複数目的対応）"""
+def _generate_trip_report(purposes: list, destination: str, nights: int, purpose_detail: str = "") -> str:
+    """出張報告内容を自動生成（複数目的対応・詳細反映）"""
     report_snippets = {
         "不動産会社周り": [
             "不動産会社を訪問し、物件情報の収集および現地視察を実施した。"
@@ -233,9 +295,17 @@ def _generate_trip_report(purposes: list, destination: str, nights: int) -> str:
         for i, part in enumerate(parts)
     )
 
+    # 詳細が入力されている場合、具体的な活動内容として報告に組み込む
+    detail_section = ""
+    if purpose_detail and purpose_detail.strip():
+        detail_section = f"\n\n【活動詳細】\n{purpose_detail.strip()}について対応を行い、所期の成果を得ることができた。"
+
     closing = "今後、上記の成果を踏まえ、社内検討・フォローアップを速やかに進める予定である。"
 
-    return f"{destination}にて以下の業務を遂行した。\n{report_body}\n{closing}" if len(parts) > 1 else f"{destination}にて{report_body}\n{closing}"
+    if len(parts) > 1:
+        return f"{destination}にて以下の業務を遂行した。\n{report_body}{detail_section}\n{closing}"
+    else:
+        return f"{destination}にて{report_body}{detail_section}\n{closing}"
 
 
 def find_free_port():

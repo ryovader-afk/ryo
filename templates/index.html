@@ -588,7 +588,7 @@
         <div class="header-inner">
             <div>
                 <h1>出張旅費精算書 自動生成</h1>
-                <p>入力するだけで税務署対応の旅費精算書をWord形式で出力</p>
+                <p>入力するだけで税務署対応の旅費精算書をWord・PDF形式で出力</p>
             </div>
         </div>
     </div>
@@ -824,9 +824,14 @@
 
         <!-- 生成ボタン -->
         <div class="generate-section">
-            <button class="btn btn-generate" onclick="generateDocument()">
-                Word文書を生成・ダウンロード
-            </button>
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                <button class="btn btn-generate" onclick="generateDocument('docx')" style="flex: 1; min-width: 200px;">
+                    📄 Word (.docx) で出力
+                </button>
+                <button class="btn btn-generate" onclick="generateDocument('pdf')" style="flex: 1; min-width: 200px; background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);">
+                    📕 PDF で出力
+                </button>
+            </div>
             <div class="loading" id="loading">
                 <div class="spinner"></div>
                 <p style="margin-top: 8px; color: #94a3b8;">精算書を生成中...</p>
@@ -1136,6 +1141,7 @@
             const purposes = getSelectedPurposes();
             const destination = document.getElementById('destination').value;
             const nights = document.getElementById('nights').value;
+            const purpose_detail = document.getElementById('purposeDetail').value;
 
             if (!destination) { alert('出張先を入力してください'); return; }
             if (purposes.length === 0) { alert('出張目的を1つ以上選択してください'); return; }
@@ -1144,7 +1150,7 @@
                 const resp = await fetch('/api/generate-reason', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ purposes, destination, nights })
+                    body: JSON.stringify({ purposes, destination, nights, purpose_detail })
                 });
                 const data = await resp.json();
                 document.getElementById('tripReason').value = data.reason;
@@ -1157,6 +1163,7 @@
             const purposes = getSelectedPurposes();
             const destination = document.getElementById('destination').value;
             const nights = document.getElementById('nights').value;
+            const purpose_detail = document.getElementById('purposeDetail').value;
 
             if (!destination) { alert('出張先を入力してください'); return; }
             if (purposes.length === 0) { alert('出張目的を1つ以上選択してください'); return; }
@@ -1165,7 +1172,7 @@
                 const resp = await fetch('/api/generate-report-text', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ purposes, destination, nights })
+                    body: JSON.stringify({ purposes, destination, nights, purpose_detail })
                 });
                 const data = await resp.json();
                 document.getElementById('tripReport').value = data.report;
@@ -1174,7 +1181,9 @@
             }
         }
 
-        async function generateDocument() {
+        async function generateDocument(format) {
+            format = format || 'docx';
+
             // バリデーション
             const required = [
                 { id: 'companyName', name: '会社名' },
@@ -1198,6 +1207,7 @@
             const purposes = getSelectedPurposes();
             if (purposes.length === 0) {
                 alert('出張目的を1つ以上選択してください');
+                loading.classList.remove('active');
                 return;
             }
 
@@ -1220,8 +1230,11 @@
                 trip_report: document.getElementById('tripReport').value,
             };
 
+            const endpoint = format === 'pdf' ? '/api/generate-report-pdf' : '/api/generate-report';
+            const ext = format === 'pdf' ? '.pdf' : '.docx';
+
             try {
-                const resp = await fetch('/api/generate-report', {
+                const resp = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload),
@@ -1233,7 +1246,7 @@
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `出張旅費精算書_${payload.employee_name}_${payload.start_date}.docx`;
+                a.download = `出張旅費精算書_${payload.employee_name}_${payload.start_date}${ext}`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
@@ -1452,7 +1465,7 @@
 
         // generateDocument内で履歴保存するよう、元の関数をラップ
         const _origGenerateDocument = generateDocument;
-        generateDocument = async function() {
+        generateDocument = async function(format) {
             // バリデーション（元と同じチェック）
             const required = [
                 { id: 'companyName', name: '会社名' },
@@ -1464,7 +1477,7 @@
             for (const field of required) {
                 if (!document.getElementById(field.id).value) {
                     // バリデーション失敗時は元の関数に任せる
-                    return _origGenerateDocument();
+                    return _origGenerateDocument(format);
                 }
             }
             // 履歴保存用にペイロードを先に取得
@@ -1488,7 +1501,7 @@
                 trip_report: document.getElementById('tripReport').value,
             };
             saveToHistory(histPayload);
-            return _origGenerateDocument();
+            return _origGenerateDocument(format);
         };
 
         // === 泊数チップ ===
