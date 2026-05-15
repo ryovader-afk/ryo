@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>不動産投資キャッシュフローシミュレーター</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -884,19 +885,8 @@
         </div>
     </div>
 
-    <!-- 計算・エクスポートボタン -->
-    <div class="center-btn">
-        <button class="btn btn-primary" onclick="runSimulation()">キャッシュフローを計算する</button>
-    </div>
-    <div class="export-bar">
-        <button class="btn-export btn-preview" onclick="previewPDF()">PDF プレビュー</button>
-        <button class="btn-export btn-pdf" onclick="exportFile('pdf')">PDF ダウンロード</button>
-        <button class="btn-export btn-excel" onclick="exportFile('excel')">Excel ダウンロード</button>
-        <button class="btn-export btn-word" onclick="exportFile('word')">Word ダウンロード</button>
-    </div>
-
-    <!-- 結果 -->
-    <div id="results" class="hidden">
+    <!-- 結果（常時表示・自動計算） -->
+    <div id="results">
 
         <!-- サマリー -->
         <div class="card">
@@ -911,8 +901,14 @@
                     <div class="summary-box-value neutral" id="netYield">-</div>
                 </div>
                 <div class="summary-box">
+                    <div class="summary-box-label">初年度 単純収入合計</div>
+                    <div class="summary-box-value" id="year1GrossIncome">-</div>
+                    <div class="summary-box-sub">経費・ローン控除前</div>
+                </div>
+                <div class="summary-box">
                     <div class="summary-box-label">初年度キャッシュフロー</div>
                     <div class="summary-box-value" id="year1CF">-</div>
+                    <div class="summary-box-sub">経費・ローン控除後</div>
                 </div>
                 <div class="summary-box">
                     <div class="summary-box-label">消費税還付込み初年度CF</div>
@@ -923,6 +919,16 @@
                     <div class="summary-box-label">投資回収年数</div>
                     <div class="summary-box-value neutral" id="breakeven">-</div>
                     <div class="summary-box-sub">累計CFがプラス転換</div>
+                </div>
+                <div class="summary-box" id="graceBoxSimple" style="display:none;">
+                    <div class="summary-box-label">据え置き期間 単純利益</div>
+                    <div class="summary-box-value positive" id="graceGrossProfit">-</div>
+                    <div class="summary-box-sub" id="graceGrossNote"></div>
+                </div>
+                <div class="summary-box" id="graceBoxNet" style="display:none;">
+                    <div class="summary-box-label">据え置き期間 経費控除後利益</div>
+                    <div class="summary-box-value positive" id="graceNetProfit">-</div>
+                    <div class="summary-box-sub" id="graceNetNote"></div>
                 </div>
                 <div class="summary-box">
                     <div class="summary-box-label">据え置き期間の利益効果</div>
@@ -970,6 +976,14 @@
             </div>
         </div>
 
+        <!-- グラフ -->
+        <div class="card">
+            <div class="card-title">収支グラフ</div>
+            <div style="position:relative; height:350px;">
+                <canvas id="cfChart"></canvas>
+            </div>
+        </div>
+
         <!-- 年別 -->
         <div class="card">
             <div class="card-title">年別キャッシュフロー</div>
@@ -990,6 +1004,14 @@
             </div>
         </div>
 
+    </div>
+
+    <!-- エクスポートボタン（最下部） -->
+    <div class="export-bar">
+        <button class="btn-export btn-preview" onclick="previewPDF()">PDF プレビュー</button>
+        <button class="btn-export btn-pdf" onclick="exportFile('pdf')">PDF ダウンロード</button>
+        <button class="btn-export btn-excel" onclick="exportFile('excel')">Excel ダウンロード</button>
+        <button class="btn-export btn-word" onclick="exportFile('word')">Word ダウンロード</button>
     </div>
 </div>
 
@@ -1169,6 +1191,7 @@ function calcInterestOnly(principal, annualRate) {
     return principal * (annualRate / 100 / 12);
 }
 
+let simTimer = null;
 function updateLiveCalc() {
     const totalRent = getTotalRent();
     $('totalRentValue').textContent = formatYen(totalRent);
@@ -1189,6 +1212,9 @@ function updateLiveCalc() {
     const expTotals = getExpenseTotals();
     $('monthlyExpenseValue').textContent = formatYen(expTotals.monthly);
     $('annualExpenseValue').textContent = formatYen(expTotals.annual);
+
+    clearTimeout(simTimer);
+    simTimer = setTimeout(runSimulation, 150);
 }
 
 let lastSimData = null;
@@ -1319,8 +1345,19 @@ function runSimulation() {
         }
     }
 
+    // --- Grace period income/expense breakdown ---
+    let graceGrossIncome = 0;
+    let graceExpenseTotal = 0;
+    months.forEach(m => {
+        if (m.note === '据置中') {
+            graceGrossIncome += m.rent + m.other;
+            graceExpenseTotal += m.expense;
+        }
+    });
+    const graceNetIncome = graceGrossIncome - graceExpenseTotal;
+    const graceMonthsCount = months.filter(m => m.note === '据置中').length;
+
     // --- Render ---
-    $('results').classList.remove('hidden');
 
     // Summary
     const annualFullRent = totalRent * 12;
@@ -1335,6 +1372,9 @@ function runSimulation() {
     $('netYield').textContent = formatPercent(netYield);
     $('netYield').className = 'summary-box-value ' + (netYield >= 0 ? 'positive' : 'negative');
 
+    $('year1GrossIncome').textContent = formatYen(year1Total.income);
+    $('year1GrossIncome').className = 'summary-box-value positive';
+
     $('year1CF').textContent = formatYen(year1Total.cf);
     $('year1CF').className = 'summary-box-value ' + (year1Total.cf >= 0 ? 'positive' : 'negative');
 
@@ -1344,6 +1384,19 @@ function runSimulation() {
     $('refundNote').textContent = refund > 0 ? `還付額 ${formatYen(refund)} を含む` : '還付対象外';
 
     $('breakeven').textContent = breakevenYear ? `${breakevenYear}年目` : `${simYears}年超`;
+
+    if (gracePeriod > 0 && graceMonthsCount > 0) {
+        $('graceBoxSimple').style.display = '';
+        $('graceBoxNet').style.display = '';
+        $('graceGrossProfit').textContent = formatYen(graceGrossIncome);
+        $('graceGrossNote').textContent = `据え置き${graceMonthsCount}ヶ月間の収入合計`;
+        $('graceNetProfit').textContent = formatYen(graceNetIncome);
+        $('graceNetProfit').className = 'summary-box-value ' + (graceNetIncome >= 0 ? 'positive' : 'negative');
+        $('graceNetNote').textContent = `収入 ${formatYen(graceGrossIncome)} − 経費 ${formatYen(graceExpenseTotal)}`;
+    } else {
+        $('graceBoxSimple').style.display = 'none';
+        $('graceBoxNet').style.display = 'none';
+    }
 
     $('graceBenefit').textContent = formatYen(graceSaving);
     $('graceNote').textContent = occupiedGraceMonths > 0
@@ -1445,12 +1498,102 @@ function runSimulation() {
         })),
     };
 
-    $('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    renderChart(annuals);
+}
+
+let cfChartInstance = null;
+function renderChart(annuals) {
+    const ctx = $('cfChart');
+    if (!ctx) return;
+    if (cfChartInstance) cfChartInstance.destroy();
+
+    const labels = annuals.map(a => a.year + '年目');
+    cfChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: '年間収入',
+                    data: annuals.map(a => a.income),
+                    backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                    borderColor: '#10b981',
+                    borderWidth: 1,
+                    order: 2,
+                },
+                {
+                    label: '年間ローン返済',
+                    data: annuals.map(a => -a.loan),
+                    backgroundColor: 'rgba(248, 113, 113, 0.7)',
+                    borderColor: '#f87171',
+                    borderWidth: 1,
+                    order: 2,
+                },
+                {
+                    label: '年間経費',
+                    data: annuals.map(a => -a.expense),
+                    backgroundColor: 'rgba(251, 191, 36, 0.7)',
+                    borderColor: '#fbbf24',
+                    borderWidth: 1,
+                    order: 2,
+                },
+                {
+                    label: '累計CF',
+                    data: annuals.map(a => a.cumCF),
+                    type: 'line',
+                    borderColor: '#63b3ed',
+                    backgroundColor: 'rgba(99, 179, 237, 0.1)',
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#63b3ed',
+                    fill: false,
+                    tension: 0.3,
+                    order: 1,
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: {
+                    labels: { color: '#94a3b8', font: { size: 12 } },
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) {
+                            const v = ctx.parsed.y;
+                            const sign = v < 0 ? '-' : '';
+                            return ctx.dataset.label + ': ' + sign + '¥' + Math.abs(Math.round(v)).toLocaleString('ja-JP');
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#64748b' },
+                    grid: { color: 'rgba(99, 179, 237, 0.08)' },
+                },
+                y: {
+                    ticks: {
+                        color: '#64748b',
+                        callback: function(v) {
+                            if (Math.abs(v) >= 100000000) return (v / 100000000).toFixed(1) + '億';
+                            if (Math.abs(v) >= 10000) return (v / 10000).toFixed(0) + '万';
+                            return v;
+                        }
+                    },
+                    grid: { color: 'rgba(99, 179, 237, 0.08)' },
+                },
+            },
+        },
+    });
 }
 
 function previewPDF() {
     if (!lastSimData) {
-        alert('先に「キャッシュフローを計算する」を実行してください。');
+        alert('データを入力してください。');
         return;
     }
     const payload = { ...lastSimData, format: 'pdf' };
@@ -1472,7 +1615,7 @@ function previewPDF() {
 
 function exportFile(format) {
     if (!lastSimData) {
-        alert('先に「キャッシュフローを計算する」を実行してください。');
+        alert('データを入力してください。');
         return;
     }
     const payload = { ...lastSimData, format: format };
