@@ -620,7 +620,10 @@
     <div class="card vault-card">
         <div class="vault-header">
             <div class="card-title">データ格納庫</div>
-            <button class="btn btn-save btn-sm" onclick="saveToVault()">現在のデータを保存</button>
+            <div style="display:flex; gap:8px;">
+                <button class="btn btn-add btn-sm" onclick="resetForm()">＋ 新規物件</button>
+                <button class="btn btn-save btn-sm" onclick="saveToVault()">現在のデータを保存</button>
+            </div>
         </div>
         <div class="vault-list" id="vaultList">
             <div class="vault-empty">保存されたデータはありません</div>
@@ -1640,6 +1643,27 @@ function exportFile(format) {
         URL.revokeObjectURL(url);
     })
     .catch(err => alert('エクスポートに失敗しました: ' + err.message));
+}
+
+function resetForm() {
+    if (!confirm('入力中のデータをクリアして新規物件を作成しますか？')) return;
+    const defaults = {
+        propertyName: '', totalPrice: '0', buildingPrice: '0', buildingAge: '0',
+        taxRate: '10', completionMonth: '1', fillMonths: '2', vacancyRate: '5',
+        rentGrowthRate: '0', loanAmount: '0', interestRate: '2.0',
+        loanTermYears: '30', gracePeriod: '6', simYears: '10',
+        isAccommodation: true,
+        rooms: [{ name: '101号室', rent: '80000' }],
+        otherIncomes: [{ name: '', amount: '0' }],
+        expenses: [
+            { name: '固定資産税', amount: '0', unit: 'yearly' },
+            { name: '管理費', amount: '0', unit: 'monthly' },
+            { name: '火災保険料', amount: '0', unit: 'yearly' },
+            { name: '修繕積立金', amount: '0', unit: 'monthly' },
+        ],
+    };
+    restoreFormData(defaults);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // Live update on input changes + yen formatting
