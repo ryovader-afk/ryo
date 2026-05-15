@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>不動産投資キャッシュフローシミュレーター</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+            min-height: 100vh;
+            color: #e2e8f0;
+        }
+
+        .header {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(99, 179, 237, 0.2);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-inner {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(90deg, #63b3ed, #4fd1c5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        .header-nav a {
+            color: #63b3ed;
+            text-decoration: none;
+            font-size: 13px;
+            padding: 6px 12px;
+            border: 1px solid rgba(99, 179, 237, 0.3);
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .header-nav a:hover {
+            background: rgba(99, 179, 237, 0.1);
+            border-color: rgba(99, 179, 237, 0.5);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        .card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(99, 179, 237, 0.15);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px;
+            transition: border-color 0.3s;
+        }
+
+        .card:hover {
+            border-color: rgba(99, 179, 237, 0.35);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #63b3ed;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 20px;
+            background: linear-gradient(180deg, #63b3ed, #4fd1c5);
+            border-radius: 2px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #94a3b8;
+        }
+
+        input, select {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 179, 237, 0.2);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: #e2e8f0;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #63b3ed;
+            box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.15);
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #63b3ed;
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .checkbox-row label {
+            font-size: 14px;
+            color: #e2e8f0;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            padding: 14px 32px;
+            font-size: 16px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 13px;
+        }
+
+        .btn-add {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-add:hover {
+            background: rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-remove {
+            background: rgba(248, 113, 113, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(248, 113, 113, 0.3);
+        }
+
+        .btn-remove:hover {
+            background: rgba(248, 113, 113, 0.3);
+        }
+
+        .room-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 10px;
+            align-items: end;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(99, 179, 237, 0.1);
+        }
+
+        .auto-calc {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-top: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .auto-calc-label {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        .auto-calc-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #10b981;
+        }
+
+        .auto-calc-negative .auto-calc-value {
+            color: #f87171;
+        }
+
+        .auto-calc-info {
+            background: rgba(99, 179, 237, 0.1);
+            border: 1px solid rgba(99, 179, 237, 0.2);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-top: 12px;
+        }
+
+        .auto-calc-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+        }
+
+        .auto-calc-row + .auto-calc-row {
+            border-top: 1px solid rgba(99, 179, 237, 0.1);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .summary-box {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 179, 237, 0.2);
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+        }
+
+        .summary-box-label {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+
+        .summary-box-value {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .summary-box-sub {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .positive { color: #10b981; }
+        .negative { color: #f87171; }
+        .neutral { color: #63b3ed; }
+
+        .table-wrapper {
+            overflow-x: auto;
+            margin-top: 16px;
+            border-radius: 10px;
+            border: 1px solid rgba(99, 179, 237, 0.15);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: 700px;
+        }
+
+        thead th {
+            background: rgba(15, 23, 42, 0.8);
+            color: #94a3b8;
+            font-weight: 600;
+            padding: 12px 10px;
+            text-align: right;
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+        }
+
+        thead th:first-child {
+            text-align: center;
+        }
+
+        tbody td {
+            padding: 10px;
+            text-align: right;
+            border-top: 1px solid rgba(99, 179, 237, 0.08);
+        }
+
+        tbody td:first-child {
+            text-align: center;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+
+        tbody tr:nth-child(even) {
+            background: rgba(15, 23, 42, 0.3);
+        }
+
+        tbody tr:hover {
+            background: rgba(99, 179, 237, 0.08);
+        }
+
+        tbody tr.highlight-row {
+            background: rgba(16, 185, 129, 0.15);
+            font-weight: 600;
+        }
+
+        .section-subtitle {
+            font-size: 14px;
+            font-weight: 600;
+            color: #94a3b8;
+            margin: 20px 0 12px;
+        }
+
+        .note-text {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 6px;
+            line-height: 1.6;
+        }
+
+        .refund-highlight {
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 10px;
+            padding: 16px 18px;
+            margin-top: 12px;
+        }
+
+        .refund-highlight .auto-calc-value {
+            color: #fbbf24;
+        }
+
+        .center-btn {
+            text-align: center;
+            margin: 32px 0;
+        }
+
+        .export-bar {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 24px 0;
+        }
+
+        .btn-export {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-export:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-preview {
+            background: rgba(251, 191, 36, 0.15);
+            color: #fbbf24;
+            border-color: rgba(251, 191, 36, 0.3);
+        }
+
+        .btn-preview:hover {
+            background: rgba(251, 191, 36, 0.25);
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2);
+        }
+
+        .btn-pdf {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-pdf:hover {
+            background: rgba(239, 68, 68, 0.25);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+        }
+
+        .btn-excel {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-excel:hover {
+            background: rgba(16, 185, 129, 0.25);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        }
+
+        .btn-word {
+            background: rgba(59, 130, 246, 0.15);
+            color: #63b3ed;
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-word:hover {
+            background: rgba(59, 130, 246, 0.25);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+        }
+
+        .hidden { display: none; }
+
+        @media (max-width: 600px) {
+            .form-grid, .form-grid-3 {
+                grid-template-columns: 1fr;
+            }
+            .room-row {
+                grid-template-columns: 1fr 1fr auto;
+            }
+            .summary-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .header-inner {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-inner">
+        <div class="header-left">
+            <div>
+                <h1>不動産投資キャッシュフローシミュレーター</h1>
+                <p>物件購入から長期収支までトータルシミュレーション</p>
+            </div>
+        </div>
+        <div class="header-nav">
+            <a href="/">旅費精算ページへ</a>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- 物件情報 -->
+    <div class="card">
+        <div class="card-title">物件情報</div>
+        <div class="form-grid">
+            <div class="form-group full-width">
+                <label>物件名</label>
+                <input type="text" id="propertyName" placeholder="例: 那覇市テナントビル">
+            </div>
+            <div class="form-group">
+                <label>物件価格（税込総額）</label>
+                <input type="number" id="totalPrice" placeholder="例: 150000000" step="1000000">
+            </div>
+            <div class="form-group">
+                <label>建物価格（税抜）</label>
+                <input type="number" id="buildingPrice" placeholder="例: 100000000" step="1000000">
+            </div>
+            <div class="form-group">
+                <label>築年数（0=新築）</label>
+                <input type="number" id="buildingAge" value="0" min="0">
+            </div>
+            <div class="form-group">
+                <label>消費税率（%）</label>
+                <input type="number" id="taxRate" value="10" min="0" max="100" step="1">
+            </div>
+            <div class="form-group">
+                <label>建物完成月（初年度の何月目）</label>
+                <input type="number" id="completionMonth" value="1" min="1" max="12">
+            </div>
+            <div class="form-group">
+                <label>&nbsp;</label>
+                <p class="note-text" style="margin:0;">※ 完成前は収入・ローン返済ともに発生しません</p>
+            </div>
+        </div>
+        <div class="checkbox-row">
+            <input type="checkbox" id="isAccommodation" checked>
+            <label for="isAccommodation">宿泊施設対応エリア（消費税還付対象）</label>
+        </div>
+    </div>
+
+    <!-- 収入 -->
+    <div class="card">
+        <div class="card-title">収入（月額家賃）</div>
+        <div id="roomList">
+            <div class="room-row">
+                <div class="form-group">
+                    <label>部屋名</label>
+                    <input type="text" class="room-name" value="101号室">
+                </div>
+                <div class="form-group">
+                    <label>月額家賃（円）</label>
+                    <input type="number" class="room-rent" value="80000" step="1000">
+                </div>
+                <button class="btn btn-remove btn-sm" onclick="removeRoom(this)">削除</button>
+            </div>
+            <div class="room-row">
+                <div class="form-group">
+                    <label>部屋名</label>
+                    <input type="text" class="room-name" value="102号室">
+                </div>
+                <div class="form-group">
+                    <label>月額家賃（円）</label>
+                    <input type="number" class="room-rent" value="80000" step="1000">
+                </div>
+                <button class="btn btn-remove btn-sm" onclick="removeRoom(this)">削除</button>
+            </div>
+            <div class="room-row">
+                <div class="form-group">
+                    <label>部屋名</label>
+                    <input type="text" class="room-name" value="103号室">
+                </div>
+                <div class="form-group">
+                    <label>月額家賃（円）</label>
+                    <input type="number" class="room-rent" value="75000" step="1000">
+                </div>
+                <button class="btn btn-remove btn-sm" onclick="removeRoom(this)">削除</button>
+            </div>
+        </div>
+        <button class="btn btn-add btn-sm" onclick="addRoom()">＋ 部屋を追加</button>
+
+        <div class="auto-calc" id="totalRentDisplay">
+            <span class="auto-calc-label">家賃合計（満室時・月額）</span>
+            <span class="auto-calc-value" id="totalRentValue">¥0</span>
+        </div>
+
+        <div class="form-grid" style="margin-top: 16px;">
+            <div class="form-group">
+                <label>その他月額収入（駐車場・自販機等）</label>
+                <input type="number" id="otherIncome" value="0" step="1000">
+            </div>
+            <div class="form-group">
+                <label>想定満室までの月数（初年度）</label>
+                <input type="number" id="fillMonths" value="2" min="1" max="12">
+            </div>
+            <div class="form-group">
+                <label>空室率（2年目以降・%）</label>
+                <input type="number" id="vacancyRate" value="5" min="0" max="100" step="1">
+            </div>
+            <div class="form-group">
+                <label>年間家賃上昇率（%）</label>
+                <input type="number" id="rentGrowthRate" value="0" min="-10" max="10" step="0.1">
+            </div>
+        </div>
+    </div>
+
+    <!-- ローン -->
+    <div class="card">
+        <div class="card-title">銀行借入（ローン）</div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>借入金額（円）</label>
+                <input type="number" id="loanAmount" placeholder="例: 140000000" step="1000000">
+            </div>
+            <div class="form-group">
+                <label>金利（年率 %）</label>
+                <input type="number" id="interestRate" value="2.0" min="0" max="20" step="0.01">
+            </div>
+            <div class="form-group">
+                <label>借入期間（年）</label>
+                <input type="number" id="loanTermYears" value="30" min="1" max="50">
+            </div>
+            <div class="form-group">
+                <label>据え置き期間（月）</label>
+                <input type="number" id="gracePeriod" value="6" min="0" max="24">
+            </div>
+        </div>
+        <p class="note-text">※ 新築物件の場合、最大6ヶ月の返済据え置き期間を設定できます。据え置き期間中はローン返済が発生しません（¥0）。</p>
+
+        <div class="auto-calc-info" id="loanCalcDisplay">
+            <div class="auto-calc-row">
+                <span class="auto-calc-label">通常月額返済額（元利均等）</span>
+                <span class="auto-calc-value negative" id="monthlyPaymentValue">¥0</span>
+            </div>
+            <div class="auto-calc-row">
+                <span class="auto-calc-label">据え置き期間中の月額</span>
+                <span class="auto-calc-value" style="color: #10b981;">¥0（返済なし）</span>
+            </div>
+            <div class="auto-calc-row">
+                <span class="auto-calc-label">返済総額</span>
+                <span class="auto-calc-value" style="color: #94a3b8;" id="totalRepaymentValue">¥0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 経費 -->
+    <div class="card">
+        <div class="card-title">経費・支出</div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>固定資産税（年額・円）</label>
+                <input type="number" id="propertyTax" value="300000" step="10000">
+            </div>
+            <div class="form-group">
+                <label>管理費（月額・円）</label>
+                <input type="number" id="managementFee" value="30000" step="1000">
+            </div>
+            <div class="form-group">
+                <label>火災保険料（年額・円）</label>
+                <input type="number" id="insurance" value="100000" step="10000">
+            </div>
+            <div class="form-group">
+                <label>修繕積立金（月額・円）</label>
+                <input type="number" id="repairReserve" value="20000" step="1000">
+            </div>
+            <div class="form-group">
+                <label>その他経費（月額・円）</label>
+                <input type="number" id="otherExpense" value="0" step="1000">
+            </div>
+            <div class="form-group">
+                <label>シミュレーション年数</label>
+                <input type="number" id="simYears" value="10" min="1" max="50">
+            </div>
+        </div>
+
+        <div class="auto-calc-info" style="margin-top: 12px;">
+            <div class="auto-calc-row">
+                <span class="auto-calc-label">月額経費合計</span>
+                <span class="auto-calc-value negative" id="monthlyExpenseValue">¥0</span>
+            </div>
+            <div class="auto-calc-row">
+                <span class="auto-calc-label">年額経費合計</span>
+                <span class="auto-calc-value negative" id="annualExpenseValue">¥0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 計算ボタン -->
+    <div class="center-btn">
+        <button class="btn btn-primary" onclick="runSimulation()">キャッシュフローを計算する</button>
+    </div>
+
+    <!-- 結果 -->
+    <div id="results" class="hidden">
+
+        <!-- サマリー -->
+        <div class="card">
+            <div class="card-title">収支サマリー</div>
+            <div class="summary-grid">
+                <div class="summary-box">
+                    <div class="summary-box-label">表面利回り</div>
+                    <div class="summary-box-value neutral" id="grossYield">-</div>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-box-label">実質利回り（経費控除後）</div>
+                    <div class="summary-box-value neutral" id="netYield">-</div>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-box-label">初年度キャッシュフロー</div>
+                    <div class="summary-box-value" id="year1CF">-</div>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-box-label">消費税還付込み初年度CF</div>
+                    <div class="summary-box-value" id="year1CFWithRefund">-</div>
+                    <div class="summary-box-sub" id="refundNote"></div>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-box-label">投資回収年数</div>
+                    <div class="summary-box-value neutral" id="breakeven">-</div>
+                    <div class="summary-box-sub">累計CFがプラス転換</div>
+                </div>
+                <div class="summary-box">
+                    <div class="summary-box-label">据え置き期間の利益効果</div>
+                    <div class="summary-box-value positive" id="graceBenefit">-</div>
+                    <div class="summary-box-sub" id="graceNote"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 消費税還付 -->
+        <div class="card" id="refundCard">
+            <div class="card-title">消費税還付シミュレーション</div>
+            <div class="refund-highlight">
+                <div class="auto-calc-row">
+                    <span class="auto-calc-label">建物価格（税抜）</span>
+                    <span class="auto-calc-value" style="color: #94a3b8;" id="refundBuildingPrice">¥0</span>
+                </div>
+                <div class="auto-calc-row">
+                    <span class="auto-calc-label">消費税額（還付額）</span>
+                    <span class="auto-calc-value" style="color: #fbbf24; font-size: 22px;" id="refundAmount">¥0</span>
+                </div>
+            </div>
+            <p class="note-text">※ 宿泊施設対応エリアの場合、課税事業者届出により建物取得にかかる消費税の還付を受けることができます。還付は通常、確定申告後に行われます。</p>
+        </div>
+
+        <!-- 初年度月別 -->
+        <div class="card">
+            <div class="card-title">初年度 月別キャッシュフロー</div>
+            <p class="note-text" id="year1Note"></p>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>月</th>
+                            <th>家賃収入</th>
+                            <th>その他収入</th>
+                            <th>ローン返済</th>
+                            <th>経費</th>
+                            <th>月間CF</th>
+                            <th>累計CF</th>
+                        </tr>
+                    </thead>
+                    <tbody id="monthlyTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 年別 -->
+        <div class="card">
+            <div class="card-title">年別キャッシュフロー</div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>年</th>
+                            <th>年間収入</th>
+                            <th>年間ローン返済</th>
+                            <th>年間経費</th>
+                            <th>年間CF</th>
+                            <th>累計CF</th>
+                        </tr>
+                    </thead>
+                    <tbody id="annualTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- エクスポートボタン -->
+        <div class="export-bar">
+            <button class="btn-export btn-preview" onclick="previewPDF()">PDF プレビュー</button>
+            <button class="btn-export btn-pdf" onclick="exportFile('pdf')">PDF ダウンロード</button>
+            <button class="btn-export btn-excel" onclick="exportFile('excel')">Excel ダウンロード</button>
+            <button class="btn-export btn-word" onclick="exportFile('word')">Word ダウンロード</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+function formatYen(n) {
+    if (n === null || n === undefined || isNaN(n)) return '¥0';
+    const sign = n < 0 ? '-' : '';
+    return sign + '¥' + Math.abs(Math.round(n)).toLocaleString('ja-JP');
+}
+
+function formatPercent(n) {
+    return n.toFixed(2) + '%';
+}
+
+function val(id) {
+    return parseFloat($(id).value) || 0;
+}
+
+function getTotalRent() {
+    let total = 0;
+    document.querySelectorAll('.room-rent').forEach(input => {
+        total += parseFloat(input.value) || 0;
+    });
+    return total;
+}
+
+function addRoom() {
+    const list = $('roomList');
+    const count = list.querySelectorAll('.room-row').length + 1;
+    const row = document.createElement('div');
+    row.className = 'room-row';
+    row.innerHTML = `
+        <div class="form-group">
+            <label>部屋名</label>
+            <input type="text" class="room-name" value="${count}0${count}号室">
+        </div>
+        <div class="form-group">
+            <label>月額家賃（円）</label>
+            <input type="number" class="room-rent" value="70000" step="1000">
+        </div>
+        <button class="btn btn-remove btn-sm" onclick="removeRoom(this)">削除</button>
+    `;
+    list.appendChild(row);
+    row.querySelector('.room-rent').addEventListener('input', updateLiveCalc);
+    updateLiveCalc();
+}
+
+function removeRoom(btn) {
+    const rows = document.querySelectorAll('.room-row');
+    if (rows.length <= 1) return;
+    btn.closest('.room-row').remove();
+    updateLiveCalc();
+}
+
+function calcMonthlyPayment(principal, annualRate, termYears) {
+    if (principal <= 0 || termYears <= 0) return 0;
+    if (annualRate <= 0) return principal / (termYears * 12);
+    const r = annualRate / 100 / 12;
+    const n = termYears * 12;
+    return principal * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+}
+
+function calcInterestOnly(principal, annualRate) {
+    if (principal <= 0 || annualRate <= 0) return 0;
+    return principal * (annualRate / 100 / 12);
+}
+
+function updateLiveCalc() {
+    const totalRent = getTotalRent();
+    $('totalRentValue').textContent = formatYen(totalRent);
+
+    const loanAmount = val('loanAmount');
+    const rate = val('interestRate');
+    const term = val('loanTermYears');
+    const monthly = calcMonthlyPayment(loanAmount, rate, term);
+    const gracePeriod = val('gracePeriod');
+    const totalRepay = monthly * (term * 12 - gracePeriod);
+
+    $('monthlyPaymentValue').textContent = formatYen(monthly);
+    $('totalRepaymentValue').textContent = formatYen(totalRepay);
+
+    const mgmt = val('managementFee');
+    const repair = val('repairReserve');
+    const other = val('otherExpense');
+    const tax = val('propertyTax');
+    const ins = val('insurance');
+    const monthlyExp = mgmt + repair + other + tax / 12 + ins / 12;
+    const annualExp = mgmt * 12 + repair * 12 + other * 12 + tax + ins;
+
+    $('monthlyExpenseValue').textContent = formatYen(monthlyExp);
+    $('annualExpenseValue').textContent = formatYen(annualExp);
+}
+
+let lastSimData = null;
+
+function runSimulation() {
+    const totalRent = getTotalRent();
+    const otherIncome = val('otherIncome');
+    const fillMonths = Math.max(1, val('fillMonths'));
+    const vacancyRate = val('vacancyRate') / 100;
+    const rentGrowthRate = val('rentGrowthRate') / 100;
+    const totalPrice = val('totalPrice');
+    const buildingPrice = val('buildingPrice');
+    const taxRate = val('taxRate') / 100;
+    const isAccom = $('isAccommodation').checked;
+    const completionMonth = Math.max(1, Math.min(12, val('completionMonth')));
+
+    const loanAmount = val('loanAmount');
+    const rate = val('interestRate');
+    const termYears = val('loanTermYears');
+    const gracePeriod = val('gracePeriod');
+
+    const monthlyPayment = calcMonthlyPayment(loanAmount, rate, termYears);
+
+    const mgmt = val('managementFee');
+    const repair = val('repairReserve');
+    const otherExp = val('otherExpense');
+    const tax = val('propertyTax');
+    const ins = val('insurance');
+    const monthlyExpenseBase = mgmt + repair + otherExp + tax / 12 + ins / 12;
+
+    const simYears = Math.max(1, val('simYears'));
+
+    // --- Year 1 monthly ---
+    // completionMonth: the month the building completes (1-12)
+    // fillMonths: months after completion to reach full occupancy
+    // gracePeriod: months after completion with ¥0 loan payment
+    const months = [];
+    let cumCF = 0;
+    let year1Total = { income: 0, loan: 0, expense: 0, cf: 0 };
+
+    for (let m = 1; m <= 12; m++) {
+        const monthsSinceCompletion = m - completionMonth;
+
+        if (m < completionMonth) {
+            // Before completion: nothing happens
+            months.push({ month: m, rent: 0, other: 0, loan: 0, expense: 0, cf: 0, cumCF, note: '完成前' });
+            continue;
+        }
+
+        const elapsed = monthsSinceCompletion + 1;
+        const occupancyRate = Math.min(elapsed / fillMonths, 1.0);
+        const rent = Math.round(totalRent * occupancyRate);
+        const other = Math.round(otherIncome * occupancyRate);
+
+        // Grace period: ¥0 loan payment for gracePeriod months after completion
+        const inGrace = monthsSinceCompletion < gracePeriod;
+        const loan = inGrace ? 0 : Math.round(monthlyPayment);
+        const expense = Math.round(monthlyExpenseBase);
+        const cf = rent + other - loan - expense;
+        cumCF += cf;
+
+        const note = inGrace ? '据置中' : '';
+        months.push({ month: m, rent, other, loan, expense, cf, cumCF, note });
+        year1Total.income += rent + other;
+        year1Total.loan += loan;
+        year1Total.expense += expense;
+        year1Total.cf += cf;
+    }
+
+    // Consumption tax refund
+    const refund = isAccom ? Math.round(buildingPrice * taxRate) : 0;
+
+    // Grace period benefit: months where rooms are occupied but loan is ¥0
+    const fullOccupancyMonth = completionMonth + fillMonths;
+    const graceEndMonth = completionMonth + gracePeriod;
+    const occupiedGraceMonths = Math.max(0, Math.min(graceEndMonth, 13) - Math.min(fullOccupancyMonth, 13));
+    const graceSaving = Math.round(monthlyPayment * occupiedGraceMonths);
+
+    // --- Annual summary ---
+    const annuals = [];
+    let annualCumCF = year1Total.cf + refund;
+
+    annuals.push({
+        year: 1,
+        income: year1Total.income,
+        loan: year1Total.loan,
+        expense: year1Total.expense,
+        cf: year1Total.cf + refund,
+        cumCF: annualCumCF,
+        hasRefund: refund > 0
+    });
+
+    let breakevenYear = annualCumCF >= 0 ? 1 : null;
+    let currentRent = totalRent;
+
+    // Total grace months from completion (spans into year 2+ if completion is late)
+    const graceEndGlobalMonth = completionMonth + gracePeriod;
+
+    for (let y = 2; y <= simYears; y++) {
+        currentRent = currentRent * (1 + rentGrowthRate);
+        const annualRent = Math.round(currentRent * 12 * (1 - vacancyRate));
+        const annualOther = Math.round(otherIncome * 12);
+        const annualIncome = annualRent + annualOther;
+
+        let annualLoan = 0;
+        for (let m = 1; m <= 12; m++) {
+            const globalMonth = (y - 1) * 12 + m;
+            if (globalMonth < graceEndGlobalMonth) {
+                annualLoan += 0;
+            } else if (globalMonth <= termYears * 12 + completionMonth) {
+                annualLoan += monthlyPayment;
+            }
+        }
+        annualLoan = Math.round(annualLoan);
+
+        const annualExpense = Math.round(mgmt * 12 + repair * 12 + otherExp * 12 + tax + ins);
+        const cf = annualIncome - annualLoan - annualExpense;
+        annualCumCF += cf;
+
+        annuals.push({
+            year: y,
+            income: annualIncome,
+            loan: annualLoan,
+            expense: annualExpense,
+            cf: cf,
+            cumCF: annualCumCF,
+            hasRefund: false
+        });
+
+        if (breakevenYear === null && annualCumCF >= 0) {
+            breakevenYear = y;
+        }
+    }
+
+    // --- Render ---
+    $('results').classList.remove('hidden');
+
+    // Summary
+    const annualFullRent = totalRent * 12;
+    const grossYield = totalPrice > 0 ? (annualFullRent / totalPrice * 100) : 0;
+    const annualExpenseTotal = mgmt * 12 + repair * 12 + otherExp * 12 + tax + ins;
+    const annualLoanTotal = monthlyPayment * 12;
+    const netYield = totalPrice > 0
+        ? ((annualFullRent - annualExpenseTotal - annualLoanTotal) / totalPrice * 100)
+        : 0;
+
+    $('grossYield').textContent = formatPercent(grossYield);
+    $('netYield').textContent = formatPercent(netYield);
+    $('netYield').className = 'summary-box-value ' + (netYield >= 0 ? 'positive' : 'negative');
+
+    $('year1CF').textContent = formatYen(year1Total.cf);
+    $('year1CF').className = 'summary-box-value ' + (year1Total.cf >= 0 ? 'positive' : 'negative');
+
+    const year1WithRefund = year1Total.cf + refund;
+    $('year1CFWithRefund').textContent = formatYen(year1WithRefund);
+    $('year1CFWithRefund').className = 'summary-box-value ' + (year1WithRefund >= 0 ? 'positive' : 'negative');
+    $('refundNote').textContent = refund > 0 ? `還付額 ${formatYen(refund)} を含む` : '還付対象外';
+
+    $('breakeven').textContent = breakevenYear ? `${breakevenYear}年目` : `${simYears}年超`;
+
+    $('graceBenefit').textContent = formatYen(graceSaving);
+    $('graceNote').textContent = occupiedGraceMonths > 0
+        ? `満室後${occupiedGraceMonths}ヶ月間の返済据え置き効果`
+        : gracePeriod > 0 ? '据え置き期間中に満室未達' : '据え置きなし';
+
+    // Refund card
+    if (isAccom && refund > 0) {
+        $('refundCard').classList.remove('hidden');
+        $('refundBuildingPrice').textContent = formatYen(buildingPrice);
+        $('refundAmount').textContent = formatYen(refund);
+    } else {
+        $('refundCard').classList.add('hidden');
+    }
+
+    // Year 1 note
+    const compNote = completionMonth > 1 ? `建物完成 ${completionMonth}月目、` : '';
+    $('year1Note').textContent = `想定: ${compNote}完成後${fillMonths}ヶ月で満室、据え置き期間 ${gracePeriod}ヶ月（返済¥0）、通常返済 ${formatYen(monthlyPayment)}/月`;
+
+    // Monthly table
+    let monthlyHtml = '';
+    months.forEach(m => {
+        const loanClass = m.loan === 0 && m.note !== '完成前' && m.note === '据置中' ? 'positive' : (m.loan > 0 ? 'negative' : '');
+        const loanDisplay = m.note === '据置中' ? '¥0（据置中）' : (m.note === '完成前' ? '-' : formatYen(-m.loan));
+        const rentDisplay = m.note === '完成前' ? '-' : formatYen(m.rent);
+        const otherDisplay = m.note === '完成前' ? '-' : formatYen(m.other);
+        const expenseDisplay = m.note === '完成前' ? '-' : formatYen(-m.expense);
+        monthlyHtml += `<tr>
+            <td>${m.month}月${m.note ? ' <small style="color:#64748b">(' + m.note + ')</small>' : ''}</td>
+            <td>${rentDisplay}</td>
+            <td>${otherDisplay}</td>
+            <td class="${loanClass}">${loanDisplay}</td>
+            <td class="negative">${expenseDisplay}</td>
+            <td class="${m.cf >= 0 ? 'positive' : 'negative'}">${m.note === '完成前' ? '-' : formatYen(m.cf)}</td>
+            <td class="${m.cumCF >= 0 ? 'positive' : 'negative'}">${formatYen(m.cumCF)}</td>
+        </tr>`;
+    });
+    // Year 1 total row
+    monthlyHtml += `<tr class="highlight-row">
+        <td>合計</td>
+        <td>${formatYen(year1Total.income)}</td>
+        <td>-</td>
+        <td class="negative">${formatYen(-year1Total.loan)}</td>
+        <td class="negative">${formatYen(-year1Total.expense)}</td>
+        <td class="${year1Total.cf >= 0 ? 'positive' : 'negative'}">${formatYen(year1Total.cf)}</td>
+        <td>-</td>
+    </tr>`;
+    if (refund > 0) {
+        monthlyHtml += `<tr class="highlight-row">
+            <td>還付込</td>
+            <td colspan="4" style="text-align:left; padding-left:20px;">消費税還付: ${formatYen(refund)}</td>
+            <td class="positive">${formatYen(year1Total.cf + refund)}</td>
+            <td>-</td>
+        </tr>`;
+    }
+    $('monthlyTableBody').innerHTML = monthlyHtml;
+
+    // Annual table
+    let annualHtml = '';
+    annuals.forEach(a => {
+        const isBreakeven = breakevenYear === a.year && a.year > 1;
+        annualHtml += `<tr class="${isBreakeven ? 'highlight-row' : ''}">
+            <td>${a.year}年目${a.hasRefund ? ' *' : ''}</td>
+            <td>${formatYen(a.income)}</td>
+            <td class="negative">${formatYen(-a.loan)}</td>
+            <td class="negative">${formatYen(-a.expense)}</td>
+            <td class="${a.cf >= 0 ? 'positive' : 'negative'}">${formatYen(a.cf)}</td>
+            <td class="${a.cumCF >= 0 ? 'positive' : 'negative'}">${formatYen(a.cumCF)}</td>
+        </tr>`;
+    });
+    $('annualTableBody').innerHTML = annualHtml;
+
+    lastSimData = {
+        property: {
+            name: $('propertyName').value || '物件',
+            totalPrice: totalPrice,
+            buildingPrice: buildingPrice,
+            buildingAge: val('buildingAge'),
+            completionMonth: completionMonth,
+            loanAmount: loanAmount,
+            interestRate: rate,
+            loanTermYears: termYears,
+            gracePeriod: gracePeriod,
+        },
+        summary: {
+            grossYield: formatPercent(grossYield),
+            netYield: formatPercent(netYield),
+            monthlyPayment: Math.round(monthlyPayment),
+            year1CF: year1Total.cf,
+            refund: refund,
+            year1CFWithRefund: year1Total.cf + refund,
+            graceBenefit: graceSaving,
+            breakeven: breakevenYear ? `${breakevenYear}年目` : `${simYears}年超`,
+        },
+        monthly: months,
+        annual: annuals.map(a => ({
+            year: a.year, income: a.income, loan: a.loan,
+            expense: a.expense, cf: a.cf, cumCF: a.cumCF,
+        })),
+    };
+
+    $('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function previewPDF() {
+    if (!lastSimData) {
+        alert('先に「キャッシュフローを計算する」を実行してください。');
+        return;
+    }
+    const payload = { ...lastSimData, format: 'pdf' };
+    fetch('/api/realestate/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    })
+    .then(res => {
+        if (!res.ok) throw new Error('Preview failed');
+        return res.blob();
+    })
+    .then(blob => {
+        const url = URL.createObjectURL(blob);
+        window.open(url, '_blank');
+    })
+    .catch(err => alert('プレビューに失敗しました: ' + err.message));
+}
+
+function exportFile(format) {
+    if (!lastSimData) {
+        alert('先に「キャッシュフローを計算する」を実行してください。');
+        return;
+    }
+    const payload = { ...lastSimData, format: format };
+    fetch('/api/realestate/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    })
+    .then(res => {
+        if (!res.ok) throw new Error('Export failed');
+        const cd = res.headers.get('Content-Disposition') || '';
+        const match = cd.match(/filename\*?=(?:UTF-8'')?(.+)/);
+        const filename = match ? decodeURIComponent(match[1]) : `不動産CF.${format === 'excel' ? 'xlsx' : format === 'word' ? 'docx' : 'pdf'}`;
+        return res.blob().then(blob => ({ blob, filename }));
+    })
+    .then(({ blob, filename }) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+    })
+    .catch(err => alert('エクスポートに失敗しました: ' + err.message));
+}
+
+// Live update on input changes
+document.querySelectorAll('input').forEach(input => {
+    input.addEventListener('input', updateLiveCalc);
+});
+
+// Auto-set grace period for new construction
+$('buildingAge').addEventListener('input', function() {
+    if (parseInt(this.value) === 0) {
+        $('gracePeriod').value = 6;
+    } else {
+        $('gracePeriod').value = 0;
+    }
+    updateLiveCalc();
+});
+
+// Initial calculation
+updateLiveCalc();
+</script>
+
+</body>
+</html>
