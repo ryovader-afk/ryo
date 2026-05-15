@@ -1675,22 +1675,11 @@ $('buildingAge').addEventListener('input', function() {
 
 // ── Data Vault ──
 
-const VAULT_KEY = 'realestate_vault';
-
 const FORM_FIELDS = [
     'propertyName','totalPrice','buildingPrice','buildingAge','taxRate',
     'completionMonth','fillMonths','vacancyRate','rentGrowthRate',
     'loanAmount','interestRate','loanTermYears','gracePeriod','simYears'
 ];
-
-function getVault() {
-    try { return JSON.parse(localStorage.getItem(VAULT_KEY)) || []; }
-    catch { return []; }
-}
-
-function setVault(data) {
-    localStorage.setItem(VAULT_KEY, JSON.stringify(data));
-}
 
 function collectFormData() {
     const data = {};
@@ -1806,34 +1795,41 @@ function restoreFormData(data) {
 
 function saveToVault() {
     const name = $('propertyName').value.trim() || '無名物件';
-    const vault = getVault();
     const now = new Date();
     const entry = {
         id: Date.now(),
         name: name,
         date: now.toISOString().slice(0, 10),
         time: now.toTimeString().slice(0, 5),
-        totalPrice: $('totalPrice').value,
+        totalPrice: stripComma($('totalPrice').value),
         data: collectFormData(),
     };
-    vault.unshift(entry);
-    setVault(vault);
-    renderVault();
+    fetch('/api/vault', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(entry),
+    })
+    .then(res => { if (!res.ok) throw new Error('Save failed'); return res.json(); })
+    .then(() => renderVault())
+    .catch(err => alert('保存に失敗しました: ' + err.message));
 }
 
 function loadFromVault(id) {
-    const vault = getVault();
-    const entry = vault.find(e => e.id === id);
-    if (!entry) return;
-    restoreFormData(entry.data);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    fetch('/api/vault/' + id)
+    .then(res => { if (!res.ok) throw new Error('Load failed'); return res.json(); })
+    .then(entry => {
+        restoreFormData(entry.data);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    })
+    .catch(err => alert('読込に失敗しました: ' + err.message));
 }
 
 function deleteFromVault(id) {
     if (!confirm('このデータを削除しますか？')) return;
-    const vault = getVault().filter(e => e.id !== id);
-    setVault(vault);
-    renderVault();
+    fetch('/api/vault/' + id, { method: 'DELETE' })
+    .then(res => { if (!res.ok) throw new Error('Delete failed'); return res.json(); })
+    .then(() => renderVault())
+    .catch(err => alert('削除に失敗しました: ' + err.message));
 }
 
 function formatYenShort(n) {
@@ -1844,24 +1840,30 @@ function formatYenShort(n) {
 }
 
 function renderVault() {
-    const vault = getVault();
-    const list = $('vaultList');
-    if (vault.length === 0) {
-        list.innerHTML = '<div class="vault-empty">保存されたデータはありません</div>';
-        return;
-    }
-    list.innerHTML = vault.map(e => `
-        <div class="vault-item">
-            <div class="vault-item-info">
-                <div class="vault-item-name">${e.name}</div>
-                <div class="vault-item-meta">${e.date} ${e.time || ''}　${e.totalPrice ? '物件価格: ¥' + formatYenShort(e.totalPrice) : ''}</div>
+    fetch('/api/vault')
+    .then(res => res.json())
+    .then(vault => {
+        const list = $('vaultList');
+        if (vault.length === 0) {
+            list.innerHTML = '<div class="vault-empty">保存されたデータはありません</div>';
+            return;
+        }
+        list.innerHTML = vault.map(e => `
+            <div class="vault-item">
+                <div class="vault-item-info">
+                    <div class="vault-item-name">${e.name}</div>
+                    <div class="vault-item-meta">${e.date} ${e.time || ''}　${e.total_price ? '物件価格: ¥' + formatYenShort(e.total_price) : ''}</div>
+                </div>
+                <div class="vault-item-actions">
+                    <button class="btn btn-sm btn-vault-load" onclick="loadFromVault(${e.id})">読込</button>
+                    <button class="btn btn-sm btn-vault-delete" onclick="deleteFromVault(${e.id})">削除</button>
+                </div>
             </div>
-            <div class="vault-item-actions">
-                <button class="btn btn-sm btn-vault-load" onclick="loadFromVault(${e.id})">読込</button>
-                <button class="btn btn-sm btn-vault-delete" onclick="deleteFromVault(${e.id})">削除</button>
-            </div>
-        </div>
-    `).join('');
+        `).join('');
+    })
+    .catch(() => {
+        $('vaultList').innerHTML = '<div class="vault-empty">データの読み込みに失敗しました</div>';
+    });
 }
 
 // Initial calculation & vault render

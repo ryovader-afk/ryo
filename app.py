@@ -2,6 +2,9 @@
 """旅費精算書自動生成アプリ"""
 
 import io
+import os
+import json
+import sqlite3
 import datetime
 import random
 from flask import Flask, render_template, request, send_file, jsonify
@@ -11,6 +14,34 @@ from generate_pdf import generate_travel_expense_pdf
 from generate_realestate_export import generate_excel, generate_word, generate_pdf
 
 app = Flask(__name__)
+
+DB_DIR = os.environ.get("DATA_DIR", "/data" if os.path.isdir("/data") else ".")
+DB_PATH = os.path.join(DB_DIR, "vault.db")
+
+
+def get_db():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def init_db():
+    conn = get_db()
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS vault (
+            id INTEGER PRIMARY KEY,
+            name TEXT NOT NULL,
+            date TEXT NOT NULL,
+            time TEXT,
+            total_price TEXT,
+            data TEXT NOT NULL
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+
+init_db()
 
 
 @app.route("/")
@@ -46,6 +77,47 @@ def realestate_export():
                          mimetype="application/pdf")
     else:
         return jsonify({"error": "Unknown format"}), 400
+
+
+@app.route("/api/vault", methods=["GET"])
+def vault_list():
+    conn = get_db()
+    rows = conn.execute("SELECT id, name, date, time, total_price FROM vault ORDER BY id DESC").fetchall()
+    conn.close()
+    return jsonify([dict(r) for r in rows])
+
+
+@app.route("/api/vault", methods=["POST"])
+def vault_save():
+    body = request.json
+    conn = get_db()
+    conn.execute(
+        "INSERT INTO vault (id, name, date, time, total_price, data) VALUES (?, ?, ?, ?, ?, ?)",
+        (body["id"], body["name"], body["date"], body.get("time", ""),
+         body.get("totalPrice", ""), json.dumps(body["data"], ensure_ascii=False)),
+    )
+    conn.commit()
+    conn.close()
+    return jsonify({"ok": True})
+
+
+@app.route("/api/vault/<int:entry_id>", methods=["GET"])
+def vault_get(entry_id):
+    conn = get_db()
+    row = conn.execute("SELECT * FROM vault WHERE id = ?", (entry_id,)).fetchone()
+    conn.close()
+    if not row:
+        return jsonify({"error": "not found"}), 404
+    return jsonify({**dict(row), "data": json.loads(row["data"])})
+
+
+@app.route("/api/vault/<int:entry_id>", methods=["DELETE"])
+def vault_delete(entry_id):
+    conn = get_db()
+    conn.execute("DELETE FROM vault WHERE id = ?", (entry_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({"ok": True})
 
 
 @app.route("/api/generate-reason", methods=["POST"])
