@@ -632,11 +632,11 @@
             </div>
             <div class="form-group">
                 <label>物件価格（税込総額）</label>
-                <input type="number" id="totalPrice" placeholder="例: 150000000" step="1000000">
+                <input type="text" id="totalPrice" placeholder="例: 150,000,000" inputmode="numeric" class="yen-input">
             </div>
             <div class="form-group">
                 <label>建物価格（税抜）</label>
-                <input type="number" id="buildingPrice" placeholder="例: 100000000" step="1000000">
+                <input type="text" id="buildingPrice" placeholder="例: 100,000,000" inputmode="numeric" class="yen-input">
             </div>
             <div class="form-group">
                 <label>築年数（0=新築）</label>
@@ -672,7 +672,7 @@
                 </div>
                 <div class="form-group">
                     <label>月額家賃（円）</label>
-                    <input type="number" class="room-rent" value="80000" step="1000">
+                    <input type="text" class="room-rent yen-input" value="80,000" inputmode="numeric">
                 </div>
                 <button class="btn btn-remove btn-sm" onclick="removeRoom(this)">削除</button>
             </div>
@@ -683,7 +683,7 @@
                 </div>
                 <div class="form-group">
                     <label>月額家賃（円）</label>
-                    <input type="number" class="room-rent" value="80000" step="1000">
+                    <input type="text" class="room-rent yen-input" value="80,000" inputmode="numeric">
                 </div>
                 <button class="btn btn-remove btn-sm" onclick="removeRoom(this)">削除</button>
             </div>
@@ -694,7 +694,7 @@
                 </div>
                 <div class="form-group">
                     <label>月額家賃（円）</label>
-                    <input type="number" class="room-rent" value="75000" step="1000">
+                    <input type="text" class="room-rent yen-input" value="75,000" inputmode="numeric">
                 </div>
                 <button class="btn btn-remove btn-sm" onclick="removeRoom(this)">削除</button>
             </div>
@@ -709,7 +709,7 @@
         <div class="form-grid" style="margin-top: 16px;">
             <div class="form-group">
                 <label>その他月額収入（駐車場・自販機等）</label>
-                <input type="number" id="otherIncome" value="0" step="1000">
+                <input type="text" id="otherIncome" value="0" inputmode="numeric" class="yen-input">
             </div>
             <div class="form-group">
                 <label>想定満室までの月数（初年度）</label>
@@ -732,7 +732,7 @@
         <div class="form-grid">
             <div class="form-group">
                 <label>借入金額（円）</label>
-                <input type="number" id="loanAmount" placeholder="例: 140000000" step="1000000">
+                <input type="text" id="loanAmount" placeholder="例: 140,000,000" inputmode="numeric" class="yen-input">
             </div>
             <div class="form-group">
                 <label>金利（年率 %）</label>
@@ -771,23 +771,23 @@
         <div class="form-grid">
             <div class="form-group">
                 <label>固定資産税（年額・円）</label>
-                <input type="number" id="propertyTax" value="300000" step="10000">
+                <input type="text" id="propertyTax" value="300,000" inputmode="numeric" class="yen-input">
             </div>
             <div class="form-group">
                 <label>管理費（月額・円）</label>
-                <input type="number" id="managementFee" value="30000" step="1000">
+                <input type="text" id="managementFee" value="30,000" inputmode="numeric" class="yen-input">
             </div>
             <div class="form-group">
                 <label>火災保険料（年額・円）</label>
-                <input type="number" id="insurance" value="100000" step="10000">
+                <input type="text" id="insurance" value="100,000" inputmode="numeric" class="yen-input">
             </div>
             <div class="form-group">
                 <label>修繕積立金（月額・円）</label>
-                <input type="number" id="repairReserve" value="20000" step="1000">
+                <input type="text" id="repairReserve" value="20,000" inputmode="numeric" class="yen-input">
             </div>
             <div class="form-group">
                 <label>その他経費（月額・円）</label>
-                <input type="number" id="otherExpense" value="0" step="1000">
+                <input type="text" id="otherExpense" value="0" inputmode="numeric" class="yen-input">
             </div>
             <div class="form-group">
                 <label>シミュレーション年数</label>
@@ -929,14 +929,34 @@ function formatPercent(n) {
     return n.toFixed(2) + '%';
 }
 
+function stripComma(s) {
+    return String(s).replace(/,/g, '');
+}
+
+function formatComma(n) {
+    n = parseInt(stripComma(n)) || 0;
+    return n.toLocaleString('ja-JP');
+}
+
+function applyYenFormat(input) {
+    const pos = input.selectionStart;
+    const oldLen = input.value.length;
+    const raw = stripComma(input.value).replace(/[^0-9-]/g, '');
+    const num = parseInt(raw) || 0;
+    input.value = num === 0 ? '0' : formatComma(num);
+    const newLen = input.value.length;
+    const newPos = Math.max(0, pos + (newLen - oldLen));
+    input.setSelectionRange(newPos, newPos);
+}
+
 function val(id) {
-    return parseFloat($(id).value) || 0;
+    return parseFloat(stripComma($(id).value)) || 0;
 }
 
 function getTotalRent() {
     let total = 0;
     document.querySelectorAll('.room-rent').forEach(input => {
-        total += parseFloat(input.value) || 0;
+        total += parseFloat(stripComma(input.value)) || 0;
     });
     return total;
 }
@@ -953,12 +973,14 @@ function addRoom() {
         </div>
         <div class="form-group">
             <label>月額家賃（円）</label>
-            <input type="number" class="room-rent" value="70000" step="1000">
+            <input type="text" class="room-rent yen-input" value="70,000" inputmode="numeric">
         </div>
         <button class="btn btn-remove btn-sm" onclick="removeRoom(this)">削除</button>
     `;
     list.appendChild(row);
-    row.querySelector('.room-rent').addEventListener('input', updateLiveCalc);
+    const rentInput = row.querySelector('.room-rent');
+    rentInput.addEventListener('input', updateLiveCalc);
+    rentInput.addEventListener('input', function() { applyYenFormat(this); });
     updateLiveCalc();
 }
 
@@ -1320,9 +1342,13 @@ function exportFile(format) {
     .catch(err => alert('エクスポートに失敗しました: ' + err.message));
 }
 
-// Live update on input changes
+// Live update on input changes + yen formatting
 document.querySelectorAll('input').forEach(input => {
     input.addEventListener('input', updateLiveCalc);
+});
+document.querySelectorAll('.yen-input').forEach(input => {
+    input.addEventListener('input', function() { applyYenFormat(this); });
+    applyYenFormat(input);
 });
 
 // Auto-set grace period for new construction
@@ -1357,12 +1383,12 @@ function setVault(data) {
 
 function collectFormData() {
     const data = {};
-    FORM_FIELDS.forEach(id => { data[id] = $(id).value; });
+    FORM_FIELDS.forEach(id => { data[id] = stripComma($(id).value); });
     data.isAccommodation = $('isAccommodation').checked;
     data.rooms = [];
     document.querySelectorAll('.room-row').forEach(row => {
         const name = row.querySelector('.room-name')?.value || '';
-        const rent = row.querySelector('.room-rent')?.value || '0';
+        const rent = stripComma(row.querySelector('.room-rent')?.value || '0');
         data.rooms.push({ name, rent });
     });
     return data;
@@ -1386,14 +1412,18 @@ function restoreFormData(data) {
                 </div>
                 <div class="form-group">
                     <label>月額家賃（円）</label>
-                    <input type="number" class="room-rent" value="${r.rent}" step="1000">
+                    <input type="text" class="room-rent yen-input" value="${formatComma(r.rent)}" inputmode="numeric">
                 </div>
                 <button class="btn btn-remove btn-sm" onclick="removeRoom(this)">削除</button>
             `;
             list.appendChild(row);
-            row.querySelector('.room-rent').addEventListener('input', updateLiveCalc);
+            const ri = row.querySelector('.room-rent');
+            ri.addEventListener('input', updateLiveCalc);
+            ri.addEventListener('input', function() { applyYenFormat(this); });
         });
     }
+    // Re-format all yen inputs after restore
+    document.querySelectorAll('.yen-input').forEach(input => applyYenFormat(input));
     updateLiveCalc();
 }
 
