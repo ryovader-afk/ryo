@@ -685,9 +685,15 @@
         </div>
     </div>
 
-    <!-- 計算ボタン -->
+    <!-- 計算・エクスポートボタン -->
     <div class="center-btn">
         <button class="btn btn-primary" onclick="runSimulation()">キャッシュフローを計算する</button>
+    </div>
+    <div class="export-bar">
+        <button class="btn-export btn-preview" onclick="previewPDF()">PDF プレビュー</button>
+        <button class="btn-export btn-pdf" onclick="exportFile('pdf')">PDF ダウンロード</button>
+        <button class="btn-export btn-excel" onclick="exportFile('excel')">Excel ダウンロード</button>
+        <button class="btn-export btn-word" onclick="exportFile('word')">Word ダウンロード</button>
     </div>
 
     <!-- 結果 -->
@@ -785,13 +791,6 @@
             </div>
         </div>
 
-        <!-- エクスポートボタン -->
-        <div class="export-bar">
-            <button class="btn-export btn-preview" onclick="previewPDF()">PDF プレビュー</button>
-            <button class="btn-export btn-pdf" onclick="exportFile('pdf')">PDF ダウンロード</button>
-            <button class="btn-export btn-excel" onclick="exportFile('excel')">Excel ダウンロード</button>
-            <button class="btn-export btn-word" onclick="exportFile('word')">Word ダウンロード</button>
-        </div>
     </div>
 </div>
 
