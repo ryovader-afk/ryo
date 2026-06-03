@@ -68,6 +68,8 @@ tr:hover { background: #f8f9fa; }
 }
 .source-badge.tomato { background: #fadbd8; color: #c0392b; }
 .source-badge.oroku { background: #d6eaf8; color: #2471a3; }
+.source-badge.uchina { background: #d5f5e3; color: #1e8449; }
+.source-badge.goohome { background: #e8daef; color: #6c3483; }
 
 .price { font-weight: 700; color: #c0392b; }
 .bairitsu { font-weight: 700; color: #1a5276; }
@@ -141,14 +143,6 @@ tr:hover { background: #f8f9fa; }
     <span>〜</span>
     <input type="number" id="filterMaxRent" placeholder="上限" step="10000" onchange="loadProperties()">
   </div>
-  <div class="filter-group">
-    <label>ソース:</label>
-    <select id="filterSource" onchange="loadProperties()">
-      <option value="">すべて</option>
-      <option value="tomato">とまとハウジング</option>
-      <option value="oroku">オロク商会</option>
-    </select>
-  </div>
 </div>
 
 <div class="count-bar">
@@ -193,11 +187,13 @@ function facilityClass(f) {
 }
 
 function sourceClass(s) {
-  return s === 'tomato' ? 'tomato' : 'oroku';
+  const map = {tomato:'tomato', oroku:'oroku', uchina:'uchina', goohome:'goohome'};
+  return map[s] || 'oroku';
 }
 
 function sourceName(s) {
-  return s === 'tomato' ? 'トマト' : 'オロク';
+  const map = {tomato:'トマト', oroku:'オロク', uchina:'うちなー', goohome:'グーホーム'};
+  return map[s] || s;
 }
 
 function isNew(firstSeen) {
@@ -258,8 +254,6 @@ async function loadProperties() {
   const maxRent = document.getElementById('filterMaxRent').value;
   if (maxRent) params.set('max_rent', maxRent);
 
-  const source = document.getElementById('filterSource').value;
-  if (source) params.set('source', source);
 
   try {
     const resp = await fetch('/api/properties?' + params.toString());

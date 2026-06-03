@@ -10,7 +10,7 @@ from datetime import datetime
 from flask import Flask, render_template, request, jsonify
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from scrapers import tomato, oroku
+from scrapers import tomato, oroku, uchina, goohome
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -138,7 +138,7 @@ def run_scrape():
     all_listings = []
     sources_status = []
 
-    for name, scraper in [("tomato", tomato), ("oroku", oroku)]:
+    for name, scraper in [("tomato", tomato), ("oroku", oroku), ("uchina", uchina), ("goohome", goohome)]:
         try:
             listings = scraper.scrape(
                 max_pages=SCRAPE_MAX_PAGES,
