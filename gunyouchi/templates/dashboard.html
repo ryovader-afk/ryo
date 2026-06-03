@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>沖縄軍用地検索ダッシュボード</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f0f2f5; color: #333; }
+
+.header {
+  background: linear-gradient(135deg, #1a5276, #2e86c1);
+  color: #fff; padding: 20px 30px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.header h1 { font-size: 1.4rem; }
+.header-actions { display: flex; gap: 10px; align-items: center; }
+.header-actions button {
+  background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.3);
+  padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.85rem;
+}
+.header-actions button:hover { background: rgba(255,255,255,0.3); }
+.last-scrape { font-size: 0.75rem; opacity: 0.8; }
+
+.stats-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px; padding: 20px 30px;
+}
+.stat-card {
+  background: #fff; border-radius: 10px; padding: 18px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.stat-card .label { font-size: 0.75rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+.stat-card .value { font-size: 1.8rem; font-weight: 700; margin-top: 4px; color: #1a5276; }
+.stat-card .sub { font-size: 0.75rem; color: #aaa; margin-top: 2px; }
+
+.filters {
+  padding: 0 30px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+}
+.filters label { font-size: 0.8rem; color: #666; }
+.filters select, .filters input {
+  padding: 6px 10px; border: 1px solid #ddd; border-radius: 6px;
+  font-size: 0.85rem; background: #fff;
+}
+.filters input[type="number"] { width: 90px; }
+.filter-group { display: flex; align-items: center; gap: 4px; }
+
+.table-container { padding: 20px 30px; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+thead { background: #1a5276; color: #fff; }
+th { padding: 12px 14px; text-align: left; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; user-select: none; }
+th:hover { background: #154360; }
+th .sort-arrow { margin-left: 4px; font-size: 0.7rem; }
+td { padding: 10px 14px; border-bottom: 1px solid #f0f0f0; font-size: 0.85rem; }
+tr:hover { background: #f8f9fa; }
+
+.facility-badge {
+  display: inline-block; padding: 2px 8px; border-radius: 4px;
+  font-size: 0.75rem; font-weight: 600;
+}
+.facility-badge.kadena-base { background: #d4efdf; color: #1e8449; }
+.facility-badge.kadena-ammo { background: #fdebd0; color: #ca6f1e; }
+.facility-badge.other { background: #e8e8e8; color: #666; }
+
+.source-badge {
+  display: inline-block; padding: 2px 6px; border-radius: 3px;
+  font-size: 0.7rem; font-weight: 600;
+}
+.source-badge.tomato { background: #fadbd8; color: #c0392b; }
+.source-badge.oroku { background: #d6eaf8; color: #2471a3; }
+
+.price { font-weight: 700; color: #c0392b; }
+.bairitsu { font-weight: 700; color: #1a5276; }
+.rise-rate { font-weight: 600; }
+.rise-rate.high { color: #27ae60; }
+.rise-rate.low { color: #e74c3c; }
+
+.detail-link { color: #2e86c1; text-decoration: none; }
+.detail-link:hover { text-decoration: underline; }
+
+.new-badge {
+  display: inline-block; background: #e74c3c; color: #fff;
+  font-size: 0.65rem; padding: 1px 5px; border-radius: 3px;
+  margin-left: 4px; font-weight: 700;
+}
+
+.empty-state { text-align: center; padding: 60px; color: #aaa; }
+.empty-state p { font-size: 1.1rem; margin-bottom: 10px; }
+
+.loading { text-align: center; padding: 40px; color: #888; }
+
+.count-bar { padding: 10px 30px; font-size: 0.8rem; color: #888; display: flex; justify-content: space-between; }
+
+@media (max-width: 768px) {
+  .header { flex-direction: column; gap: 10px; padding: 15px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); padding: 15px; }
+  .filters { padding: 0 15px; }
+  .table-container { padding: 15px; }
+  th, td { padding: 8px 6px; font-size: 0.75rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>沖縄軍用地検索ダッシュボード</h1>
+    <div class="last-scrape" id="lastScrape"></div>
+  </div>
+  <div class="header-actions">
+    <button onclick="triggerScrape()" id="scrapeBtn">手動スクレイピング</button>
+  </div>
+</div>
+
+<div class="stats-grid" id="statsGrid">
+  <div class="stat-card"><div class="label">総物件数</div><div class="value" id="statTotal">-</div></div>
+  <div class="stat-card"><div class="label">嘉手納飛行場</div><div class="value" id="statKadenaBase">-</div></div>
+  <div class="stat-card"><div class="label">嘉手納弾薬庫</div><div class="value" id="statKadenaAmmo">-</div></div>
+  <div class="stat-card"><div class="label">平均倍率</div><div class="value" id="statAvgBairitsu">-</div><div class="sub">倍</div></div>
+  <div class="stat-card"><div class="label">平均上昇率</div><div class="value" id="statAvgRise">-</div><div class="sub">%</div></div>
+</div>
+
+<div class="filters">
+  <div class="filter-group">
+    <label>施設:</label>
+    <select id="filterFacility" onchange="loadProperties()">
+      <option value="">すべて</option>
+      <option value="嘉手納飛行場">嘉手納飛行場</option>
+      <option value="嘉手納弾薬庫">嘉手納弾薬庫</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>倍率:</label>
+    <input type="number" id="filterMinBai" placeholder="下限" step="1" onchange="loadProperties()">
+    <span>〜</span>
+    <input type="number" id="filterMaxBai" placeholder="上限" step="1" onchange="loadProperties()">
+  </div>
+  <div class="filter-group">
+    <label>年間借地料:</label>
+    <input type="number" id="filterMinRent" placeholder="下限" step="10000" onchange="loadProperties()">
+    <span>〜</span>
+    <input type="number" id="filterMaxRent" placeholder="上限" step="10000" onchange="loadProperties()">
+  </div>
+  <div class="filter-group">
+    <label>ソース:</label>
+    <select id="filterSource" onchange="loadProperties()">
+      <option value="">すべて</option>
+      <option value="tomato">とまとハウジング</option>
+      <option value="oroku">オロク商会</option>
+    </select>
+  </div>
+</div>
+
+<div class="count-bar">
+  <span id="resultCount"></span>
+  <span>3時間ごとに自動更新</span>
+</div>
+
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th onclick="sortBy('source')">ソース<span class="sort-arrow" id="sort-source"></span></th>
+        <th onclick="sortBy('facility')">施設<span class="sort-arrow" id="sort-facility"></span></th>
+        <th onclick="sortBy('price_manyen')">価格(万円)<span class="sort-arrow" id="sort-price_manyen"></span></th>
+        <th onclick="sortBy('bairitsu')">倍率<span class="sort-arrow" id="sort-bairitsu"></span></th>
+        <th onclick="sortBy('annual_rent')">年間借地料<span class="sort-arrow" id="sort-annual_rent"></span></th>
+        <th onclick="sortBy('rise_rate')">上昇率(%)<span class="sort-arrow" id="sort-rise_rate"></span></th>
+        <th onclick="sortBy('area_tsubo')">面積(坪)<span class="sort-arrow" id="sort-area_tsubo"></span></th>
+        <th>詳細</th>
+      </tr>
+    </thead>
+    <tbody id="propertyTable">
+      <tr><td colspan="8" class="loading">読み込み中...</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+let currentSort = 'bairitsu';
+let currentOrder = 'asc';
+
+function formatNumber(n) {
+  if (n == null) return '-';
+  return n.toLocaleString();
+}
+
+function facilityClass(f) {
+  if (!f) return 'other';
+  if (f.includes('飛行場')) return 'kadena-base';
+  if (f.includes('弾薬庫')) return 'kadena-ammo';
+  return 'other';
+}
+
+function sourceClass(s) {
+  return s === 'tomato' ? 'tomato' : 'oroku';
+}
+
+function sourceName(s) {
+  return s === 'tomato' ? 'トマト' : 'オロク';
+}
+
+function isNew(firstSeen) {
+  if (!firstSeen) return false;
+  const diff = Date.now() - new Date(firstSeen).getTime();
+  return diff < 24 * 60 * 60 * 1000;
+}
+
+function sortBy(col) {
+  if (currentSort === col) {
+    currentOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+  } else {
+    currentSort = col;
+    currentOrder = 'asc';
+  }
+  updateSortArrows();
+  loadProperties();
+}
+
+function updateSortArrows() {
+  document.querySelectorAll('.sort-arrow').forEach(el => el.textContent = '');
+  const el = document.getElementById('sort-' + currentSort);
+  if (el) el.textContent = currentOrder === 'asc' ? ' ▲' : ' ▼';
+}
+
+async function loadStats() {
+  try {
+    const resp = await fetch('/api/stats');
+    const data = await resp.json();
+    document.getElementById('statTotal').textContent = data.total || 0;
+    document.getElementById('statKadenaBase').textContent = data.kadena_base || 0;
+    document.getElementById('statKadenaAmmo').textContent = data.kadena_ammo || 0;
+    document.getElementById('statAvgBairitsu').textContent = data.avg_bairitsu || '-';
+    document.getElementById('statAvgRise').textContent = data.avg_rise_rate || '-';
+    if (data.last_scrape && data.last_scrape.finished_at) {
+      const d = new Date(data.last_scrape.finished_at);
+      document.getElementById('lastScrape').textContent =
+        `最終取得: ${d.toLocaleString('ja-JP')} / ${data.last_scrape.total_found}件取得 / ${data.last_scrape.new_count}件新規`;
+    }
+  } catch(e) { console.error(e); }
+}
+
+async function loadProperties() {
+  const params = new URLSearchParams();
+  params.set('sort', currentSort);
+  params.set('order', currentOrder);
+
+  const facility = document.getElementById('filterFacility').value;
+  if (facility) params.set('facility', facility);
+
+  const minBai = document.getElementById('filterMinBai').value;
+  if (minBai) params.set('min_bairitsu', minBai);
+  const maxBai = document.getElementById('filterMaxBai').value;
+  if (maxBai) params.set('max_bairitsu', maxBai);
+
+  const minRent = document.getElementById('filterMinRent').value;
+  if (minRent) params.set('min_rent', minRent);
+  const maxRent = document.getElementById('filterMaxRent').value;
+  if (maxRent) params.set('max_rent', maxRent);
+
+  const source = document.getElementById('filterSource').value;
+  if (source) params.set('source', source);
+
+  try {
+    const resp = await fetch('/api/properties?' + params.toString());
+    const data = await resp.json();
+    renderTable(data);
+    document.getElementById('resultCount').textContent = `${data.length}件表示中`;
+  } catch(e) {
+    console.error(e);
+    document.getElementById('propertyTable').innerHTML =
+      '<tr><td colspan="8" class="empty-state"><p>データの取得に失敗しました</p></td></tr>';
+  }
+}
+
+function renderTable(properties) {
+  const tbody = document.getElementById('propertyTable');
+
+  if (properties.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" class="empty-state"><p>物件が見つかりません</p><p>「手動スクレイピング」を実行してデータを取得してください</p></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = properties.map(p => {
+    const riseClass = p.rise_rate ? (p.rise_rate >= 1.0 ? 'high' : 'low') : '';
+    const newBadge = isNew(p.first_seen) ? '<span class="new-badge">NEW</span>' : '';
+
+    return `<tr>
+      <td><span class="source-badge ${sourceClass(p.source)}">${sourceName(p.source)}</span></td>
+      <td><span class="facility-badge ${facilityClass(p.facility)}">${p.facility || '-'}</span>${newBadge}</td>
+      <td class="price">${formatNumber(p.price_manyen)}</td>
+      <td class="bairitsu">${p.bairitsu != null ? p.bairitsu + '倍' : '-'}</td>
+      <td>${p.annual_rent != null ? '¥' + formatNumber(p.annual_rent) : '-'}</td>
+      <td class="rise-rate ${riseClass}">${p.rise_rate != null ? p.rise_rate + '%' : '-'}</td>
+      <td>${p.area_tsubo != null ? formatNumber(p.area_tsubo) + '坪' : '-'}</td>
+      <td>${p.detail_url ? '<a class="detail-link" href="' + p.detail_url + '" target="_blank">詳細→</a>' : '-'}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function triggerScrape() {
+  const btn = document.getElementById('scrapeBtn');
+  btn.textContent = 'スクレイピング中...';
+  btn.disabled = true;
+  try {
+    await fetch('/api/scrape', { method: 'POST' });
+    setTimeout(() => {
+      btn.textContent = '手動スクレイピング';
+      btn.disabled = false;
+      loadStats();
+      loadProperties();
+    }, 10000);
+  } catch(e) {
+    btn.textContent = '手動スクレイピング';
+    btn.disabled = false;
+  }
+}
+
+updateSortArrows();
+loadStats();
+loadProperties();
+setInterval(() => { loadStats(); loadProperties(); }, 60000);
+</script>
+
+</body>
+</html>
