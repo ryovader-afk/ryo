@@ -1,0 +1,2748 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>出張旅費精算書 自動生成アプリ</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+            min-height: 100vh;
+            color: #e2e8f0;
+        }
+
+        .header {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(99, 179, 237, 0.2);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-inner {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(90deg, #63b3ed, #4fd1c5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        .card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(99, 179, 237, 0.15);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px;
+            transition: border-color 0.3s;
+        }
+
+        .card:hover {
+            border-color: rgba(99, 179, 237, 0.35);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #63b3ed;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 20px;
+            background: linear-gradient(180deg, #63b3ed, #4fd1c5);
+            border-radius: 2px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #94a3b8;
+        }
+
+        label .required {
+            color: #f87171;
+            margin-left: 4px;
+        }
+
+        input, select, textarea {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 179, 237, 0.2);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: #e2e8f0;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #63b3ed;
+            box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.15);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        .transport-row {
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(99, 179, 237, 0.1);
+        }
+
+        .transport-compact-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            align-items: end;
+            margin-bottom: 4px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(99, 179, 237, 0.1);
+            color: #63b3ed;
+            border: 1px solid rgba(99, 179, 237, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(99, 179, 237, 0.2);
+        }
+
+        .btn-accent {
+            background: rgba(251, 191, 36, 0.15);
+            color: #f59e0b;
+            border: 1px solid rgba(251, 191, 36, 0.4);
+        }
+
+        .btn-accent:hover {
+            background: rgba(251, 191, 36, 0.3);
+        }
+
+        .btn-danger {
+            background: rgba(248, 113, 113, 0.1);
+            color: #f87171;
+            border: 1px solid rgba(248, 113, 113, 0.3);
+            padding: 8px 12px;
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .btn-danger:hover {
+            background: rgba(248, 113, 113, 0.2);
+        }
+
+        .btn-ai {
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            color: white;
+            box-shadow: 0 4px 12px rgba(109, 40, 217, 0.3);
+        }
+
+        .btn-ai:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(109, 40, 217, 0.4);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .generate-section {
+            text-align: center;
+            padding: 40px 0 20px;
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            font-size: 18px;
+            padding: 16px 48px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(5, 150, 105, 0.3);
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(5, 150, 105, 0.4);
+        }
+
+        .summary-box {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 16px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+
+        .summary-row.total {
+            font-size: 18px;
+            font-weight: 700;
+            color: #10b981;
+            padding-top: 12px;
+            border-top: 2px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(99, 179, 237, 0.3);
+            border-top-color: #63b3ed;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .fee-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .fee-display input {
+            width: 140px;
+        }
+
+        .nights-calc {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 179, 237, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .checkbox-item:hover {
+            border-color: rgba(99, 179, 237, 0.4);
+        }
+
+        .checkbox-item.checked {
+            border-color: #63b3ed;
+            background: rgba(99, 179, 237, 0.1);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #63b3ed;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .checkbox-item span {
+            font-size: 13px;
+            color: #e2e8f0;
+        }
+
+        .transport-extras {
+            grid-column: 1 / -1;
+            display: none;
+            gap: 8px;
+        }
+
+        .transport-extras.visible {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .transport-extras .form-group label {
+            font-size: 12px;
+            color: #7c8ba1;
+        }
+
+        .transport-extras input, .transport-extras select {
+            font-size: 13px;
+            padding: 8px 10px;
+        }
+
+        .extras-toggle {
+            grid-column: 1 / -1;
+            font-size: 12px;
+            color: #8b5cf6;
+            cursor: pointer;
+            background: none;
+            border: none;
+            text-align: left;
+            padding: 4px 0;
+            font-family: inherit;
+        }
+
+        .extras-toggle:hover {
+            color: #a78bfa;
+        }
+
+        /* flatpickr custom */
+        .flatpickr-calendar {
+            background: #1e293b !important;
+            border: 1px solid rgba(99, 179, 237, 0.3) !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
+            border-radius: 12px !important;
+        }
+        .flatpickr-day.selected {
+            background: #3b82f6 !important;
+            border-color: #3b82f6 !important;
+        }
+        .flatpickr-day:hover {
+            background: rgba(99, 179, 237, 0.2) !important;
+        }
+        .flatpickr-day.today {
+            border-color: #63b3ed !important;
+        }
+
+        .preset-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .preset-chip {
+            padding: 4px 10px;
+            font-size: 12px;
+            border-radius: 16px;
+            background: rgba(99, 179, 237, 0.1);
+            border: 1px solid rgba(99, 179, 237, 0.25);
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .preset-chip:hover {
+            background: rgba(99, 179, 237, 0.2);
+            color: #e2e8f0;
+            border-color: rgba(99, 179, 237, 0.4);
+        }
+
+        .preset-chip.active {
+            background: rgba(59, 130, 246, 0.25);
+            border-color: #3b82f6;
+            color: #63b3ed;
+        }
+
+        .nights-chips {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .nights-chip {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 179, 237, 0.2);
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .nights-chip:hover {
+            border-color: rgba(99, 179, 237, 0.5);
+            color: #e2e8f0;
+        }
+
+        .nights-chip.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+        }
+
+        .saved-badge {
+            display: inline-block;
+            font-size: 11px;
+            color: #10b981;
+            margin-left: 8px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .saved-badge.show {
+            opacity: 1;
+        }
+
+        .history-panel {
+            margin-bottom: 24px;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 179, 237, 0.15);
+            border-radius: 10px;
+            padding: 12px 16px;
+            transition: all 0.2s;
+        }
+
+        .history-item:hover {
+            border-color: rgba(99, 179, 237, 0.35);
+        }
+
+        .history-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .history-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #e2e8f0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-meta {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .history-amount {
+            font-size: 14px;
+            font-weight: 700;
+            color: #10b981;
+            margin: 0 16px;
+            white-space: nowrap;
+        }
+
+        .history-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .history-actions .btn {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .history-empty {
+            text-align: center;
+            color: #64748b;
+            font-size: 13px;
+            padding: 20px;
+        }
+
+        .history-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: #63b3ed;
+            font-size: 14px;
+            font-weight: 600;
+            background: none;
+            border: none;
+            font-family: inherit;
+            padding: 0;
+        }
+
+        .history-toggle:hover {
+            color: #90cdf4;
+        }
+
+        .history-toggle .arrow {
+            transition: transform 0.2s;
+            font-size: 12px;
+        }
+
+        .history-toggle .arrow.open {
+            transform: rotate(90deg);
+        }
+
+        /* プレビューモーダル */
+        .preview-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .preview-overlay.active {
+            display: flex;
+        }
+        .preview-container {
+            background: white;
+            color: #1a1a1a;
+            max-width: 800px;
+            width: 100%;
+            padding: 48px 40px;
+            border-radius: 8px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            position: relative;
+            font-family: 'Yu Mincho', 'Hiragino Mincho ProN', serif;
+            font-size: 13px;
+            line-height: 1.6;
+            margin: 20px auto;
+        }
+        .preview-close {
+            position: sticky;
+            top: 0;
+            float: right;
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 36px; height: 36px;
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .preview-close:hover { background: #555; }
+        .preview-title {
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            letter-spacing: 4px;
+        }
+        .preview-right {
+            text-align: right;
+            margin-bottom: 6px;
+            font-size: 12px;
+        }
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 16px;
+        }
+        .preview-table th, .preview-table td {
+            border: 1px solid #888;
+            padding: 6px 10px;
+            font-size: 12px;
+            vertical-align: middle;
+        }
+        .preview-table th {
+            background: #e8f0fe;
+            font-weight: bold;
+            text-align: center;
+            white-space: nowrap;
+            width: 90px;
+        }
+        .preview-section-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin: 20px 0 8px;
+        }
+        .preview-box {
+            border: 1px solid #888;
+            padding: 10px 14px;
+            min-height: 50px;
+            margin-bottom: 16px;
+            white-space: pre-wrap;
+            font-size: 12px;
+            line-height: 1.7;
+        }
+        .preview-total-row th {
+            background: #1f4e79;
+            color: white;
+            font-size: 14px;
+        }
+        .preview-total-row td {
+            font-size: 16px;
+            font-weight: bold;
+            text-align: right;
+        }
+        .preview-stamp-table th {
+            background: #e8f0fe;
+        }
+        .preview-stamp-table td {
+            height: 60px;
+        }
+        .preview-notes {
+            font-size: 10px;
+            color: #666;
+            margin-top: 16px;
+            line-height: 1.8;
+        }
+        .preview-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+        }
+        .preview-actions button {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Hiragino Kaku Gothic ProN', sans-serif;
+        }
+        .preview-btn-word {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+        }
+        .preview-btn-pdf {
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            color: white;
+        }
+        .preview-btn-print {
+            background: #333;
+            color: white;
+        }
+        @media print {
+            body > *:not(.preview-overlay) { display: none !important; }
+            .preview-overlay { position: static; background: none; padding: 0; }
+            .preview-close, .preview-actions { display: none !important; }
+            .preview-container { box-shadow: none; padding: 20px; margin: 0; }
+        }
+
+        @media (max-width: 500px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .transport-compact-row {
+                grid-template-columns: 1fr;
+            }
+            .header h1 {
+                font-size: 18px;
+            }
+            .btn-remove {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-inner">
+            <div>
+                <h1>出張旅費精算書 自動生成</h1>
+                <p>入力するだけで税務署対応の旅費精算書をWord・PDF形式で出力</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 過去の履歴 -->
+        <div class="card history-panel">
+            <button class="history-toggle" onclick="toggleHistory()">
+                <span class="arrow" id="historyArrow">&#9654;</span>
+                過去の入力データ
+            </button>
+            <div id="historySection" style="display: none;">
+                <div class="history-list" id="historyList">
+                    <div class="history-empty">履歴はまだありません</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 基本情報 -->
+        <div class="card">
+            <div class="card-title">基本情報<span class="saved-badge" id="savedBadge">保存済み</span></div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>会社名<span class="required">*</span></label>
+                    <input type="text" id="companyName" placeholder="株式会社〇〇">
+                </div>
+                <div class="form-group">
+                    <label>所属部署</label>
+                    <input type="text" id="department" placeholder="営業部">
+                </div>
+                <div class="form-group">
+                    <label>氏名<span class="required">*</span></label>
+                    <input type="text" id="employeeName" placeholder="山田 太郎">
+                </div>
+                <div class="form-group">
+                    <label>役職</label>
+                    <select id="position" onchange="togglePositionOther(this)">
+                        <option value="一般社員">一般社員</option>
+                        <option value="マネージャー">マネージャー</option>
+                        <option value="部長">部長</option>
+                        <option value="取締役">取締役</option>
+                        <option value="代表取締役">代表取締役</option>
+                        <option value="代表社員">代表社員（合同会社）</option>
+                        <option value="業務執行社員">業務執行社員（合同会社）</option>
+                        <option value="その他">その他</option>
+                    </select>
+                    <input type="text" id="positionOther" placeholder="役職を入力" style="display:none; margin-top: 8px;">
+                </div>
+            </div>
+        </div>
+
+        <!-- 出張情報 -->
+        <div class="card">
+            <div class="card-title">出張情報</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>出張先<span class="required">*</span></label>
+                    <input type="text" id="destination" placeholder="大阪市北区">
+                </div>
+                <div class="form-group">
+                    <label>出張目的<span class="required">*</span>（複数選択可）</label>
+                    <div class="checkbox-grid" id="purposeCheckboxes">
+                        <label class="checkbox-item"><input type="checkbox" value="不動産会社周り" checked onchange="toggleCheckbox(this)"><span>不動産会社周り</span></label>
+                        <label class="checkbox-item"><input type="checkbox" value="物件視察" onchange="toggleCheckbox(this)"><span>物件視察</span></label>
+                        <label class="checkbox-item"><input type="checkbox" value="企業訪問" onchange="toggleCheckbox(this)"><span>企業訪問</span></label>
+                        <label class="checkbox-item"><input type="checkbox" value="収益物件調査" onchange="toggleCheckbox(this)"><span>収益物件調査</span></label>
+                        <label class="checkbox-item"><input type="checkbox" value="管理会社打合せ" onchange="toggleCheckbox(this)"><span>管理会社打合せ</span></label>
+                        <label class="checkbox-item"><input type="checkbox" value="コンサル案件" onchange="toggleCheckbox(this)"><span>コンサル案件</span></label>
+                        <label class="checkbox-item"><input type="checkbox" value="セミナー・研修" onchange="toggleCheckbox(this)"><span>セミナー・研修</span></label>
+                        <label class="checkbox-item"><input type="checkbox" value="契約締結・交渉" onchange="toggleCheckbox(this)"><span>契約締結・交渉</span></label>
+                        <label class="checkbox-item"><input type="checkbox" value="その他" onchange="toggleOther(this)"><span>その他</span></label>
+                    </div>
+                    <input type="text" id="purposeOther" placeholder="その他の目的を入力" style="display:none; margin-top: 8px;">
+                </div>
+                <div class="form-group">
+                    <label>出発日<span class="required">*</span></label>
+                    <input type="date" id="startDate">
+                </div>
+                <div class="form-group">
+                    <label>帰着日<span class="required">*</span></label>
+                    <input type="date" id="endDate">
+                </div>
+                <div class="form-group">
+                    <label>泊数<span class="required">*</span></label>
+                    <input type="number" id="nights" min="1" value="1" onchange="updateCalc(); updateNightsChips();">
+                    <div class="nights-chips" id="nightsChips">
+                        <button class="nights-chip active" onclick="setNights(1)">1</button>
+                        <button class="nights-chip" onclick="setNights(2)">2</button>
+                        <button class="nights-chip" onclick="setNights(3)">3</button>
+                        <button class="nights-chip" onclick="setNights(4)">4</button>
+                        <button class="nights-chip" onclick="setNights(5)">5</button>
+                        <button class="nights-chip" onclick="setNights(7)">7</button>
+                        <button class="nights-chip" onclick="setNights(10)">10</button>
+                    </div>
+                    <div class="nights-calc" id="nightsCalc">1泊2日</div>
+                </div>
+                <div class="form-group">
+                    <label>目的の詳細（任意）</label>
+                    <textarea id="purposeDetail" placeholder="具体的な内容があれば記入&#10;例：○○株式会社との業務提携に関する打ち合わせ、現地物件3件の内見・調査 等" rows="4" style="resize: vertical; min-height: 80px;"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- 費用設定 -->
+        <div class="card">
+            <div class="card-title">費用設定</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>宿泊費（1泊あたり）</label>
+                    <div class="fee-display">
+                        <input type="number" id="accommodationFee" value="20000" onchange="updateCalc(); updateFeeChips();">
+                        <span>円</span>
+                    </div>
+                    <div class="preset-chips" id="accChips">
+                        <button class="preset-chip" onclick="setFee('accommodationFee', 8000)">¥8,000</button>
+                        <button class="preset-chip" onclick="setFee('accommodationFee', 10000)">¥10,000</button>
+                        <button class="preset-chip" onclick="setFee('accommodationFee', 15000)">¥15,000</button>
+                        <button class="preset-chip active" onclick="setFee('accommodationFee', 20000)">¥20,000</button>
+                        <button class="preset-chip" onclick="setFee('accommodationFee', 30000)">¥30,000</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>日当（1日あたり）</label>
+                    <div class="fee-display">
+                        <input type="number" id="dailyAllowance" value="2000" onchange="updateCalc(); updateFeeChips();">
+                        <span>円</span>
+                    </div>
+                    <div class="preset-chips" id="dailyChips">
+                        <button class="preset-chip active" onclick="setFee('dailyAllowance', 2000)">¥2,000</button>
+                        <button class="preset-chip" onclick="setFee('dailyAllowance', 2500)">¥2,500</button>
+                        <button class="preset-chip" onclick="setFee('dailyAllowance', 3000)">¥3,000</button>
+                        <button class="preset-chip" onclick="setFee('dailyAllowance', 5000)">¥5,000</button>
+                    </div>
+                </div>
+            </div>
+            <p style="font-size: 11px; color: #94a3b8; margin-top: 10px; line-height: 1.6;">
+                ※ 上記はよく使われる金額のプリセットです。該当しない金額の場合は、入力欄に直接ご入力ください。<br>
+                ※ 金額は自社の旅費規程に基づいて設定してください。
+            </p>
+        </div>
+
+        <!-- 交通費明細 -->
+        <div class="card">
+            <div class="card-title">交通費明細</div>
+            <div id="transportList">
+                <div class="transport-row" data-index="0">
+                    <div class="transport-compact-row">
+                        <div class="form-group">
+                            <label>日付</label>
+                            <input type="date" class="t-date">
+                        </div>
+                        <div class="form-group">
+                            <label>区間</label>
+                            <input type="text" class="t-route" placeholder="東京駅 → 大阪駅">
+                        </div>
+                    </div>
+                    <div class="transport-compact-row">
+                        <div class="form-group">
+                            <label>交通機関</label>
+                            <select class="t-method" onchange="onMethodChange(this)">
+                                <option value="新幹線">新幹線</option>
+                                <option value="鉄道">鉄道</option>
+                                <option value="飛行機">飛行機</option>
+                                <option value="バス">バス</option>
+                                <option value="タクシー">タクシー</option>
+                                <option value="レンタカー">レンタカー</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>金額</label>
+                            <input type="number" class="t-amount" placeholder="0" onchange="updateCalc()">
+                        </div>
+                    </div>
+                    <button class="extras-toggle" onclick="toggleExtras(this)">+ 詳細項目を追加（任意）</button>
+                    <div class="transport-extras" data-method="新幹線">
+                        <div class="form-group">
+                            <label>座席クラス（任意）</label>
+                            <select class="t-seat-class">
+                                <option value="">未選択</option>
+                                <option value="自由席">自由席</option>
+                                <option value="指定席">指定席</option>
+                                <option value="グリーン車">グリーン車</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>備考（任意）</label>
+                            <input type="text" class="t-note" placeholder="往復割引等">
+                        </div>
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1; display: flex; justify-content: flex-end;">
+                        <button class="btn btn-danger" onclick="removeTransport(this)" title="この交通費を削除" style="width: auto;">&times; 削除</button>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-secondary" onclick="addTransport()" style="margin-top: 8px;">+ 交通費を追加</button>
+        </div>
+
+        <!-- 出張理由（AI生成） -->
+        <div class="card">
+            <div class="card-title">出張理由・報告（自動生成対応）</div>
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label>出張理由</label>
+                    <textarea id="tripReason" rows="8" placeholder="自分で書いて「肉付けする」で拡張、または「自動生成」で一から作成"></textarea>
+                    <div class="btn-group">
+                        <button class="btn btn-ai" onclick="generateReason()">自動生成</button>
+                        <button class="btn btn-secondary" onclick="generateReason()">別のパターン</button>
+                        <button class="btn btn-accent" onclick="expandReason()">肉付けする</button>
+                    </div>
+                </div>
+                <div class="form-group full-width">
+                    <label>出張報告</label>
+                    <textarea id="tripReport" rows="8" placeholder="自分で書いて「肉付けする」で拡張、または「自動生成」で一から作成"></textarea>
+                    <div class="btn-group">
+                        <button class="btn btn-ai" onclick="generateReport()">自動生成</button>
+                        <button class="btn btn-secondary" onclick="generateReport()">別のパターン</button>
+                        <button class="btn btn-accent" onclick="expandReport()">肉付けする</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 合計表示 -->
+        <div class="card">
+            <div class="card-title">費用合計</div>
+            <div class="summary-box">
+                <div class="summary-row">
+                    <span>宿泊費</span>
+                    <span id="sumAccommodation">¥20,000</span>
+                </div>
+                <div class="summary-row">
+                    <span>日当</span>
+                    <span id="sumAllowance">¥4,000</span>
+                </div>
+                <div class="summary-row">
+                    <span>交通費</span>
+                    <span id="sumTransport">¥0</span>
+                </div>
+                <div class="summary-row total">
+                    <span>合計支給額</span>
+                    <span id="sumTotal">¥24,000</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 生成ボタン -->
+        <div class="generate-section">
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px;">
+                <button class="btn btn-generate" onclick="showPreview()" style="flex: 1; min-width: 280px; background: linear-gradient(135deg, #059669 0%, #047857 100%);">
+                    プレビューで確認
+                </button>
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                <button class="btn btn-generate" onclick="generateDocument('docx')" style="flex: 1; min-width: 200px;">
+                    Word (.docx) で出力
+                </button>
+                <button class="btn btn-generate" onclick="generateDocument('pdf')" style="flex: 1; min-width: 200px; background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);">
+                    PDF で出力
+                </button>
+            </div>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 8px; color: #94a3b8;">精算書を生成中...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- プレビューモーダル -->
+    <div class="preview-overlay" id="previewOverlay" onclick="if(event.target===this)closePreview()">
+        <div class="preview-container" id="previewContent">
+        </div>
+    </div>
+
+    <!-- CDN Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script>
+
+    <script>
+        // ============================================================
+        // UI Logic (identical to original)
+        // ============================================================
+
+        // Initial checkbox state
+        (function() {
+            const first = document.querySelector('#purposeCheckboxes .checkbox-item input');
+            if (first) { first.checked = true; first.closest('.checkbox-item').classList.add('checked'); }
+            document.querySelectorAll('#purposeCheckboxes .checkbox-item').forEach(item => {
+                const cb = item.querySelector('input');
+                if (cb.checked) item.classList.add('checked');
+                else item.classList.remove('checked');
+            });
+        })();
+
+        function toggleCheckbox(cb) {
+            const item = cb.closest('.checkbox-item');
+            if (cb.checked) item.classList.add('checked');
+            else item.classList.remove('checked');
+        }
+
+        function toggleOther(cb) {
+            toggleCheckbox(cb);
+            const otherInput = document.getElementById('purposeOther');
+            otherInput.style.display = cb.checked ? 'block' : 'none';
+            if (!cb.checked) otherInput.value = '';
+        }
+
+        function togglePositionOther(sel) {
+            const otherInput = document.getElementById('positionOther');
+            if (sel.value === 'その他') {
+                otherInput.style.display = 'block';
+                otherInput.focus();
+            } else {
+                otherInput.style.display = 'none';
+                otherInput.value = '';
+            }
+        }
+
+        function getPositionValue() {
+            const sel = document.getElementById('position');
+            if (sel.value === 'その他') {
+                return document.getElementById('positionOther').value || 'その他';
+            }
+            return sel.value;
+        }
+
+        function getSelectedPurposes() {
+            const checked = document.querySelectorAll('#purposeCheckboxes input:checked');
+            return Array.from(checked).map(cb => {
+                if (cb.value === 'その他') {
+                    const custom = document.getElementById('purposeOther').value.trim();
+                    return custom || 'その他';
+                }
+                return cb.value;
+            });
+        }
+
+        // Transport extras templates
+        const extrasTemplates = {
+            '新幹線': `
+                <div class="form-group">
+                    <label>座席クラス（任意）</label>
+                    <select class="t-seat-class">
+                        <option value="">未選択</option>
+                        <option value="自由席">自由席</option>
+                        <option value="指定席">指定席</option>
+                        <option value="グリーン車">グリーン車</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>備考（任意）</label>
+                    <input type="text" class="t-note" placeholder="往復割引等">
+                </div>`,
+            '飛行機': `
+                <div class="form-group">
+                    <label>航空会社（任意）</label>
+                    <input type="text" class="t-airline" placeholder="ANA, JAL等">
+                </div>
+                <div class="form-group">
+                    <label>便名（任意）</label>
+                    <input type="text" class="t-flight-no" placeholder="NH123">
+                </div>
+                <div class="form-group">
+                    <label>座席クラス（任意）</label>
+                    <select class="t-seat-class">
+                        <option value="">未選択</option>
+                        <option value="エコノミー">エコノミー</option>
+                        <option value="プレミアムエコノミー">プレミアムエコノミー</option>
+                        <option value="ビジネス">ビジネス</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>備考（任意）</label>
+                    <input type="text" class="t-note" placeholder="早割等">
+                </div>`,
+            '鉄道': `
+                <div class="form-group">
+                    <label>路線名（任意）</label>
+                    <input type="text" class="t-line" placeholder="JR山手線等">
+                </div>
+                <div class="form-group">
+                    <label>備考（任意）</label>
+                    <input type="text" class="t-note" placeholder="">
+                </div>`,
+            'タクシー': `
+                <div class="form-group">
+                    <label>利用理由（任意）</label>
+                    <input type="text" class="t-taxi-reason" placeholder="深夜のため公共交通機関なし等">
+                </div>
+                <div class="form-group">
+                    <label>備考（任意）</label>
+                    <input type="text" class="t-note" placeholder="">
+                </div>`,
+            'レンタカー': `
+                <div class="form-group">
+                    <label>レンタカー会社（任意）</label>
+                    <input type="text" class="t-rental-company" placeholder="トヨタレンタカー等">
+                </div>
+                <div class="form-group">
+                    <label>利用理由（任意）</label>
+                    <input type="text" class="t-rental-reason" placeholder="現地移動のため等">
+                </div>
+                <div class="form-group">
+                    <label>備考（任意）</label>
+                    <input type="text" class="t-note" placeholder="ガソリン代含む等">
+                </div>`,
+            'バス': `
+                <div class="form-group">
+                    <label>備考（任意）</label>
+                    <input type="text" class="t-note" placeholder="高速バス等">
+                </div>`,
+        };
+
+        function onMethodChange(sel) {
+            const row = sel.closest('.transport-row');
+            const extras = row.querySelector('.transport-extras');
+            const method = sel.value;
+            extras.setAttribute('data-method', method);
+            extras.innerHTML = extrasTemplates[method] || `
+                <div class="form-group">
+                    <label>備考（任意）</label>
+                    <input type="text" class="t-note" placeholder="">
+                </div>`;
+        }
+
+        function toggleExtras(btn) {
+            const row = btn.closest('.transport-row');
+            const extras = row.querySelector('.transport-extras');
+            if (extras.classList.contains('visible')) {
+                extras.classList.remove('visible');
+                btn.textContent = '+ 詳細項目を追加（任意）';
+            } else {
+                extras.classList.add('visible');
+                btn.textContent = '- 詳細項目を閉じる';
+            }
+        }
+
+        // Date sync
+        document.getElementById('startDate').addEventListener('change', syncDates);
+        document.getElementById('endDate').addEventListener('change', syncDates);
+        document.getElementById('nights').addEventListener('change', function() {
+            const start = document.getElementById('startDate').value;
+            if (start) {
+                const startD = new Date(start);
+                const nights = parseInt(this.value) || 1;
+                startD.setDate(startD.getDate() + nights);
+                document.getElementById('endDate').value = startD.toISOString().split('T')[0];
+            }
+            updateCalc();
+        });
+
+        function syncDates() {
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+            if (start && end) {
+                const startD = new Date(start);
+                const endD = new Date(end);
+                const diff = Math.round((endD - startD) / (1000 * 60 * 60 * 24));
+                if (diff > 0) {
+                    document.getElementById('nights').value = diff;
+                    updateCalc();
+                }
+            }
+        }
+
+        function updateCalc() {
+            const nights = parseInt(document.getElementById('nights').value) || 1;
+            const days = nights + 1;
+            const accFee = parseInt(document.getElementById('accommodationFee').value) || 0;
+            const dailyFee = parseInt(document.getElementById('dailyAllowance').value) || 0;
+
+            document.getElementById('nightsCalc').textContent = `${nights}泊${days}日`;
+
+            const totalAcc = accFee * nights;
+            const totalDaily = dailyFee * days;
+
+            let totalTransport = 0;
+            document.querySelectorAll('.t-amount').forEach(el => {
+                totalTransport += parseInt(el.value) || 0;
+            });
+
+            const grand = totalAcc + totalDaily + totalTransport;
+
+            document.getElementById('sumAccommodation').textContent = formatYen(totalAcc);
+            document.getElementById('sumAllowance').textContent = formatYen(totalDaily);
+            document.getElementById('sumTransport').textContent = formatYen(totalTransport);
+            document.getElementById('sumTotal').textContent = formatYen(grand);
+        }
+
+        function formatYen(n) {
+            return '\u00a5' + n.toLocaleString('ja-JP');
+        }
+
+        function addTransport() {
+            const list = document.getElementById('transportList');
+            const idx = list.children.length;
+            const row = document.createElement('div');
+            row.className = 'transport-row';
+            row.dataset.index = idx;
+            row.innerHTML = `
+                <div class="transport-compact-row">
+                    <div class="form-group">
+                        <label>日付</label>
+                        <input type="date" class="t-date">
+                    </div>
+                    <div class="form-group">
+                        <label>区間</label>
+                        <input type="text" class="t-route" placeholder="大阪駅 → 東京駅">
+                    </div>
+                </div>
+                <div class="transport-compact-row">
+                    <div class="form-group">
+                        <label>交通機関</label>
+                        <select class="t-method" onchange="onMethodChange(this)">
+                            <option value="新幹線">新幹線</option>
+                            <option value="鉄道">鉄道</option>
+                            <option value="飛行機">飛行機</option>
+                            <option value="バス">バス</option>
+                            <option value="タクシー">タクシー</option>
+                            <option value="レンタカー">レンタカー</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>金額</label>
+                        <input type="number" class="t-amount" placeholder="0" onchange="updateCalc()">
+                    </div>
+                </div>
+                <button class="extras-toggle" onclick="toggleExtras(this)">+ 詳細項目を追加（任意）</button>
+                <div class="transport-extras" data-method="新幹線">
+                    ${extrasTemplates['新幹線']}
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1; display: flex; justify-content: flex-end;">
+                    <button class="btn btn-danger" onclick="removeTransport(this)" title="この交通費を削除" style="width: auto;">&times; 削除</button>
+                </div>
+            `;
+            list.appendChild(row);
+        }
+
+        function removeTransport(btn) {
+            const list = document.getElementById('transportList');
+            if (list.children.length > 1) {
+                btn.closest('.transport-row').remove();
+                updateCalc();
+            }
+        }
+
+        function getTransportDetails() {
+            const rows = document.querySelectorAll('.transport-row');
+            const details = [];
+            rows.forEach(row => {
+                const date = row.querySelector('.t-date').value;
+                const route = row.querySelector('.t-route').value;
+                const method = row.querySelector('.t-method').value;
+                const amount = parseInt(row.querySelector('.t-amount').value) || 0;
+                if (route || amount > 0) {
+                    const detail = { date, route, method, amount };
+                    const extras = row.querySelector('.transport-extras');
+                    if (extras) {
+                        const seatClass = extras.querySelector('.t-seat-class');
+                        const note = extras.querySelector('.t-note');
+                        const airline = extras.querySelector('.t-airline');
+                        const flightNo = extras.querySelector('.t-flight-no');
+                        const line = extras.querySelector('.t-line');
+                        const taxiReason = extras.querySelector('.t-taxi-reason');
+                        const rentalCompany = extras.querySelector('.t-rental-company');
+                        const rentalReason = extras.querySelector('.t-rental-reason');
+
+                        if (seatClass && seatClass.value) detail.seat_class = seatClass.value;
+                        if (note && note.value) detail.note = note.value;
+                        if (airline && airline.value) detail.airline = airline.value;
+                        if (flightNo && flightNo.value) detail.flight_no = flightNo.value;
+                        if (line && line.value) detail.line = line.value;
+                        if (taxiReason && taxiReason.value) detail.taxi_reason = taxiReason.value;
+                        if (rentalCompany && rentalCompany.value) detail.rental_company = rentalCompany.value;
+                        if (rentalReason && rentalReason.value) detail.rental_reason = rentalReason.value;
+                    }
+                    details.push(detail);
+                }
+            });
+            return details;
+        }
+
+        // ============================================================
+        // Client-side Text Generation (ported from Python app.py)
+        // ============================================================
+
+        function randomChoice(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function _generateTripReason(purposes, destination, nights, purposeDetail) {
+            const days = nights + 1;
+            const reasonSnippets = {
+                '不動産会社周り': [
+                    `当社の資産運用戦略に基づき、${destination}所在の不動産仲介業者複数社を訪問し、投資用不動産に関する市場調査および具体的案件の検討を実施する。訪問先においては、現在流通中の収益物件に関する詳細情報の収集、物件の立地環境・周辺相場・建物の構造的健全性・修繕履歴・管理体制・収益性（表面利回り・実質利回り・NOI）等について、書面および写真資料のみでは判断が困難な現場固有の情報を実地に確認する。加えて、当該エリアにおける今後の都市開発計画・人口動態・賃貸需要の見通し等について、地元業者からの一次情報を直接聴取する。不動産仲介業者との対面での信頼関係構築は、非公開の優良物件情報を優先的に入手するうえで極めて重要であり、電話・メール等の非対面手段では代替できない業務である。`,
+                    `${destination}における不動産投資市場の最新動向把握および具体的な投資案件の精査を目的とする。当社は資産管理会社として中長期的な資産形成を経営方針に掲げており、定期的な現地市場調査は投資判断の精度向上に不可欠な業務である。現地の不動産会社を複数社訪問し、取扱物件の内覧（外観・内装・設備の状態確認）、周辺環境の実地調査（最寄り駅からの実際の徒歩距離・時間帯による人通り・騒音レベル・日照条件・嫌悪施設の有無等）、および管理状況の視察を行う。不動産投資においては、インターネット上の情報や書面資料では把握しきれない現地固有の事情（建物の実際の管理状態・入居者層・近隣住民の属性・将来の再開発情報等）を直接確認することが、リスク回避と適正な投資判断のために必要不可欠であり、リモートでの対応では到底代替できない業務である。`,
+                    `当社の事業計画に基づく不動産ポートフォリオの拡充・最適化を目的とし、${destination}エリアの不動産仲介会社を訪問する。具体的には、当該エリアにおける賃貸市場の需給バランス・家賃相場のトレンド・空室率の推移・新規供給の動向等について、現地業者からの最新情報を直接聴取するとともに、投資候補物件について現地での内覧・周辺環境調査を実施する。また、既存の取引仲介業者との関係強化および新規仲介ルートの開拓を通じて、今後の優良案件の確保に向けた基盤整備を行う。資産管理会社としての適正な投資判断を下すためには、現地の状況を自らの目で確認し、数字には表れない定性的情報を収集することが経営上の責務であり、遠隔では対応不可能な業務である。`,
+                ],
+                'クライアント相談': [
+                    `不動産コンサルティング業務の一環として、${destination}のクライアント（不動産オーナー・投資家）との対面による資産運用相談を実施する。今回の訪問では、クライアントが保有する収益物件のポートフォリオ分析結果の報告、各物件の収益性改善提案（リノベーション計画・家賃改定・テナントミックスの見直し等）、新規物件取得に関する投資判断のアドバイス、物件売却の適正タイミングに関するマーケット分析の共有、および資産承継・相続対策を見据えた中長期的な不動産戦略の策定を予定している。本件はクライアントの資産情報・財務状況・家族構成等の極めて機密性の高い個人情報を扱う協議であり、情報漏洩リスクの観点からオンライン会議ではなく対面での実施が不可欠と判断した。加えて、不動産コンサルティングにおいてはクライアントとの深い信頼関係が業務の根幹であり、対面でのきめ細やかなコミュニケーションが顧客満足度とリピート率の向上に直結する。`,
+                    `${destination}のクライアント（法人・個人投資家）を訪問し、不動産資産の運用状況に関する定期レビューおよびコンサルティング協議を行う。具体的には、保有物件の稼働状況・収支実績の分析報告、市場環境の変化に応じた運用方針の見直し提案、バリューアップ施策（設備更新・間取り変更・用途変更等）の検討、融資条件の見直しに伴うキャッシュフロー改善策の提示、および税務面を考慮した最適な物件入替え戦略の協議を実施する。不動産コンサルティングにおいては、クライアントの経営環境・資産背景・将来ビジョンを深く理解した上での個別最適な提案が求められるため、定期的な対面での深い対話が不可欠である。`,
+                ],
+                '企業訪問': [
+                    `${destination}の不動産関連企業（デベロッパー・建設会社・リフォーム会社・設計事務所等）を訪問し、当社の不動産コンサルティング事業に関連する対面打ち合わせを実施する。訪問先においては、物件のバリューアップに関する施工提案の検討・見積り協議、保有物件の修繕計画に関する技術的な打ち合わせ、新規開発案件に関する情報交換、業界の最新トレンド（建築コストの動向・建材の供給状況・省エネ基準の改正等）に関する意見交換、および今後の事業連携に向けた協力体制の構築を行う。不動産事業においては、施工会社・設計事務所等の協力パートナーとの密接な信頼関係が物件の品質と収益性を左右するため、定期的な対面訪問による関係構築・維持が不可欠である。`,
+                    `${destination}において、当社の不動産コンサルティング事業に関係する金融機関・税理士事務所・司法書士事務所・保険会社等の専門機関を訪問する。各訪問先では、クライアントへの提案に必要な融資条件の最新動向ヒアリング、不動産関連税制の改正に伴う対応策の協議、物件取引に関する法務手続きの確認、および火災保険・賠償責任保険等のリスクマネジメントに関する情報収集を行う。不動産コンサルティングでは、不動産のみならず金融・税務・法務等の多角的な専門知識を駆使した総合的なアドバイスが求められるため、各分野の専門家との対面での情報交換と人脈構築が事業遂行上必要不可欠である。`,
+                ],
+                'コンサル案件': [
+                    `不動産コンサルティング契約に基づき、${destination}のクライアント所有物件の現地調査および収益改善に関する包括的なコンサルティングを実施する。本訪問では、対象物件の現況確認（建物の物理的状態・設備の劣化度・共用部の管理水準・テナント構成の適正性等）、周辺マーケットの実地調査（競合物件の賃料設定・設備グレード・空室状況・新規供給の動向等）、およびクライアントとの戦略会議（収益改善施策の優先順位付け・投資回収シミュレーションの共有・実行スケジュールの策定等）を予定している。不動産コンサルティングの性質上、物件の実態と市場環境を自らの目で確認し、現場の感覚に基づいた実効性のある提案を行うことが、クライアントの資産価値最大化と当社のサービス品質確保のために不可欠である。`,
+                    `${destination}のクライアントが検討中の不動産投資案件について、デューデリジェンス（物件精査）およびフィージビリティスタディ（事業性調査）を実施する。具体的には、投資対象物件の現地内覧と詳細調査（構造・設備・法的制約・環境リスク等）、周辺エリアの市場分析（賃貸需要・供給動向・人口推移・再開発計画等）、収支シミュレーションの前提条件の現地検証、および地元不動産業者・管理会社・金融機関からの情報収集を行う。不動産投資のコンサルティングにおいては、書面資料やデータだけでは把握できない現場固有のリスク要因と収益機会を直接確認することが、クライアントに対する責任あるアドバイスの前提条件である。`,
+                ],
+                'セミナー・研修': [
+                    `${destination}で開催される不動産投資・資産運用に関する専門セミナーに参加し、当社の不動産コンサルティング事業に直結する最新の知見を習得する。セミナーの内容には、不動産関連税制の改正動向（減価償却制度・譲渡所得課税・相続税評価等）、融資環境の変化と資金調達戦略、不動産市場の中長期予測、ESG・SDGsに対応した不動産運用のトレンド、および先進的な不動産テック（PropTech）の活用事例等が含まれる。セミナー終了後は、参加する不動産オーナー・投資家・デベロッパー・金融機関担当者等との情報交換・ネットワーキングを実施し、新規クライアントの獲得および業界内の人脈形成を図る。取得した知見はクライアントへのコンサルティングサービスの高度化に直接活用するとともに、当社の競争優位性強化に資する。本セミナーは対面参加のみの開催形式であり、オンライン代替が不可能である。`,
+                    `${destination}で開催される宅地建物取引業・不動産コンサルティング関連の研修プログラムに参加する。当該研修は、不動産コンサルティング技能の向上を目的とし、最新の不動産鑑定評価手法・マーケット分析技術・クライアントコミュニケーション手法・コンプライアンス対応等の実務的内容を扱う。研修にはケーススタディ・グループワーク形式のセッションが含まれるため、オンラインでの参加では十分な学習効果が得られず、現地への出張が不可欠である。研修で習得した知見は、帰社後にクライアント対応の品質向上に直接反映する。`,
+                ],
+                '契約締結・交渉': [
+                    `${destination}において、不動産売買契約・賃貸借契約・管理委託契約等に関する重要な契約交渉を実施する。交渉事項には、売買代金・賃料等の価格条件、引渡し時期・条件、瑕疵担保（契約不適合）責任の範囲と期間、原状回復義務の範囲、修繕費用の負担区分、中途解約条件、敷金・保証金の取扱い、および特約条項の内容等、不動産取引特有の専門的かつ詳細な協議が含まれる。不動産取引は数千万円から数億円規模の高額取引であり、契約書の各条項がクライアントの資産価値と将来の収益に直接影響するため、対面での慎重な逐条確認と相手方との直接交渉が不可欠である。不動産コンサルタントとして、クライアントの利益を最大限に保護する契約内容の実現を図る。`,
+                    `${destination}の取引先（売主・買主・テナント・管理会社等）を訪問し、不動産関連契約の締結または条件変更に係る交渉を実施する。具体的には、既存賃貸借契約の更新条件交渉（賃料改定・契約期間・特約事項の見直し）、新規物件取得に伴う売買契約条件の詰め、管理委託契約の内容見直しと管理報酬の適正化交渉、および工事請負契約の仕様・金額・工期に関する協議を行う。不動産に関する契約は権利関係が複雑であり、書面のみのやり取りでは認識の齟齬が生じやすいため、専門知識を持つ当社が対面で直接交渉に臨むことが、クライアントの利益保護と円滑な取引成立のために必要不可欠である。`,
+                ],
+                '物件視察': [
+                    `当社が保有・管理する${destination}所在の不動産物件について、定期的な現地視察および管理状況の総合的な確認を実施する。視察項目には、建物外観の劣化状況（外壁のひび割れ・塗装の剥離・屋上防水の状態等）、共用部の管理状態（清掃状況・照明設備・掲示物・郵便受け周辺の整理状況等）、専有部の空室確認（室内の状態・原状回復の必要性判断）、設備の動作確認（エレベーター・消防設備・給排水・電気設備等）、および周辺環境の変化（新規競合物件の建設状況・商業施設の開閉業・道路工事等）が含まれる。これらは写真や管理会社からの書面報告のみでは把握しきれない項目であり、オーナーとして資産価値の適正な維持・向上を図るためには、定期的な現地確認が法人の善管注意義務の観点からも不可欠である。`,
+                    `${destination}における保有物件の現地管理業務を実施する。建物の経年劣化に伴う修繕必要箇所の早期発見と対応優先度の判定、空室の現況確認と原状回復工事の要否判断、入居者からの要望事項の現場確認、周辺環境の変化が物件価値に与える影響の実地調査等を行う。資産管理会社として、保有不動産の価値最大化と適正な維持管理は経営の根幹に関わる業務であり、現地を直接確認せずにリモートのみで判断することは、経営上のリスクを増大させるため適切ではない。本視察は法人として必要かつ合理的な業務である。`,
+                ],
+                '収益物件調査': [
+                    `当社の中長期事業計画に基づく不動産ポートフォリオの拡充を目的とし、${destination}における収益不動産の購入候補物件に関する現地調査を実施する。調査内容には、候補物件の内覧（建物の構造・内装・設備の状態確認、各室の間取り・採光・通風の確認）、周辺環境の詳細調査（最寄り駅からの実測徒歩時間、複数時間帯での人通り・騒音レベルの確認、商業施設・教育機関・医療機関へのアクセス、競合物件の立地と賃料設定の調査）、地元不動産業者からの市場情報収集（エリアの賃貸需要動向・入居者層の特性・将来の開発計画・地域の人口動態等）、および投資採算性の現地検証が含まれる。不動産投資は数千万円から数億円規模の高額な経営判断であり、インターネット上の情報や書面資料のみに基づいて意思決定を行うことは、経営者としての善管注意義務の観点から著しく不適切である。現地を自らの目と足で確認し、五感を用いた総合的な判断を行うことが、投資リスクの適正な評価と回避のために不可欠である。`,
+                    `新規収益物件の取得検討に係る現地調査を目的とする。${destination}エリアの賃貸市場動向の把握、候補物件の立地・建物状況・収益性の実地確認、管理体制の適正性評価、および地元の不動産仲介業者との情報交換を実施する。物件の収益性を正確に評価するためには、書面上の利回り計算だけでなく、現地の実態（建物の実際の管理レベル・入居者の質・周辺の生活利便性・将来的な資産価値の見通し等）を直接確認することが不可欠であり、これは資産管理会社としての適正な投資判断プロセスにおいて省略できない業務である。`,
+                ],
+                '管理会社打合せ': [
+                    `保有物件の管理業務を委託している${destination}の管理会社を訪問し、管理業務に関する定期総合打ち合わせを実施する。協議事項には、物件ごとの入居率・稼働率の推移分析、家賃収納状況の確認と滞納対応策の協議、入居者からの要望・クレームへの対応報告と改善策の検討、退去予定者への対応と空室募集戦略の策定、修繕計画（大規模修繕の時期・内容・予算）の協議、管理費用の精査と費用対効果の検証、および管理会社の業務品質に対する評価と改善要請が含まれる。物件の収益性を最大化するためには、管理会社との密接なコミュニケーションが極めて重要であり、書面やメールのみでは伝えきれない経営方針の共有と現場感覚の擦り合わせを、対面で行うことが必要である。`,
+                    `${destination}の物件管理会社を訪問し、半期に一度の包括的な管理業務レビューを実施する。管理報告書の詳細な内容確認、各物件の収支分析と改善提案の協議、空室対策（リフォーム・家賃設定・広告戦略）の検討、入居審査基準の見直し、および今後の管理体制に関する戦略的な検討を行う。管理会社との良好な関係維持と適正な管理品質の確保は、保有不動産の資産価値と安定収益を守るために欠かせない経営業務である。`,
+                ],
+            };
+
+            const detailParts = [];
+            for (const p of purposes) {
+                const snippets = reasonSnippets[p] || [`${p}に関する業務について、${destination}の関係先との対面での協議・調査を実施する。当該業務は、取り扱う情報の機密性・意思決定の重要性・現場確認の必要性等の観点から、電話・メール・オンライン会議等の非対面手段では十分な業務遂行が困難であり、現地での直接対応が不可欠と判断した。対面での業務遂行により、書面やオンラインでは得られない現場の実態把握・関係者との信頼関係構築・迅速な意思決定を実現する。`];
+                detailParts.push(randomChoice(snippets));
+            }
+
+            let body = '';
+            if (detailParts.length > 1) {
+                body = detailParts.map((part, i) => `${i + 1}. ${part}`).join('\n\n');
+            } else {
+                body = detailParts[0];
+            }
+
+            let detailSentence = '';
+            if (purposeDetail && purposeDetail.trim()) {
+                detailSentence = `\n\n【出張の具体的内容】\n${purposeDetail.trim()}。\n上記の業務は、取引先・関係先との直接的な対面協議、現場の実地確認、および機密情報を含む資料の授受等を伴うものであり、電話・メール・オンライン会議等の非対面手段では十分な成果が得られないため、現地での直接対応が業務遂行上必要不可欠と判断した。`;
+            }
+
+            const necessity = randomChoice([
+                `\n\n【出張の必要性】\n本出張は、上記業務の遂行にあたり現地での対面実施が不可欠であるため、${nights}泊${days}日の日程で実施する。出張期間は業務内容に照らして必要最小限の日数であり、効率的なスケジュール編成により移動時間の最小化と業務密度の最大化を図る。当社旅費規程に基づき、宿泊費・日当・交通費を支給する。なお、本出張に係る費用は、出張の業務上の必要性および法人の事業目的との関連性に鑑み、法人の損金として処理する。`,
+                `\n\n【出張の必要性】\n上記業務はいずれも現地確認・対面協議を要するものであり、リモート対応では業務目的の達成が困難である。効率的な業務遂行のため${nights}泊${days}日の出張とし、当社旅費規程に定める基準に従い旅費を支給する。出張日程は業務の遂行に必要な最小限の期間とし、宿泊地は業務遂行上の利便性を考慮して選定する。本出張は法人の事業遂行に直接関連する業務活動であり、旅費規程に基づく適正な経費処理を行う。`,
+                `\n\n【出張の必要性】\n本出張は当社の事業計画および業務遂行上の合理的必要性に基づくものであり、${nights}泊${days}日の日程は業務内容に対して必要かつ適正な期間である。現地での直接的な業務対応により、オンラインや書面では得られない質の高い成果（現場の実態把握・関係者との信頼構築・迅速な意思決定等）を確保する。旅費は当社旅費規程に定める支給基準に従い、宿泊費・日当・交通費の実費または定額を支給するものとし、社会通念上妥当な範囲内での支出とする。`,
+            ]);
+
+            return body + detailSentence + necessity;
+        }
+
+        function _generateTripReport(purposes, destination, nights, purposeDetail) {
+            const days = nights + 1;
+            const reportSnippets = {
+                '不動産会社周り': [
+                    `${destination}所在の不動産仲介業者${Math.max(2, nights + 1)}社を訪問し、投資用物件に関する包括的な情報収集および現地視察を実施した。各仲介業者から、当該エリアの最新の市場動向（取引価格の推移・賃料相場の変動・需給バランス・今後の開発計画等）について詳細なブリーフィングを受けるとともに、現在流通中の複数の候補物件について、立地条件（最寄り駅からの実測徒歩距離・周辺商業施設の充実度・治安状況・騒音レベル）、建物状態（構造の健全性・築年数に対する劣化度合い・修繕履歴・設備仕様のグレード）、収益性（現行賃料と相場との比較・想定空室率・管理費用・修繕積立金の適正性）等を実地に確認した。書面・写真資料では把握困難な建物の実際の管理水準、入居者の質、共用部の使用状況等について直接確認することができ、投資判断の精度向上に資する有益な一次情報を多数取得した。また、仲介業者各社との対面での関係強化により、今後の非公開優良案件の優先紹介について前向きな合意を得ることができた。`,
+                    `${destination}の不動産仲介業者を訪問し、当社の投資方針に合致する収益物件の調査および市場分析を実施した。訪問先の各社から、地域特有の不動産市場の特性、入居需要の季節変動、競合物件の動向、地元の開発計画が賃貸市場に与える影響等について、現地でしか得られない実務的な情報を詳細に聴取した。併せて、候補物件の内覧を行い、建物のメンテナンス状態・設備の経年劣化・周辺環境の実態を五感で確認した。インターネット上の物件情報や仲介業者からの書面レポートだけでは判断し得ない重要な情報を多数収集でき、今後の投資意思決定において極めて有益な出張であった。`,
+                ],
+                'クライアント相談': [
+                    `${destination}在住の不動産オーナー・投資家クライアント${Math.max(2, nights + 1)}名との対面コンサルティングを実施した。各クライアントの保有不動産ポートフォリオの現状分析（物件別収益率・空室率・修繕積立金の充足状況・減価償却スケジュール等）に基づき、資産運用戦略の見直しと最適化について包括的な助言を行った。特に、築年数の経過に伴う大規模修繕の時期・費用見積もりと、修繕後の賃料改定・バリューアップ戦略について、具体的な事例データを用いながら詳細に検討した。また、相続・事業承継を見据えた不動産資産の組み替え（低収益物件の売却と高収益物件への入替え）、法人化による税務メリットの試算、借入金の借り換えによるキャッシュフロー改善策等、クライアント各自の資産状況と将来計画に即した個別具体的な提案を行った。対面での相談により、クライアントの潜在的な不安や要望を丁寧にヒアリングすることができ、オンラインでは得られない深い信頼関係の構築と高い顧客満足度の獲得に成功した。`,
+                    `${destination}のクライアント（不動産投資家・資産管理法人代表者）を訪問し、保有物件の運用状況レビューおよび今後の投資戦略に関する対面コンサルティングを実施した。各クライアントの保有物件について、直近の入居率・賃料収入の推移・管理費用の妥当性・周辺相場との乖離等を詳細に分析し、物件ごとの改善策（リノベーション投資・賃料見直し・管理会社の変更検討等）を具体的に提案した。また、新規物件取得に関心を持つクライアントに対しては、当該エリアの市場動向・融資環境・投資採算シミュレーションを提示し、投資判断に必要な情報を網羅的に提供した。対面でのきめ細かな相談対応により、クライアントから今後の資産運用全般にわたる継続的なアドバイザリー契約の更新について前向きな意向を確認することができた。`,
+                ],
+                '企業訪問': [
+                    `${destination}所在の不動産関連企業${Math.max(2, nights + 1)}社を訪問し、事業提携・情報交換に関する対面打ち合わせを実施した。訪問先はデベロッパー・建設会社・リフォーム会社・金融機関・税理士事務所等、不動産コンサルティング業務に関連する多岐にわたる企業であり、各社の最新の事業動向・市場認識・今後の事業計画等について詳細なヒアリングを行った。デベロッパーからは当該エリアの新規開発案件・分譲マンション供給計画・土地仕入れ動向等の最新情報を聴取し、建設会社からはリノベーション工事の最新コスト動向・工期・施工品質に関する実務的な知見を得た。金融機関からは不動産融資の最新審査基準・金利動向・融資枠の見通しについて実務担当者から直接説明を受けた。対面での訪問により、各企業の経営層・実務担当者との人的ネットワークを強化し、クライアントへのコンサルティング品質向上に直結する有益な業界情報と協力関係を構築することができた。`,
+                    `${destination}の不動産関連企業への訪問を実施し、業界動向の調査および業務提携先との関係強化を図った。不動産仲介大手・地域密着型管理会社・リフォーム専門会社・損害保険代理店等を訪問し、各社の得意分野・対応エリア・サービス品質・価格体系等を直接確認した。各訪問先との意見交換を通じて、不動産市場の実態（取引件数の推移・価格交渉の難易度・買主の購買意欲・融資付けの状況等）について現場感のある情報を多数収集した。これらの情報は、当社がクライアントに提供するコンサルティングサービスの品質向上と、具体的な物件紹介・管理会社選定・リフォーム提案等の実務面での提案力強化に直接的に寄与するものであり、極めて有意義な出張であった。`,
+                ],
+                'コンサル案件': [
+                    `不動産コンサルティング契約に基づき、${destination}のクライアント（不動産オーナー・投資法人）を訪問し、保有不動産のデューデリジェンス報告および投資戦略に関する対面コンサルティングを実施した。対象物件${Math.max(2, nights + 1)}件について、事前に実施した建物診断・法務調査・収益分析の結果を報告するとともに、現地にて実物を確認しながら改善提案の詳細を協議した。具体的には、各物件のエンジニアリングレポート（建物劣化診断・修繕優先順位・概算費用）、マーケットレポート（周辺賃料相場・競合物件分析・需要予測）、フィナンシャルレポート（キャッシュフロー分析・IRR試算・出口戦略シミュレーション）の内容をクライアントに説明し、投資判断に必要な情報を網羅的に提供した。また、クライアントの今後の資産拡大計画に対し、物件取得候補のフィージビリティスタディ（事業採算性調査）の実施方針について合意を得た。現地での対面協議により、クライアントの投資方針・リスク許容度・資金計画等について深い理解を得ることができ、より精度の高いコンサルティング提案の策定に必要な知見を確保した。`,
+                    `${destination}において、不動産コンサルティング案件に係る現地調査および関係者との協議を実施した。クライアントから委託を受けた不動産の有効活用プランの策定にあたり、対象地の現地確認（土地形状・接道状況・日照条件・近隣建築物の状況・インフラ整備状況等）、行政機関での法規制調査（用途地域・建蔽率容積率・開発許可要件・条例制限等）、地元不動産業者からの市場ヒアリング（想定賃料・入居需要・競合状況等）を詳細に行った。収集したデータに基づき、複数の活用プラン（賃貸住宅開発・商業施設誘致・駐車場経営・等価交換方式等）の比較検討資料を作成するための基礎情報を確保した。現地を実際に歩いて確認することで、地図や航空写真では読み取れない周辺環境の実態（交通量・騒音・振動・臭気・景観等）を把握でき、クライアントに対するより実態に即した提案の策定に大きく寄与する出張となった。`,
+                ],
+                'セミナー・研修': [
+                    `${destination}で開催された不動産投資・資産運用に関するセミナーに参加し、不動産コンサルティング業務に直結する最新の専門知識の習得を行った。プログラムでは、不動産鑑定士・税理士・弁護士・金融機関の融資担当者等の各分野専門家による講演が実施され、最新の不動産市場動向（地価公示・路線価の動向・取引件数の推移・外国人投資家の動向等）、不動産関連税制の改正情報（減価償却制度の変更・譲渡所得課税の特例・相続税評価の見直し等）、不動産投資における法務リスク管理（契約書作成の留意点・瑕疵担保責任の実務・借地借家法の最新判例等）、建物の長寿命化技術と修繕計画の最適化手法等について、実務的かつ体系的な知識を効率的に取得した。セミナー後の懇親会では、参加した不動産オーナー・投資家・同業コンサルタント・金融機関関係者等との情報交換を通じて、市場の実態情報や実務上の課題・ノウハウを多数収集するとともに、今後のコンサルティング業務に資する人的ネットワークを構築・強化した。取得した知見はクライアントへの助言品質の向上に直接活用する。`,
+                    `${destination}にて開催された不動産実務研修プログラムに参加した。研修テーマは不動産の適正評価手法（DCF法・直接還元法・取引事例比較法の実務適用）、収益物件のバリューアップ戦略（リノベーション投資の費用対効果分析・テナントミックス最適化・管理コスト削減手法）、不動産テック（PropTech）の最新動向（AI査定ツール・VR内覧・スマートロック・IoTを活用した建物管理等）、および不動産ファンド・REIT市場の動向と私募ファンド組成実務であった。各テーマについて、第一線で活躍する実務家講師からケーススタディを交えた実践的な講義を受け、当社のコンサルティングサービスに即座に適用可能な最新の知見・手法を多数習得した。また、研修参加者（不動産AM会社・PM会社・デベロッパー・金融機関等の実務者）との意見交換を通じて、業界各社の最新の取り組みと課題認識を把握し、当社のサービス差別化に向けた有益な示唆を得た。`,
+                ],
+                '契約締結・交渉': [
+                    `${destination}において、不動産売買契約に関する対面交渉および契約締結業務を実施した。クライアントの代理人として、売主側（不動産業者・個人オーナー）との間で、売買価格・引渡し条件・瑕疵担保責任（契約不適合責任）の範囲・手付金の額と解除条件・ローン特約の内容・固定資産税等の精算方法・境界確認の方法と費用負担・残置物の処理・引渡し前の修繕対応等の各条項について逐条で詳細な交渉を行った。対面での交渉により、相手方の売却動機・希望条件の優先順位・価格交渉の余地等を正確に把握することができ、クライアントにとって有利な条件での合意形成に成功した。併せて、仲介業者・司法書士・金融機関（融資担当）との間で、決済・登記・融資実行のスケジュール調整を行い、取引の円滑な進行に向けた体制を整備した。対面での直接交渉が契約条件の最適化と迅速な意思決定に大きく寄与した。`,
+                    `${destination}にて、賃貸借契約・管理委託契約に関する交渉および締結業務を実施した。クライアント所有物件の新規テナント誘致に係る賃貸借契約について、借主側との間で賃料・共益費・敷金・礼金・契約期間・更新条件・原状回復義務の範囲・禁止事項・解約予告期間等の各条項を詳細に協議し、クライアントの収益確保と長期安定入居の両立を図る契約条件での合意に達した。また、管理委託契約の更新交渉では、管理会社との間で管理手数料率の見直し・業務範囲の明確化（日常清掃・設備点検・入居者対応・退去立会い・原状回復工事の手配等）・報告義務の頻度と内容・契約解除条件等について改善を求め、クライアントの利益に資する条件改善を実現した。不動産取引特有の専門的な契約条項について、現場で関係者と直接協議することにより、書面のやり取りでは解決困難な細部の調整を効率的に完了することができた。`,
+                ],
+                '物件視察': [
+                    `${destination}所在の保有物件を訪問し、総合的な現地視察および管理状況の確認を実施した。建物外観の劣化状況（外壁・屋上防水・基礎部分等）、共用部の管理水準（清掃状態・照明・掲示物・植栽の手入れ・駐輪場の整理状況等）、設備の動作確認（エレベーター・消防設備・給排水設備・インターホン等）、空室の現況（室内の状態確認・原状回復工事の必要性判定）、および周辺環境の変化（新規建築物・道路工事・商業施設の開閉業等）を詳細に確認した。写真や管理会社からの書面報告では把握しにくい経年変化の微細な兆候や、入居者の生活動線に影響する細部の状況を直接確認でき、今後の修繕計画の優先順位付けおよび中長期的な資産価値維持戦略の立案に極めて有益な情報を得ることができた。視察結果に基づく具体的な改善指示を管理会社に伝達し、対応スケジュールについて合意した。`,
+                    `${destination}における保有物件の定期視察を実施した。前回視察時からの変化点を重点的に確認し、建物の経年劣化の進行度合い、設備の更新必要性、入居者の利用状況等を詳細に把握した。現地確認の結果、書面報告では報告されていなかった軽微な不具合を複数発見し、早期対応を指示することで大規模修繕への発展を未然に防止することができた。物件オーナーとして現地を自らの目で確認する重要性を改めて認識し、資産の適正管理と収益性の維持に必要な措置を講じた。`,
+                ],
+                '収益物件調査': [
+                    `${destination}において、収益不動産の取得検討に伴う現地調査を実施した。候補物件${Math.max(2, nights + 1)}件の内覧を行い、各物件の立地環境（最寄り駅からの実測徒歩距離・周辺の生活利便施設・騒音レベル・日照条件等）、建物状態（外壁・屋根・基礎の健全性・室内設備のグレードと経年状況・共用部の管理水準）、収益性（現行賃料の相場との乖離・空室リスク・修繕積立金の充足度・管理費用の妥当性）等を詳細に確認した。併せて、周辺の賃貸市場動向（競合物件の家賃設定・入居率・ターゲット層の特性）を実地で調査し、投資採算性の検証に必要な定量・定性の両面からデータを収集した。現地確認により、物件紹介資料やインターネット上の情報だけでは把握できない重要な判断材料を多数取得でき、投資判断の精度向上に大きく寄与する成果を得た。`,
+                ],
+                '管理会社打合せ': [
+                    `${destination}の物件管理会社を訪問し、管理業務に関する定期総合打ち合わせを実施した。物件ごとの入居率推移・家賃収納状況・滞納案件の対応経過・入居者からの要望およびクレーム対応の詳細報告を受け、各事案について管理会社の対応の適正性を検証した。空室対策（募集条件の見直し・リフォーム提案・広告戦略の改善）、修繕計画（優先順位の見直し・予算配分の調整・施工業者の選定基準）、および管理費用の費用対効果について詳細な協議を行い、管理品質の維持・向上に向けた具体的な改善事項と対応スケジュールについて合意を得た。対面での協議により、書面では伝えきれない当社の経営方針と管理に対する考え方を直接共有でき、管理会社との認識統一と協力体制の強化を図ることができた。`,
+                ],
+            };
+
+            const parts = [];
+            for (const p of purposes) {
+                const snippets = reportSnippets[p] || [`${p}に関する業務を${destination}にて遂行し、所期の目的を達成した。現地での直接対応により、リモートや書面のみでは得られない詳細な情報・知見を多数取得することができた。対面でのコミュニケーションにより関係者との信頼関係が深化し、今後の業務推進に必要な協力体制の基盤を構築することができた。`];
+                parts.push(randomChoice(snippets));
+            }
+
+            let reportBody;
+            if (parts.length > 1) {
+                reportBody = parts.map((part, i) => `${i + 1}. ${part}`).join('\n\n');
+            } else {
+                reportBody = parts[0];
+            }
+
+            let detailSection = '';
+            if (purposeDetail && purposeDetail.trim()) {
+                detailSection = `\n\n【活動詳細】\n${purposeDetail.trim()}について、現地にて直接対応を行った。事前にオンラインや書面で確認していた内容に加え、現場でしか確認できない実態や課題を多数発見し、事前の想定を大きく上回る有益な情報・成果を得ることができた。現地での直接的な業務対応の重要性を改めて確認する結果となった。`;
+            }
+
+            const closing = randomChoice([
+                `\n\n【成果と今後の対応】\n本出張により、当初設定した全ての業務目的を達成し、今後の事業推進に必要な重要な情報・合意・関係構築の成果を得ることができた。出張成果を踏まえ、以下のとおり対応を進める。\n・取得した情報・データの整理・分析および社内関係者への共有\n・関係先との追加協議・フォローアップの速やかな実施（出張後1週間以内を目途）\n・出張成果に基づく具体的なアクションプランの策定と実行\n・必要に応じた次回訪問の計画策定（時期・目的・期待成果の整理）\n以上のとおり、本出張は業務遂行上必要不可欠な活動であり、所期の目的を十分に達成することができた。出張に係る費用は、業務上の成果に照らして合理的かつ適正な支出であったと認められる。`,
+                `\n\n【成果と今後の対応】\n本出張では、計画していた全ての業務を滞りなく遂行し、以下の成果を得た。\n・現地でしか確認できない実態情報の収集と、それに基づく経営判断材料の確保\n・関係先との対面での信頼関係の構築・強化と、今後の協力体制に関する合意形成\n・課題の早期発見と対応方針の迅速な決定\n本出張で得られた成果を基に、速やかに社内検討を行い、具体的なアクションプランを策定する。関係先へのフォローアップについても、出張後速やかに実施する予定である。\n以上のとおり、本出張は当社の事業目的に直接関連する業務活動であり、所期の目的を十分に達成することができた。出張の日程・経費はいずれも業務上の必要性に基づく合理的な範囲内であった。`,
+                `\n\n【成果と今後の対応】\n${nights}泊${days}日の出張期間を通じて、予定していた全ての業務を計画どおり遂行し、当初の出張目的を達成した。特に、現地での対面業務により、書面・電話・オンライン等の非対面手段では得ることが困難な質の高い情報と成果を確保できたことは大きな収穫であった。\n帰社後は、出張で得た情報・知見を速やかに整理・分析し、社内共有を行うとともに、関係先へのお礼と今後のスケジュール調整を含むフォローアップを実施する。出張成果を当社の事業戦略に反映し、業務品質の向上と事業発展に活用する。`,
+            ]);
+
+            return reportBody + detailSection + closing;
+        }
+
+        function generateReason() {
+            const purposes = getSelectedPurposes();
+            const destination = document.getElementById('destination').value;
+            const nights = document.getElementById('nights').value;
+            const purposeDetail = document.getElementById('purposeDetail').value;
+
+            if (!destination) { alert('出張先を入力してください'); return; }
+            if (purposes.length === 0) { alert('出張目的を1つ以上選択してください'); return; }
+
+            const reason = _generateTripReason(purposes, destination, parseInt(nights) || 1, purposeDetail);
+            document.getElementById('tripReason').value = reason;
+        }
+
+        function generateReport() {
+            const purposes = getSelectedPurposes();
+            const destination = document.getElementById('destination').value;
+            const nights = document.getElementById('nights').value;
+            const purposeDetail = document.getElementById('purposeDetail').value;
+
+            if (!destination) { alert('出張先を入力してください'); return; }
+            if (purposes.length === 0) { alert('出張目的を1つ以上選択してください'); return; }
+
+            const report = _generateTripReport(purposes, destination, parseInt(nights) || 1, purposeDetail);
+            document.getElementById('tripReport').value = report;
+        }
+
+        // ============================================================
+        // 肉付け機能（ユーザーが書いた内容を拡張）
+        // ============================================================
+
+        function _expandText(userText, destination, purposes, nights, mode) {
+            const text = userText.trim();
+            const days = nights + 1;
+
+            const formalOpeners = [
+                `${destination}への出張において、以下の業務を遂行した。`,
+                `当社の不動産コンサルティング業務の一環として、${destination}にて以下の業務を実施した。`,
+                `${destination}における業務遂行のため、${nights}泊${days}日の日程で出張を実施し、以下の成果を得た。`,
+            ];
+
+            const contextByPurpose = {
+                '不動産会社周り': '現地の不動産仲介業者との情報交換を通じて、最新の市場動向（取引価格の推移・賃料相場・需給バランス）を把握するとともに、非公開を含む投資用物件情報の収集を行った。',
+                '物件視察': '対象物件の建物状態（外壁・設備・共用部の管理水準）、立地環境（交通アクセス・周辺施設・騒音等）、入居者の状況等を実地に確認し、書面や写真では把握困難な情報を直接確認した。',
+                'クライアント相談': 'クライアント（不動産オーナー・投資家）との対面相談を実施し、保有物件の運用状況レビュー、資産ポートフォリオの最適化、今後の投資戦略について個別具体的な助言を行った。',
+                '企業訪問': '不動産関連企業（デベロッパー・建設会社・リフォーム会社・金融機関・税理士事務所等）を訪問し、業界動向の調査および業務提携に関する協議を行った。',
+                '収益物件調査': '収益不動産の取得検討に伴い、候補物件の内覧・周辺賃貸市場の調査・投資採算性の検証を実地で行い、投資判断に必要な定量・定性データを収集した。',
+                '管理会社打合せ': '物件管理会社との定期打ち合わせを実施し、入居率・家賃収納状況・修繕計画・空室対策等について詳細な協議と改善指示を行った。',
+                'コンサル案件': 'コンサルティング契約に基づき、クライアントの保有不動産に関するデューデリジェンス報告および投資戦略の提案を対面で実施した。',
+                'セミナー・研修': '不動産投資・資産運用に関する専門セミナーに参加し、最新の市場動向・税制改正・法務リスク管理等について実務的知見を習得した。',
+                '契約締結・交渉': '不動産取引に係る契約条件の交渉および締結業務を実施し、売買価格・引渡し条件・瑕疵担保責任等の各条項について詳細な協議を行った。',
+            };
+
+            const reasonClosings = [
+                '上記業務は、取引先・関係先との直接対面での協議、現場の実地確認、および機密性の高い資料の授受を伴うものであり、電話・メール・オンライン会議等の非対面手段では十分な成果を得ることが困難であるため、現地への出張による直接対応が業務遂行上不可欠と判断した。',
+                '本業務は、現地での実物確認・対面交渉・関係者との直接的な信頼構築が不可欠であり、リモート対応では代替し得ない性質のものであるため、出張による現地対応が必要と判断した。',
+                '当該業務は、物件・施設等の現況を五感で確認し、関係者と対面で機微な情報交換を行う必要があるため、現地出張による対応が業務上必要不可欠である。',
+            ];
+
+            const reportClosings = [
+                `\n\n【成果と今後の対応】\n本出張により、所期の業務目的を達成し、今後の事業推進に必要な情報・合意・関係構築の成果を得た。出張成果を踏まえ、取得情報の整理・分析、関係先へのフォローアップ、具体的アクションプランの策定を速やかに実施する。本出張は業務遂行上必要不可欠な活動であり、費用は業務上の成果に照らして合理的かつ適正な支出であった。`,
+                `\n\n【成果と今後の対応】\n${nights}泊${days}日の出張期間を通じて、予定業務を計画どおり遂行し、当初の目的を達成した。現地での対面対応により、非対面では得られない質の高い情報と成果を確保できた。帰社後は出張成果を整理・分析し、社内共有およびフォローアップを実施する。出張の日程・経費はいずれも業務上の必要性に基づく合理的な範囲内であった。`,
+            ];
+
+            const purposeContexts = purposes
+                .map(p => contextByPurpose[p])
+                .filter(Boolean);
+
+            let expanded = randomChoice(formalOpeners) + '\n\n';
+
+            expanded += text;
+
+            if (purposeContexts.length > 0) {
+                expanded += '\n\n' + purposeContexts.join('\n');
+            }
+
+            if (mode === 'reason') {
+                expanded += '\n\n' + randomChoice(reasonClosings);
+            } else {
+                expanded += randomChoice(reportClosings);
+            }
+
+            return expanded;
+        }
+
+        function expandReason() {
+            const textarea = document.getElementById('tripReason');
+            const userText = textarea.value.trim();
+            if (!userText) {
+                alert('まず出張理由の概要を記入してください。\n例：「東京で不動産会社3社を回り、投資物件の情報収集を行った」');
+                return;
+            }
+            const destination = document.getElementById('destination').value || '出張先';
+            const purposes = getSelectedPurposes();
+            const nights = parseInt(document.getElementById('nights').value) || 1;
+            textarea.value = _expandText(userText, destination, purposes, nights, 'reason');
+        }
+
+        function expandReport() {
+            const textarea = document.getElementById('tripReport');
+            const userText = textarea.value.trim();
+            if (!userText) {
+                alert('まず出張報告の概要を記入してください。\n例：「物件3件を内覧し、管理会社と修繕計画について打ち合わせした」');
+                return;
+            }
+            const destination = document.getElementById('destination').value || '出張先';
+            const purposes = getSelectedPurposes();
+            const nights = parseInt(document.getElementById('nights').value) || 1;
+            textarea.value = _expandText(userText, destination, purposes, nights, 'report');
+        }
+
+        // ============================================================
+        // Date formatting helpers (Japanese era)
+        // ============================================================
+
+        function formatDateJp(dateStr) {
+            if (!dateStr) return '';
+            try {
+                const parts = dateStr.split('-');
+                const year = parseInt(parts[0]);
+                const month = parseInt(parts[1]);
+                const day = parseInt(parts[2]);
+                let era, warekiYear;
+                if (year >= 2019) {
+                    warekiYear = year - 2018;
+                    era = '令和';
+                } else if (year >= 1989) {
+                    warekiYear = year - 1988;
+                    era = '平成';
+                } else {
+                    warekiYear = year - 1925;
+                    era = '昭和';
+                }
+                return `${era}${warekiYear}年${month}月${day}日`;
+            } catch (e) {
+                return dateStr;
+            }
+        }
+
+        function formatCurrency(amount) {
+            return '\u00a5' + Number(amount).toLocaleString('ja-JP');
+        }
+
+        function buildTransportNote(td) {
+            const parts = [];
+            if (td.airline) parts.push(td.airline);
+            if (td.flight_no) parts.push('便名:' + td.flight_no);
+            if (td.seat_class) parts.push(td.seat_class);
+            if (td.line) parts.push(td.line);
+            if (td.taxi_reason) parts.push('理由:' + td.taxi_reason);
+            if (td.rental_company) parts.push(td.rental_company);
+            if (td.rental_reason) parts.push('理由:' + td.rental_reason);
+            if (td.note) parts.push(td.note);
+            return parts.join('\uff0f');
+        }
+
+        // ============================================================
+        // DOCX Generation (client-side using docx library)
+        // ============================================================
+
+        async function generateDocx(payload) {
+            const {
+                Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+                WidthType, AlignmentType, BorderStyle, ShadingType,
+                HeadingLevel, convertInchesToTwip, TableLayoutType,
+                VerticalAlign, PageOrientation
+            } = window.docx;
+
+            const nights = payload.nights;
+            const days = nights + 1;
+            const totalAccommodation = payload.accommodation_fee * nights;
+            const totalAllowance = payload.daily_allowance * days;
+            const transportTotal = payload.transport_details.reduce((s, t) => s + (t.amount || 0), 0);
+            const grandTotal = totalAccommodation + totalAllowance + transportTotal;
+
+            const startDateJp = formatDateJp(payload.start_date);
+            const endDateJp = formatDateJp(payload.end_date);
+            const today = new Date();
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+            const todayJp = formatDateJp(todayStr);
+
+            const purpose = payload.purpose || payload.purposes.join('\u30FB');
+
+            // Helper: create a text run
+            function tr(text, opts = {}) {
+                return new TextRun({
+                    text: text,
+                    font: opts.font || '游明朝',
+                    size: (opts.size || 10.5) * 2,
+                    bold: opts.bold || false,
+                    color: opts.color || '000000',
+                    eastAsiaFont: opts.font || '游明朝',
+                });
+            }
+
+            // Helper: header cell
+            function headerCell(text, width) {
+                return new TableCell({
+                    width: { size: width, type: WidthType.DXA },
+                    shading: { type: ShadingType.SOLID, color: 'E8F0FE', fill: 'E8F0FE' },
+                    verticalAlign: VerticalAlign.CENTER,
+                    children: [new Paragraph({
+                        alignment: AlignmentType.CENTER,
+                        children: [tr(text, { font: '游ゴシック', size: 9, bold: true })],
+                    })],
+                });
+            }
+
+            // Helper: value cell
+            function valueCell(text, width, alignment) {
+                return new TableCell({
+                    width: { size: width, type: WidthType.DXA },
+                    verticalAlign: VerticalAlign.CENTER,
+                    children: [new Paragraph({
+                        alignment: alignment || AlignmentType.LEFT,
+                        children: [tr(text, { size: 10 })],
+                    })],
+                });
+            }
+
+            // Basic info table
+            const infoRows = [
+                ['所属部署', payload.department, '役職', payload.position],
+                ['出張者氏名', payload.employee_name, '', ''],
+                ['出張期間', `${startDateJp}\u3000～\u3000${endDateJp}`, '泊数', `${nights}泊${days}日`],
+                ['出張先', payload.destination, '出張目的', purpose],
+            ];
+
+            const infoTableRows = infoRows.map(r =>
+                new TableRow({
+                    children: [
+                        headerCell(r[0], 1600),
+                        valueCell(r[1], 3100),
+                        headerCell(r[2], 1600),
+                        valueCell(r[3], 2300),
+                    ],
+                })
+            );
+
+            // Trip reason section
+            let reasonText = payload.trip_reason;
+            if (payload.purpose_detail) {
+                reasonText += `\n\n【詳細】${payload.purpose_detail}`;
+            }
+            const reasonParagraphs = reasonText.split('\n').map(line =>
+                new Paragraph({ children: [tr(line, { size: 10 })] })
+            );
+
+            // Transport table
+            const transportRows = [];
+            const hasNotes = payload.transport_details.some(td => buildTransportNote(td));
+            if (payload.transport_details.length > 0) {
+                const tHeaders = ['日付', '区間', '交通機関', '金額'];
+                if (hasNotes) tHeaders.push('備考');
+
+                const tWidths = hasNotes ? [1400, 2600, 1400, 1400, 1800] : [1800, 3200, 1800, 1800];
+
+                transportRows.push(new TableRow({
+                    children: tHeaders.map((h, i) => headerCell(h, tWidths[i])),
+                }));
+
+                for (const td of payload.transport_details) {
+                    const cells = [
+                        valueCell(formatDateJp(td.date || ''), tWidths[0]),
+                        valueCell(td.route || '', tWidths[1]),
+                        valueCell(td.method || '', tWidths[2]),
+                        new TableCell({
+                            width: { size: tWidths[3], type: WidthType.DXA },
+                            children: [new Paragraph({
+                                alignment: AlignmentType.RIGHT,
+                                children: [tr(formatCurrency(td.amount || 0), { size: 10 })],
+                            })],
+                        }),
+                    ];
+                    if (hasNotes) {
+                        cells.push(valueCell(buildTransportNote(td), tWidths[4]));
+                    }
+                    transportRows.push(new TableRow({ children: cells }));
+                }
+            }
+
+            // Accommodation/allowance table
+            const summaryHeaders = ['項目', '単価', '数量', '金額'];
+            const sWidths = [2200, 2000, 1400, 3000];
+            const summaryData = [
+                ['宿泊費', formatCurrency(payload.accommodation_fee), `${nights}泊`, formatCurrency(totalAccommodation)],
+                ['日当', formatCurrency(payload.daily_allowance), `${days}日`, formatCurrency(totalAllowance)],
+                ['交通費合計', '', '', formatCurrency(transportTotal)],
+            ];
+
+            const summaryTableRows = [
+                new TableRow({
+                    children: summaryHeaders.map((h, i) => headerCell(h, sWidths[i])),
+                }),
+                ...summaryData.map(row =>
+                    new TableRow({
+                        children: row.map((val, j) =>
+                            j === 3
+                                ? new TableCell({
+                                    width: { size: sWidths[j], type: WidthType.DXA },
+                                    children: [new Paragraph({
+                                        alignment: AlignmentType.RIGHT,
+                                        children: [tr(val, { size: 10 })],
+                                    })],
+                                })
+                                : valueCell(val, sWidths[j])
+                        ),
+                    })
+                ),
+            ];
+
+            // Total row
+            const totalTableRow = new TableRow({
+                children: [
+                    new TableCell({
+                        width: { size: 2800, type: WidthType.DXA },
+                        shading: { type: ShadingType.SOLID, color: '1F4E79', fill: '1F4E79' },
+                        verticalAlign: VerticalAlign.CENTER,
+                        children: [new Paragraph({
+                            alignment: AlignmentType.CENTER,
+                            children: [tr('合計支給額', { font: '游ゴシック', size: 12, bold: true, color: 'FFFFFF' })],
+                        })],
+                    }),
+                    new TableCell({
+                        width: { size: 5800, type: WidthType.DXA },
+                        verticalAlign: VerticalAlign.CENTER,
+                        children: [new Paragraph({
+                            alignment: AlignmentType.RIGHT,
+                            children: [tr(formatCurrency(grandTotal), { font: '游ゴシック', size: 14, bold: true })],
+                        })],
+                    }),
+                ],
+            });
+
+            // Trip report section
+            const reportParagraphs = (payload.trip_report || '').split('\n').map(line =>
+                new Paragraph({ children: [tr(line, { size: 10 })] })
+            );
+
+            // Approval table
+            const approvalHeaders = ['申請者', '所属長', '経理部', '代表取締役'];
+            const aWidth = 2150;
+            const approvalHeaderRow = new TableRow({
+                children: approvalHeaders.map(h => headerCell(h, aWidth)),
+            });
+            const approvalEmptyRow = new TableRow({
+                height: { value: 1400, rule: 'atLeast' },
+                children: approvalHeaders.map(() =>
+                    new TableCell({
+                        width: { size: aWidth, type: WidthType.DXA },
+                        children: [new Paragraph({ children: [tr('')] })],
+                    })
+                ),
+            });
+
+            // Borders for all tables
+            const tableBorders = {
+                top: { style: BorderStyle.SINGLE, size: 1, color: '888888' },
+                bottom: { style: BorderStyle.SINGLE, size: 1, color: '888888' },
+                left: { style: BorderStyle.SINGLE, size: 1, color: '888888' },
+                right: { style: BorderStyle.SINGLE, size: 1, color: '888888' },
+                insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: '888888' },
+                insideVertical: { style: BorderStyle.SINGLE, size: 1, color: '888888' },
+            };
+
+            // Build document sections
+            const children = [
+                // Title
+                new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    spacing: { after: 120 },
+                    children: [tr('出張旅費精算書', { font: '游ゴシック', size: 18, bold: true })],
+                }),
+                // Date
+                new Paragraph({
+                    alignment: AlignmentType.RIGHT,
+                    spacing: { after: 40 },
+                    children: [tr(`作成日：${todayJp}`, { size: 9 })],
+                }),
+                // Company
+                new Paragraph({
+                    alignment: AlignmentType.RIGHT,
+                    spacing: { after: 120 },
+                    children: [tr(payload.company_name, { font: '游ゴシック', size: 11, bold: true })],
+                }),
+                // Info table
+                new Table({
+                    rows: infoTableRows,
+                    width: { size: 8600, type: WidthType.DXA },
+                    borders: tableBorders,
+                }),
+                new Paragraph({ spacing: { after: 200 }, children: [] }),
+                // Reason header
+                new Paragraph({
+                    spacing: { after: 40 },
+                    children: [tr('■ 出張理由', { font: '游ゴシック', size: 11, bold: true })],
+                }),
+                // Reason table
+                new Table({
+                    rows: [new TableRow({
+                        children: [new TableCell({
+                            width: { size: 8600, type: WidthType.DXA },
+                            children: reasonParagraphs,
+                        })],
+                    })],
+                    width: { size: 8600, type: WidthType.DXA },
+                    borders: tableBorders,
+                }),
+                new Paragraph({ spacing: { after: 200 }, children: [] }),
+                // Expense details header
+                new Paragraph({
+                    spacing: { after: 40 },
+                    children: [tr('■ 旅費明細', { font: '游ゴシック', size: 11, bold: true })],
+                }),
+            ];
+
+            // Transport table
+            if (transportRows.length > 0) {
+                children.push(
+                    new Paragraph({
+                        spacing: { after: 20 },
+                        children: [tr('【交通費】', { font: '游ゴシック', size: 10, bold: true })],
+                    }),
+                    new Table({
+                        rows: transportRows,
+                        width: { size: 8600, type: WidthType.DXA },
+                        borders: tableBorders,
+                    }),
+                    new Paragraph({ spacing: { after: 120 }, children: [] })
+                );
+            }
+
+            // Accommodation/allowance
+            children.push(
+                new Paragraph({
+                    spacing: { after: 20 },
+                    children: [tr('【宿泊費・日当】', { font: '游ゴシック', size: 10, bold: true })],
+                }),
+                new Table({
+                    rows: summaryTableRows,
+                    width: { size: 8600, type: WidthType.DXA },
+                    borders: tableBorders,
+                }),
+                new Paragraph({ spacing: { after: 200 }, children: [] }),
+                // Grand total
+                new Table({
+                    rows: [totalTableRow],
+                    width: { size: 8600, type: WidthType.DXA },
+                    borders: tableBorders,
+                }),
+                new Paragraph({ spacing: { after: 200 }, children: [] }),
+                // Report header
+                new Paragraph({
+                    spacing: { after: 40 },
+                    children: [tr('■ 出張報告', { font: '游ゴシック', size: 11, bold: true })],
+                }),
+                // Report table
+                new Table({
+                    rows: [new TableRow({
+                        children: [new TableCell({
+                            width: { size: 8600, type: WidthType.DXA },
+                            children: reportParagraphs,
+                        })],
+                    })],
+                    width: { size: 8600, type: WidthType.DXA },
+                    borders: tableBorders,
+                }),
+                new Paragraph({ spacing: { after: 200 }, children: [] }),
+                // Approval header
+                new Paragraph({
+                    spacing: { after: 40 },
+                    children: [tr('■ 承認', { font: '游ゴシック', size: 11, bold: true })],
+                }),
+                // Approval table
+                new Table({
+                    rows: [approvalHeaderRow, approvalEmptyRow],
+                    width: { size: 8600, type: WidthType.DXA },
+                    borders: tableBorders,
+                }),
+                new Paragraph({ spacing: { after: 200 }, children: [] }),
+                // Notes
+                new Paragraph({
+                    spacing: { after: 20 },
+                    children: [tr('備考：本精算書は出張旅費規程に基づき作成されています。', { size: 8 })],
+                }),
+                new Paragraph({
+                    spacing: { after: 20 },
+                    children: [tr('※宿泊費は規程に定める限度額の範囲内で実費精算とします。', { size: 8 })],
+                }),
+                new Paragraph({
+                    children: [tr('※交通費は領収書を添付してください。', { size: 8 })],
+                }),
+            );
+
+            const doc = new Document({
+                sections: [{
+                    properties: {
+                        page: {
+                            size: { width: 11906, height: 16838 }, // A4
+                            margin: { top: 1417, bottom: 1134, left: 1417, right: 1417 },
+                        },
+                    },
+                    children: children,
+                }],
+            });
+
+            const blob = await Packer.toBlob(doc);
+            return blob;
+        }
+
+        // ============================================================
+        // PDF Generation (client-side using pdf-lib + fontkit)
+        // ============================================================
+
+        let _cachedFontBytes = null;
+
+        async function loadJapaneseFont() {
+            if (_cachedFontBytes) return _cachedFontBytes;
+            const fontUrls = [
+                'NotoSansJP-Regular.ttf',
+                'https://fonts.gstatic.com/s/notosansjp/v56/-F6jfjtqLzI2JPCgQBnw7HFyzSD-AsregP8VFBEj75s.ttf',
+            ];
+            for (const url of fontUrls) {
+                try {
+                    const resp = await fetch(url);
+                    if (!resp.ok) continue;
+                    _cachedFontBytes = await resp.arrayBuffer();
+                    return _cachedFontBytes;
+                } catch (e) { console.warn('Font load failed:', url); }
+            }
+            throw new Error('日本語フォントの読み込みに失敗しました');
+        }
+
+        async function generatePdf(payload) {
+            const { PDFDocument, rgb, StandardFonts } = PDFLib;
+
+            const fontBytes = await loadJapaneseFont();
+            const pdfDoc = await PDFDocument.create();
+            pdfDoc.registerFontkit(fontkit);
+            const jpFont = await pdfDoc.embedFont(fontBytes, { subset: false });
+
+            const nights = payload.nights;
+            const days = nights + 1;
+            const totalAccommodation = payload.accommodation_fee * nights;
+            const totalAllowance = payload.daily_allowance * days;
+            const transportTotal = payload.transport_details.reduce((s, t) => s + (t.amount || 0), 0);
+            const grandTotal = totalAccommodation + totalAllowance + transportTotal;
+
+            const startDateJp = formatDateJp(payload.start_date);
+            const endDateJp = formatDateJp(payload.end_date);
+            const todayD = new Date();
+            const todayStr = `${todayD.getFullYear()}-${String(todayD.getMonth()+1).padStart(2,'0')}-${String(todayD.getDate()).padStart(2,'0')}`;
+            const todayJp = formatDateJp(todayStr);
+            const purpose = payload.purpose || payload.purposes.join('・');
+
+            // A4 dimensions in points
+            const W = 595.28, H = 841.89;
+            const ML = 70, MR = 70, MT = 70;
+            const CW = W - ML - MR;
+
+            let page = pdfDoc.addPage([W, H]);
+            let y = H - MT;
+
+            function checkPage(need) {
+                if (y - need < 50) {
+                    page = pdfDoc.addPage([W, H]);
+                    y = H - MT;
+                }
+            }
+
+            // Helper: draw text
+            function drawText(text, x, yp, size, opts = {}) {
+                page.drawText(text || '', { x, y: yp, size, font: jpFont, color: opts.color || rgb(0,0,0) });
+            }
+
+            // Helper: draw table
+            function drawTable(rows, colWidths, startY, opts = {}) {
+                const rowH = opts.rowHeight || 22;
+                const headerBg = opts.headerBg || null;
+                const fontSize = opts.fontSize || 9;
+                const headerRows = opts.headerRows || 0;
+                let cy = startY;
+
+                for (let ri = 0; ri < rows.length; ri++) {
+                    checkPage(rowH + 10);
+                    const row = rows[ri];
+                    let cx = ML;
+                    const isHeader = ri < headerRows;
+                    const currentRowH = isHeader ? rowH : (opts.bodyRowHeight || rowH);
+
+                    for (let ci = 0; ci < row.length; ci++) {
+                        const cw = colWidths[ci];
+                        // Background
+                        if (isHeader && headerBg) {
+                            page.drawRectangle({ x: cx, y: cy - currentRowH, width: cw, height: currentRowH, color: headerBg });
+                        }
+                        if (opts.cellBg && opts.cellBg[ri] && opts.cellBg[ri][ci]) {
+                            page.drawRectangle({ x: cx, y: cy - currentRowH, width: cw, height: currentRowH, color: opts.cellBg[ri][ci] });
+                        }
+                        // Border
+                        page.drawRectangle({ x: cx, y: cy - currentRowH, width: cw, height: currentRowH,
+                            borderColor: rgb(0.5, 0.5, 0.5), borderWidth: 0.5 });
+                        // Text
+                        const textColor = (opts.textColor && opts.textColor[ri] && opts.textColor[ri][ci]) || rgb(0,0,0);
+                        const cellText = String(row[ci] || '');
+                        // Wrap long text
+                        const maxChars = Math.floor(cw / (fontSize * 0.55));
+                        const lines = [];
+                        for (let s = 0; s < cellText.length; s += maxChars) {
+                            lines.push(cellText.substring(s, s + maxChars));
+                        }
+                        if (lines.length === 0) lines.push('');
+                        const lineH = fontSize + 3;
+                        const textStartY = cy - currentRowH / 2 + (lines.length - 1) * lineH / 2;
+                        lines.forEach((line, li) => {
+                            const align = (opts.align && opts.align[ci]) || 'left';
+                            let tx = cx + 4;
+                            if (align === 'center') {
+                                const tw = jpFont.widthOfTextAtSize(line, fontSize);
+                                tx = cx + (cw - tw) / 2;
+                            } else if (align === 'right') {
+                                const tw = jpFont.widthOfTextAtSize(line, fontSize);
+                                tx = cx + cw - tw - 4;
+                            }
+                            page.drawText(line, { x: tx, y: textStartY - li * lineH, size: fontSize, font: jpFont, color: textColor });
+                        });
+                        cx += cw;
+                    }
+                    cy -= currentRowH;
+                }
+                return cy;
+            }
+
+            // === Title ===
+            const titleText = '出張旅費精算書';
+            const titleW = jpFont.widthOfTextAtSize(titleText, 18);
+            drawText(titleText, (W - titleW) / 2, y, 18);
+            y -= 28;
+
+            // === Date ===
+            const dateText = `作成日：${todayJp}`;
+            const dateW = jpFont.widthOfTextAtSize(dateText, 9);
+            drawText(dateText, W - MR - dateW, y, 9);
+            y -= 14;
+
+            // === Company ===
+            const compW = jpFont.widthOfTextAtSize(payload.company_name, 11);
+            drawText(payload.company_name, W - MR - compW, y, 11);
+            y -= 18;
+
+            // === Basic info table ===
+            const hdrBg = rgb(0.91, 0.94, 0.99);
+            const c1 = 80, c2 = 155, c3 = 80, c4 = CW - c1 - c2 - c3;
+            const infoRows = [
+                ['所属部署', payload.department, '役職', payload.position],
+                ['出張者氏名', payload.employee_name, '', ''],
+                ['出張期間', `${startDateJp} ～ ${endDateJp}`, '泊数', `${nights}泊${days}日`],
+                ['出張先', payload.destination, '出張目的', purpose],
+            ];
+            const infoCellBg = {};
+            infoRows.forEach((_, ri) => { infoCellBg[ri] = { 0: hdrBg, 2: hdrBg }; });
+            y = drawTable(infoRows, [c1, c2, c3, c4], y, {
+                fontSize: 9, rowHeight: 22, cellBg: infoCellBg,
+                align: { 0: 'center', 2: 'center' },
+            });
+            y -= 12;
+
+            // === Trip reason ===
+            checkPage(40);
+            drawText('■ 出張理由', ML, y, 11);
+            y -= 16;
+            let reasonText = payload.trip_reason || '';
+            if (payload.purpose_detail) reasonText += `\n【詳細】${payload.purpose_detail}`;
+            const reasonLines = reasonText.split('\n');
+            const reasonH = Math.max(30, reasonLines.length * 14 + 10);
+            page.drawRectangle({ x: ML, y: y - reasonH, width: CW, height: reasonH,
+                borderColor: rgb(0.5, 0.5, 0.5), borderWidth: 0.5 });
+            reasonLines.forEach((line, i) => {
+                drawText(line, ML + 6, y - 12 - i * 14, 9);
+            });
+            y -= reasonH + 12;
+
+            // === Expense details ===
+            checkPage(30);
+            drawText('■ 旅費明細', ML, y, 11);
+            y -= 16;
+
+            // Transport table
+            if (payload.transport_details.length > 0) {
+                drawText('【交通費】', ML, y, 10);
+                y -= 14;
+                const tHead = ['日付', '区間', '交通機関', '金額'];
+                const tRows = [tHead];
+                payload.transport_details.forEach(td => {
+                    tRows.push([
+                        formatDateJp(td.date || ''), td.route || '', td.method || '', formatCurrency(td.amount || 0),
+                    ]);
+                });
+                const tBg = { 0: { 0: hdrBg, 1: hdrBg, 2: hdrBg, 3: hdrBg } };
+                y = drawTable(tRows, [CW*0.2, CW*0.35, CW*0.2, CW*0.25], y, {
+                    fontSize: 9, headerRows: 1, cellBg: tBg,
+                    align: { 0: 'center', 2: 'center', 3: 'right' },
+                });
+                y -= 8;
+            }
+
+            // Accommodation table
+            checkPage(40);
+            drawText('【宿泊費・日当】', ML, y, 10);
+            y -= 14;
+            const sHead = ['項目', '単価', '数量', '金額'];
+            const sRows = [
+                sHead,
+                ['宿泊費', formatCurrency(payload.accommodation_fee), `${nights}泊`, formatCurrency(totalAccommodation)],
+                ['日当', formatCurrency(payload.daily_allowance), `${days}日`, formatCurrency(totalAllowance)],
+                ['交通費合計', '', '', formatCurrency(transportTotal)],
+            ];
+            const sBg = { 0: { 0: hdrBg, 1: hdrBg, 2: hdrBg, 3: hdrBg } };
+            y = drawTable(sRows, [CW*0.25, CW*0.25, CW*0.2, CW*0.3], y, {
+                fontSize: 9, headerRows: 1, cellBg: sBg,
+                align: { 1: 'right', 2: 'center', 3: 'right' },
+            });
+            y -= 10;
+
+            // Grand total
+            checkPage(25);
+            const totalBg = rgb(0.12, 0.31, 0.47);
+            const gtRows = [['合計支給額', formatCurrency(grandTotal)]];
+            y = drawTable(gtRows, [CW * 0.35, CW * 0.65], y, {
+                fontSize: 13, rowHeight: 28,
+                cellBg: { 0: { 0: totalBg } },
+                textColor: { 0: { 0: rgb(1,1,1) } },
+                align: { 0: 'center', 1: 'right' },
+            });
+            y -= 12;
+
+            // Trip report
+            checkPage(40);
+            drawText('■ 出張報告', ML, y, 11);
+            y -= 16;
+            const reportText = payload.trip_report || '';
+            const reportLines = reportText.split('\n');
+            const reportH = Math.max(30, reportLines.length * 14 + 10);
+            page.drawRectangle({ x: ML, y: y - reportH, width: CW, height: reportH,
+                borderColor: rgb(0.5, 0.5, 0.5), borderWidth: 0.5 });
+            reportLines.forEach((line, i) => {
+                drawText(line, ML + 6, y - 12 - i * 14, 9);
+            });
+            y -= reportH + 12;
+
+            // Approval
+            checkPage(50);
+            drawText('■ 承認', ML, y, 11);
+            y -= 16;
+            const aCW = CW / 4;
+            const aRows = [['申請者', '所属長', '経理部', '代表取締役'], ['', '', '', '']];
+            const aBg = { 0: { 0: hdrBg, 1: hdrBg, 2: hdrBg, 3: hdrBg } };
+            y = drawTable(aRows, [aCW, aCW, aCW, aCW], y, {
+                fontSize: 9, headerRows: 1, bodyRowHeight: 50, cellBg: aBg,
+                align: { 0: 'center', 1: 'center', 2: 'center', 3: 'center' },
+            });
+            y -= 10;
+
+            // Notes
+            checkPage(20);
+            drawText('備考：本精算書は出張旅費規程に基づき作成されています。', ML, y, 7);
+            y -= 10;
+            drawText('※宿泊費は規程に定める限度額の範囲内で実費精算とします。', ML, y, 7);
+            y -= 10;
+            drawText('※交通費は領収書を添付してください。', ML, y, 7);
+
+            const pdfBytes = await pdfDoc.save();
+            return new Blob([pdfBytes], { type: 'application/pdf' });
+        }
+
+        // ============================================================
+        // Preview
+        // ============================================================
+
+        function showPreview() {
+            const payload = collectPayload();
+            if (!payload) return;
+
+            const nights = payload.nights;
+            const days = nights + 1;
+            const totalAcc = payload.accommodation_fee * nights;
+            const totalDaily = payload.daily_allowance * days;
+            const transportTotal = payload.transport_details.reduce((s, t) => s + (t.amount || 0), 0);
+            const grandTotal = totalAcc + totalDaily + transportTotal;
+            const startJp = formatDateJp(payload.start_date);
+            const endJp = formatDateJp(payload.end_date);
+            const todayD = new Date();
+            const todayJp = formatDateJp(`${todayD.getFullYear()}-${String(todayD.getMonth()+1).padStart(2,'0')}-${String(todayD.getDate()).padStart(2,'0')}`);
+            const purpose = payload.purposes ? payload.purposes.join('・') : '';
+
+            let reasonText = payload.trip_reason || '';
+            if (payload.purpose_detail) reasonText += '\n\n【詳細】' + payload.purpose_detail;
+
+            // Transport rows HTML
+            let transportHtml = '';
+            if (payload.transport_details.length > 0) {
+                const hasNotes = payload.transport_details.some(td => buildTransportNote(td));
+                transportHtml = `<table class="preview-table">
+                    <tr><th>日付</th><th>区間</th><th>交通機関</th><th>金額</th>${hasNotes ? '<th>備考</th>' : ''}</tr>`;
+                payload.transport_details.forEach(td => {
+                    const note = buildTransportNote(td);
+                    transportHtml += `<tr>
+                        <td>${formatDateJp(td.date || '')}</td>
+                        <td>${td.route || ''}</td>
+                        <td style="text-align:center">${td.method || ''}</td>
+                        <td style="text-align:right">${formatCurrency(td.amount || 0)}</td>
+                        ${hasNotes ? '<td>' + (note || '') + '</td>' : ''}
+                    </tr>`;
+                });
+                transportHtml += '</table>';
+            }
+
+            const html = `
+                <button class="preview-close" onclick="closePreview()">&times;</button>
+                <div class="preview-title">出 張 旅 費 精 算 書</div>
+                <div class="preview-right">作成日：${todayJp}</div>
+                <div class="preview-right" style="font-size:14px; margin-bottom:12px;">${payload.company_name}</div>
+
+                <table class="preview-table">
+                    <tr><th>所属部署</th><td>${payload.department}</td><th>役職</th><td>${payload.position}</td></tr>
+                    <tr><th>出張者氏名</th><td colspan="3">${payload.employee_name}</td></tr>
+                    <tr><th>出張期間</th><td>${startJp} ～ ${endJp}</td><th>泊数</th><td>${nights}泊${days}日</td></tr>
+                    <tr><th>出張先</th><td>${payload.destination}</td><th>出張目的</th><td>${purpose}</td></tr>
+                </table>
+
+                <div class="preview-section-title">■ 出張理由</div>
+                <div class="preview-box">${(reasonText || '').replace(/\n/g, '<br>')}</div>
+
+                <div class="preview-section-title">■ 旅費明細</div>
+                ${transportHtml ? '<p style="font-size:12px; font-weight:bold; margin:8px 0 4px;">【交通費】</p>' + transportHtml : ''}
+
+                <p style="font-size:12px; font-weight:bold; margin:12px 0 4px;">【宿泊費・日当】</p>
+                <table class="preview-table">
+                    <tr><th>項目</th><th>単価</th><th>数量</th><th>金額</th></tr>
+                    <tr><td>宿泊費</td><td style="text-align:right">${formatCurrency(payload.accommodation_fee)}</td><td style="text-align:center">${nights}泊</td><td style="text-align:right">${formatCurrency(totalAcc)}</td></tr>
+                    <tr><td>日当</td><td style="text-align:right">${formatCurrency(payload.daily_allowance)}</td><td style="text-align:center">${days}日</td><td style="text-align:right">${formatCurrency(totalDaily)}</td></tr>
+                    <tr><td>交通費合計</td><td></td><td></td><td style="text-align:right">${formatCurrency(transportTotal)}</td></tr>
+                </table>
+
+                <table class="preview-table" style="margin-bottom:16px;">
+                    <tr class="preview-total-row"><th>合計支給額</th><td>${formatCurrency(grandTotal)}</td></tr>
+                </table>
+
+                <div class="preview-section-title">■ 出張報告</div>
+                <div class="preview-box">${(payload.trip_report || '').replace(/\n/g, '<br>')}</div>
+
+                <div class="preview-section-title">■ 承認</div>
+                <table class="preview-table preview-stamp-table">
+                    <tr><th>申請者</th><th>所属長</th><th>経理部</th><th>代表取締役</th></tr>
+                    <tr><td></td><td></td><td></td><td></td></tr>
+                </table>
+
+                <div class="preview-notes">
+                    備考：本精算書は出張旅費規程に基づき作成されています。<br>
+                    ※宿泊費は規程に定める限度額の範囲内で実費精算とします。<br>
+                    ※交通費は領収書を添付してください。
+                </div>
+
+                <div class="preview-actions">
+                    <button class="preview-btn-word" onclick="closePreview();generateDocument('docx')">Word出力</button>
+                    <button class="preview-btn-pdf" onclick="closePreview();generateDocument('pdf')">PDF出力</button>
+                    <button class="preview-btn-print" onclick="window.print()">印刷</button>
+                </div>
+            `;
+
+            document.getElementById('previewContent').innerHTML = html;
+            document.getElementById('previewOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePreview() {
+            document.getElementById('previewOverlay').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // ============================================================
+        // Document Generation Entry Point
+        // ============================================================
+
+        function collectPayload() {
+            const required = [
+                { id: 'companyName', name: '会社名' },
+                { id: 'employeeName', name: '氏名' },
+                { id: 'destination', name: '出張先' },
+                { id: 'startDate', name: '出発日' },
+                { id: 'endDate', name: '帰着日' },
+            ];
+            for (const field of required) {
+                if (!document.getElementById(field.id).value) {
+                    alert(`${field.name}を入力してください`);
+                    document.getElementById(field.id).focus();
+                    return null;
+                }
+            }
+            const purposes = getSelectedPurposes();
+            if (purposes.length === 0) {
+                alert('出張目的を1つ以上選択してください');
+                return null;
+            }
+            const payload = {
+                company_name: document.getElementById('companyName').value,
+                employee_name: document.getElementById('employeeName').value,
+                position: getPositionValue(),
+                department: document.getElementById('department').value,
+                destination: document.getElementById('destination').value,
+                purpose: purposes.join('\u30FB'),
+                purposes: purposes,
+                purpose_detail: document.getElementById('purposeDetail').value,
+                start_date: document.getElementById('startDate').value,
+                end_date: document.getElementById('endDate').value,
+                nights: parseInt(document.getElementById('nights').value),
+                accommodation_fee: parseInt(document.getElementById('accommodationFee').value),
+                daily_allowance: parseInt(document.getElementById('dailyAllowance').value),
+                transport_details: getTransportDetails(),
+                trip_reason: document.getElementById('tripReason').value,
+                trip_report: document.getElementById('tripReport').value,
+            };
+            if (!payload.trip_reason) {
+                payload.trip_reason = _generateTripReason(purposes, payload.destination, payload.nights, payload.purpose_detail);
+            }
+            if (!payload.trip_report) {
+                payload.trip_report = _generateTripReport(purposes, payload.destination, payload.nights, payload.purpose_detail);
+            }
+            return payload;
+        }
+
+        async function generateDocument(format) {
+            format = format || 'docx';
+            const payload = collectPayload();
+            if (!payload) return;
+
+            const loading = document.getElementById('loading');
+            loading.classList.add('active');
+
+            // Save to history
+            saveToHistory(payload);
+
+            try {
+                let blob;
+                let ext;
+                if (format === 'pdf') {
+                    blob = await generatePdf(payload);
+                    ext = '.pdf';
+                } else {
+                    blob = await generateDocx(payload);
+                    ext = '.docx';
+                }
+
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `出張旅費精算書_${payload.employee_name}_${payload.start_date}${ext}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (e) {
+                console.error(e);
+                alert('エラーが発生しました: ' + e.message);
+            } finally {
+                loading.classList.remove('active');
+            }
+        }
+
+        // ============================================================
+        // localStorage: Profile auto-save/restore
+        // ============================================================
+        const PROFILE_KEY = 'travel_expense_profile';
+        const HISTORY_KEY = 'travel_expense_history';
+
+        function saveProfile() {
+            const profile = {
+                companyName: document.getElementById('companyName').value,
+                department: document.getElementById('department').value,
+                employeeName: document.getElementById('employeeName').value,
+                position: getPositionValue(),
+            };
+            localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+            showSavedBadge();
+        }
+
+        function loadProfile() {
+            const data = localStorage.getItem(PROFILE_KEY);
+            if (!data) return;
+            try {
+                const profile = JSON.parse(data);
+                if (profile.companyName) document.getElementById('companyName').value = profile.companyName;
+                if (profile.department) document.getElementById('department').value = profile.department;
+                if (profile.employeeName) document.getElementById('employeeName').value = profile.employeeName;
+                if (profile.position) {
+                    const posSelect = document.getElementById('position');
+                    const optionValues = Array.from(posSelect.options).map(o => o.value);
+                    if (optionValues.includes(profile.position)) {
+                        posSelect.value = profile.position;
+                    } else {
+                        posSelect.value = 'その他';
+                        document.getElementById('positionOther').value = profile.position;
+                        document.getElementById('positionOther').style.display = 'block';
+                    }
+                }
+                showSavedBadge();
+            } catch (e) {}
+        }
+
+        function showSavedBadge() {
+            const badge = document.getElementById('savedBadge');
+            badge.classList.add('show');
+            setTimeout(() => badge.classList.remove('show'), 2000);
+        }
+
+        // Auto-save on change
+        ['companyName', 'department', 'employeeName', 'position', 'positionOther'].forEach(id => {
+            document.getElementById(id).addEventListener('change', saveProfile);
+            document.getElementById(id).addEventListener('blur', saveProfile);
+        });
+
+        // ============================================================
+        // History
+        // ============================================================
+        function toggleHistory() {
+            const section = document.getElementById('historySection');
+            const arrow = document.getElementById('historyArrow');
+            if (section.style.display === 'none') {
+                section.style.display = 'block';
+                arrow.classList.add('open');
+                renderHistory();
+            } else {
+                section.style.display = 'none';
+                arrow.classList.remove('open');
+            }
+        }
+
+        function getHistory() {
+            try {
+                return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+            } catch (e) { return []; }
+        }
+
+        function saveToHistory(payload) {
+            const history = getHistory();
+            const entry = {
+                id: Date.now(),
+                savedAt: new Date().toISOString(),
+                data: payload,
+            };
+            history.unshift(entry);
+            if (history.length > 20) history.length = 20;
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+        }
+
+        function deleteHistory(id) {
+            let history = getHistory();
+            history = history.filter(h => h.id !== id);
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            const history = getHistory();
+
+            if (history.length === 0) {
+                list.innerHTML = '<div class="history-empty">履歴はまだありません</div>';
+                return;
+            }
+
+            list.innerHTML = history.map(entry => {
+                const d = entry.data;
+                const date = new Date(entry.savedAt);
+                const dateStr = `${date.getFullYear()}/${(date.getMonth()+1).toString().padStart(2,'0')}/${date.getDate().toString().padStart(2,'0')}`;
+                const nights = d.nights || 0;
+                const days = nights + 1;
+                const accTotal = (d.accommodation_fee || 0) * nights;
+                const dailyTotal = (d.daily_allowance || 0) * days;
+                const transTotal = (d.transport_details || []).reduce((s, t) => s + (t.amount || 0), 0);
+                const total = accTotal + dailyTotal + transTotal;
+
+                return `
+                    <div class="history-item">
+                        <div class="history-info">
+                            <div class="history-title">${d.destination || '未入力'} - ${d.purpose || '未入力'}</div>
+                            <div class="history-meta">${d.start_date || '?'} ～ ${d.end_date || '?'}（${nights}泊${days}日）/ 保存: ${dateStr}</div>
+                        </div>
+                        <div class="history-amount">${formatYen(total)}</div>
+                        <div class="history-actions">
+                            <button class="btn btn-secondary" onclick="loadFromHistory(${entry.id})">読込</button>
+                            <button class="btn btn-danger" style="font-size:14px; padding:6px 10px;" onclick="deleteHistory(${entry.id})">&#215;</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function loadFromHistory(id) {
+            const history = getHistory();
+            const entry = history.find(h => h.id === id);
+            if (!entry) return;
+
+            const d = entry.data;
+
+            document.getElementById('companyName').value = d.company_name || '';
+            document.getElementById('department').value = d.department || '';
+            document.getElementById('employeeName').value = d.employee_name || '';
+            const posVal = d.position || '';
+            const posSelect = document.getElementById('position');
+            const posOptions = Array.from(posSelect.options).map(o => o.value);
+            if (posOptions.includes(posVal)) {
+                posSelect.value = posVal;
+                document.getElementById('positionOther').style.display = 'none';
+            } else {
+                posSelect.value = 'その他';
+                document.getElementById('positionOther').value = posVal;
+                document.getElementById('positionOther').style.display = 'block';
+            }
+
+            document.getElementById('destination').value = d.destination || '';
+            document.getElementById('startDate').value = d.start_date || '';
+            document.getElementById('endDate').value = d.end_date || '';
+            document.getElementById('nights').value = d.nights || 1;
+            document.getElementById('purposeDetail').value = d.purpose_detail || '';
+
+            const purposes = d.purposes || (d.purpose ? d.purpose.split('\u30FB') : []);
+            document.querySelectorAll('#purposeCheckboxes input').forEach(cb => {
+                cb.checked = purposes.includes(cb.value);
+                toggleCheckbox(cb);
+            });
+            const otherCb = document.querySelector('#purposeCheckboxes input[value="その他"]');
+            if (otherCb && otherCb.checked) {
+                const knownPurposes = ['不動産会社周り', '物件視察', '企業訪問', '収益物件調査', '管理会社打合せ', 'コンサル案件', 'セミナー・研修', '契約締結・交渉', 'その他'];
+                const customPurpose = purposes.find(p => !knownPurposes.includes(p));
+                if (customPurpose) {
+                    document.getElementById('purposeOther').value = customPurpose;
+                    document.getElementById('purposeOther').style.display = 'block';
+                }
+            }
+
+            document.getElementById('accommodationFee').value = d.accommodation_fee || 20000;
+            document.getElementById('dailyAllowance').value = d.daily_allowance || 2000;
+
+            const list = document.getElementById('transportList');
+            list.innerHTML = '';
+            const transports = d.transport_details || [];
+            if (transports.length === 0) {
+                addTransport();
+            } else {
+                transports.forEach((td, i) => {
+                    addTransport();
+                    const row = list.children[i];
+                    row.querySelector('.t-date').value = td.date || '';
+                    row.querySelector('.t-route').value = td.route || '';
+                    row.querySelector('.t-method').value = td.method || '新幹線';
+                    row.querySelector('.t-amount').value = td.amount || '';
+                    onMethodChange(row.querySelector('.t-method'));
+                });
+            }
+
+            document.getElementById('tripReason').value = d.trip_reason || '';
+            document.getElementById('tripReport').value = d.trip_report || '';
+
+            updateCalc();
+            updateFeeChips();
+            updateNightsChips();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ============================================================
+        // Nights chips / Fee presets
+        // ============================================================
+        function setNights(n) {
+            document.getElementById('nights').value = n;
+            const start = document.getElementById('startDate').value;
+            if (start) {
+                const startD = new Date(start);
+                startD.setDate(startD.getDate() + n);
+                document.getElementById('endDate').value = startD.toISOString().split('T')[0];
+                if (window.endPicker) endPicker.setDate(startD, false);
+            }
+            updateCalc();
+            updateNightsChips();
+        }
+
+        function updateNightsChips() {
+            const n = parseInt(document.getElementById('nights').value) || 0;
+            document.querySelectorAll('#nightsChips .nights-chip').forEach(chip => {
+                const val = parseInt(chip.textContent);
+                chip.classList.toggle('active', val === n);
+            });
+        }
+
+        function setFee(fieldId, amount) {
+            document.getElementById(fieldId).value = amount;
+            updateCalc();
+            updateFeeChips();
+        }
+
+        function updateFeeChips() {
+            const accVal = parseInt(document.getElementById('accommodationFee').value) || 0;
+            document.querySelectorAll('#accChips .preset-chip').forEach(chip => {
+                const val = parseInt(chip.textContent.replace(/[¥,]/g, ''));
+                chip.classList.toggle('active', val === accVal);
+            });
+            const dailyVal = parseInt(document.getElementById('dailyAllowance').value) || 0;
+            document.querySelectorAll('#dailyChips .preset-chip').forEach(chip => {
+                const val = parseInt(chip.textContent.replace(/[¥,]/g, ''));
+                chip.classList.toggle('active', val === dailyVal);
+            });
+        }
+
+        // Init
+        loadProfile();
+        updateCalc();
+        updateFeeChips();
+        updateNightsChips();
+    </script>
+
+    <!-- Flatpickr -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ja.js"></script>
+    <script>
+        // Flatpickr calendar init
+        const fpConfig = {
+            locale: 'ja',
+            dateFormat: 'Y-m-d',
+            allowInput: true,
+            disableMobile: true,
+        };
+
+        const startPicker = flatpickr('#startDate', {
+            ...fpConfig,
+            onChange: function(dates, dateStr) {
+                if (dates[0]) {
+                    const nights = parseInt(document.getElementById('nights').value) || 1;
+                    const endDate = new Date(dates[0]);
+                    endDate.setDate(endDate.getDate() + nights);
+                    endPicker.setDate(endDate, true);
+                }
+                syncDates();
+            }
+        });
+
+        const endPicker = flatpickr('#endDate', {
+            ...fpConfig,
+            onChange: function() { syncDates(); }
+        });
+
+        // Apply flatpickr to transport date inputs
+        function initTransportDatePickers() {
+            document.querySelectorAll('.t-date:not(.flatpickr-input)').forEach(el => {
+                flatpickr(el, fpConfig);
+            });
+        }
+        initTransportDatePickers();
+
+        // Extend addTransport to also init date pickers
+        const _origAddTransport = addTransport;
+        addTransport = function() {
+            _origAddTransport();
+            initTransportDatePickers();
+        };
+    </script>
+</body>
+</html>
