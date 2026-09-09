@@ -1,0 +1,4301 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>出張旅費精算書 自動生成アプリ</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+            min-height: 100vh;
+            color: #e2e8f0;
+        }
+
+        .header {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(99, 179, 237, 0.2);
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-inner {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            background: linear-gradient(90deg, #63b3ed, #4fd1c5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        .card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(99, 179, 237, 0.15);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px;
+            transition: border-color 0.3s;
+        }
+
+        .card:hover {
+            border-color: rgba(99, 179, 237, 0.35);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #63b3ed;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 20px;
+            background: linear-gradient(180deg, #63b3ed, #4fd1c5);
+            border-radius: 2px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #94a3b8;
+        }
+
+        label .required {
+            color: #f87171;
+            margin-left: 4px;
+        }
+
+        input, select, textarea {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 179, 237, 0.2);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: #e2e8f0;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #63b3ed;
+            box-shadow: 0 0 0 3px rgba(99, 179, 237, 0.15);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 150px;
+            overflow-y: hidden;
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        .transport-row {
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(99, 179, 237, 0.1);
+        }
+
+        .transport-compact-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            align-items: end;
+            margin-bottom: 4px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(99, 179, 237, 0.1);
+            color: #63b3ed;
+            border: 1px solid rgba(99, 179, 237, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(99, 179, 237, 0.2);
+        }
+
+        .btn-danger {
+            background: rgba(248, 113, 113, 0.1);
+            color: #f87171;
+            border: 1px solid rgba(248, 113, 113, 0.3);
+            padding: 8px 12px;
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .btn-danger:hover {
+            background: rgba(248, 113, 113, 0.2);
+        }
+
+        .btn-ai {
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            color: white;
+            box-shadow: 0 4px 12px rgba(109, 40, 217, 0.3);
+        }
+
+        .btn-ai:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(109, 40, 217, 0.4);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .generate-section {
+            text-align: center;
+            padding: 40px 0 20px;
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            font-size: 18px;
+            padding: 16px 48px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(5, 150, 105, 0.3);
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(5, 150, 105, 0.4);
+        }
+
+        .summary-box {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 16px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+
+        .summary-row.total {
+            font-size: 18px;
+            font-weight: 700;
+            color: #10b981;
+            padding-top: 12px;
+            border-top: 2px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(99, 179, 237, 0.3);
+            border-top-color: #63b3ed;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .fee-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .fee-display input {
+            width: 140px;
+        }
+
+        .nights-calc {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 179, 237, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .checkbox-item:hover {
+            border-color: rgba(99, 179, 237, 0.4);
+        }
+
+        .checkbox-item.checked {
+            border-color: #63b3ed;
+            background: rgba(99, 179, 237, 0.1);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #63b3ed;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .checkbox-item span {
+            font-size: 13px;
+            color: #e2e8f0;
+        }
+
+        .transport-extras {
+            grid-column: 1 / -1;
+            display: none;
+            gap: 8px;
+        }
+
+        .transport-extras.visible {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .transport-extras .form-group label {
+            font-size: 12px;
+            color: #7c8ba1;
+        }
+
+        .transport-extras input, .transport-extras select {
+            font-size: 13px;
+            padding: 8px 10px;
+        }
+
+        .extras-toggle {
+            grid-column: 1 / -1;
+            font-size: 12px;
+            color: #8b5cf6;
+            cursor: pointer;
+            background: none;
+            border: none;
+            text-align: left;
+            padding: 4px 0;
+            font-family: inherit;
+        }
+
+        .extras-toggle:hover {
+            color: #a78bfa;
+        }
+
+        /* flatpickr custom */
+        .flatpickr-calendar {
+            background: #1e293b !important;
+            border: 1px solid rgba(99, 179, 237, 0.3) !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
+            border-radius: 12px !important;
+        }
+        .flatpickr-day.selected {
+            background: #3b82f6 !important;
+            border-color: #3b82f6 !important;
+        }
+        .flatpickr-day:hover {
+            background: rgba(99, 179, 237, 0.2) !important;
+        }
+        .flatpickr-day.today {
+            border-color: #63b3ed !important;
+        }
+
+        .preset-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .preset-chip {
+            padding: 4px 10px;
+            font-size: 12px;
+            border-radius: 16px;
+            background: rgba(99, 179, 237, 0.1);
+            border: 1px solid rgba(99, 179, 237, 0.25);
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .preset-chip:hover {
+            background: rgba(99, 179, 237, 0.2);
+            color: #e2e8f0;
+            border-color: rgba(99, 179, 237, 0.4);
+        }
+
+        .preset-chip.active {
+            background: rgba(59, 130, 246, 0.25);
+            border-color: #3b82f6;
+            color: #63b3ed;
+        }
+
+        .nights-chips {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .nights-chip {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 179, 237, 0.2);
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .nights-chip:hover {
+            border-color: rgba(99, 179, 237, 0.5);
+            color: #e2e8f0;
+        }
+
+        .nights-chip.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+        }
+
+        .saved-badge {
+            display: inline-block;
+            font-size: 11px;
+            color: #10b981;
+            margin-left: 8px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .saved-badge.show {
+            opacity: 1;
+        }
+
+        .history-panel {
+            margin-bottom: 24px;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 179, 237, 0.15);
+            border-radius: 10px;
+            padding: 12px 16px;
+            transition: all 0.2s;
+        }
+
+        .history-item:hover {
+            border-color: rgba(99, 179, 237, 0.35);
+        }
+
+        .history-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .history-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #e2e8f0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-meta {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .history-amount {
+            font-size: 14px;
+            font-weight: 700;
+            color: #10b981;
+            margin: 0 16px;
+            white-space: nowrap;
+        }
+
+        .history-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .history-actions .btn {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .history-empty {
+            text-align: center;
+            color: #64748b;
+            font-size: 13px;
+            padding: 20px;
+        }
+
+        .history-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: #63b3ed;
+            font-size: 14px;
+            font-weight: 600;
+            background: none;
+            border: none;
+            font-family: inherit;
+            padding: 0;
+        }
+
+        .history-toggle:hover {
+            color: #90cdf4;
+        }
+
+        .history-toggle .arrow {
+            transition: transform 0.2s;
+            font-size: 12px;
+        }
+
+        .history-toggle .arrow.open {
+            transform: rotate(90deg);
+        }
+
+        /* プレビューモーダル */
+        .preview-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .preview-overlay.active {
+            display: flex;
+        }
+        .preview-container {
+            background: white;
+            color: #1a1a1a;
+            max-width: 800px;
+            width: 100%;
+            padding: 48px 40px;
+            border-radius: 8px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            position: relative;
+            font-family: 'Yu Mincho', 'Hiragino Mincho ProN', serif;
+            font-size: 13px;
+            line-height: 1.6;
+            margin: 20px auto;
+        }
+        .preview-close {
+            position: sticky;
+            top: 0;
+            float: right;
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 36px; height: 36px;
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .preview-close:hover { background: #555; }
+        .preview-title {
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            letter-spacing: 4px;
+        }
+        .preview-right {
+            text-align: right;
+            margin-bottom: 6px;
+            font-size: 12px;
+        }
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 16px;
+        }
+        .preview-table th, .preview-table td {
+            border: 1px solid #888;
+            padding: 6px 10px;
+            font-size: 12px;
+            vertical-align: middle;
+        }
+        .preview-table th {
+            background: #e8f0fe;
+            font-weight: bold;
+            text-align: center;
+            white-space: nowrap;
+            width: 90px;
+        }
+        .preview-section-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin: 20px 0 8px;
+        }
+        .preview-box {
+            border: 1px solid #888;
+            padding: 10px 14px;
+            min-height: 50px;
+            margin-bottom: 16px;
+            white-space: pre-wrap;
+            font-size: 12px;
+            line-height: 1.7;
+        }
+        .preview-total-row th {
+            background: #1f4e79;
+            color: white;
+            font-size: 14px;
+        }
+        .preview-total-row td {
+            font-size: 16px;
+            font-weight: bold;
+            text-align: right;
+        }
+        .preview-stamp-table th {
+            background: #e8f0fe;
+        }
+        .preview-stamp-table td {
+            height: 60px;
+        }
+        .preview-notes {
+            font-size: 10px;
+            color: #666;
+            margin-top: 16px;
+            line-height: 1.8;
+        }
+        .preview-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+        }
+        .preview-actions button {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Hiragino Kaku Gothic ProN', sans-serif;
+        }
+        .preview-btn-word {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+        }
+        .preview-btn-pdf {
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            color: white;
+        }
+        .preview-btn-print {
+            background: #333;
+            color: white;
+        }
+        @media print {
+            body > *:not(.preview-overlay) { display: none !important; }
+            .preview-overlay { position: static; background: none; padding: 0; }
+            .preview-close, .preview-actions { display: none !important; }
+            .preview-container { box-shadow: none; padding: 20px; margin: 0; }
+        }
+
+        @media (max-width: 500px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .transport-compact-row {
+                grid-template-columns: 1fr;
+            }
+            .header h1 {
+                font-size: 18px;
+            }
+            .btn-remove {
+                padding: 8px 16px;
+                font-size: 13px;
+            }
+            .purpose-grid { grid-template-columns: 1fr !important; }
+        }
+
+        /* Purpose category styles */
+        .purpose-section-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            margin-top: 16px;
+        }
+        .purpose-section-label:first-child { margin-top: 0; }
+
+        .purpose-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 6px;
+        }
+
+        .purpose-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 179, 237, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
+            color: #e2e8f0;
+            font-family: inherit;
+            text-align: left;
+            line-height: 1.3;
+        }
+        .purpose-btn:hover { border-color: rgba(99, 179, 237, 0.4); }
+        .purpose-btn.selected {
+            border-color: #63b3ed;
+            background: rgba(99, 179, 237, 0.15);
+            color: #90cdf4;
+        }
+        .purpose-btn.primary {
+            border-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.15);
+            box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.3);
+        }
+        .purpose-btn .star {
+            font-size: 14px;
+            color: #64748b;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .purpose-btn.selected .star { color: #94a3b8; }
+        .purpose-btn.primary .star { color: #f59e0b; }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(99, 179, 237, 0.05);
+            border: 1px solid rgba(99, 179, 237, 0.15);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: #63b3ed;
+            font-family: inherit;
+            margin-bottom: 4px;
+            transition: all 0.2s;
+        }
+        .category-header:hover {
+            background: rgba(99, 179, 237, 0.1);
+            border-color: rgba(99, 179, 237, 0.3);
+        }
+        .category-header .cat-arrow {
+            font-size: 11px;
+            transition: transform 0.2s;
+        }
+        .category-header .cat-arrow.open { transform: rotate(90deg); }
+        .category-header .cat-count {
+            font-size: 11px;
+            background: #3b82f6;
+            color: white;
+            border-radius: 10px;
+            padding: 1px 7px;
+            margin-left: 8px;
+        }
+        .category-items {
+            padding: 6px 0 8px;
+        }
+
+        .detail-section {
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(139, 92, 246, 0.05);
+            border: 1px solid rgba(139, 92, 246, 0.15);
+            border-radius: 10px;
+        }
+        .detail-section .purpose-section-label {
+            color: #a78bfa;
+        }
+        .detail-group-title {
+            font-size: 11px;
+            color: #8b8fa3;
+            margin: 8px 0 4px;
+            padding-left: 2px;
+        }
+        .detail-group-title:first-child { margin-top: 0; }
+        .detail-btn {
+            display: inline-block;
+            padding: 4px 10px;
+            font-size: 11px;
+            border-radius: 14px;
+            background: rgba(139, 92, 246, 0.08);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            color: #c4b5fd;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            margin: 2px;
+        }
+        .detail-btn:hover { background: rgba(139, 92, 246, 0.15); border-color: rgba(139, 92, 246, 0.4); }
+        .detail-btn.selected {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: #8b5cf6;
+            color: #e9d5ff;
+        }
+
+        .mode-toggle {
+            display: flex;
+            gap: 0;
+            margin-bottom: 16px;
+            border: 1px solid rgba(99, 179, 237, 0.2);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .mode-btn {
+            flex: 1;
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            background: rgba(15, 23, 42, 0.4);
+            border: none;
+            color: #94a3b8;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        .mode-btn.active {
+            background: rgba(59, 130, 246, 0.2);
+            color: #63b3ed;
+        }
+        .mode-btn:hover:not(.active) {
+            background: rgba(99, 179, 237, 0.1);
+        }
+
+        .partner-field {
+            margin-top: 12px;
+            padding: 10px 12px;
+            background: rgba(16, 185, 129, 0.05);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            border-radius: 8px;
+        }
+        .partner-field label { color: #6ee7b7; }
+        .partner-chip {
+            display: inline-block;
+            padding: 3px 10px;
+            font-size: 11px;
+            border-radius: 12px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            color: #6ee7b7;
+            cursor: pointer;
+            margin: 4px 4px 0 0;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        .partner-chip:hover { background: rgba(16, 185, 129, 0.2); }
+        .partner-chip.selected {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: #10b981;
+        }
+
+        .supplement-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .supplement-grid .form-group { margin: 0; }
+        @media (max-width: 500px) { .supplement-grid { grid-template-columns: 1fr; } }
+
+        .selected-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 8px;
+        }
+        .selected-tag {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(59, 130, 246, 0.15);
+            color: #93c5fd;
+        }
+        .selected-tag.primary-tag {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+        }
+
+        .report-confirm-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(99, 179, 237, 0.15);
+            border-radius: 6px;
+            margin: 3px 0;
+            font-size: 12px;
+        }
+        .report-confirm-item input { accent-color: #10b981; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-inner">
+            <div>
+                <h1>出張旅費精算書 自動生成</h1>
+                <p>入力するだけで税務署対応の旅費精算書をWord・PDF形式で出力</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 過去の履歴 -->
+        <div class="card history-panel">
+            <button class="history-toggle" onclick="toggleHistory()">
+                <span class="arrow" id="historyArrow">&#9654;</span>
+                過去の入力データ
+            </button>
+            <div id="historySection" style="display: none;">
+                <div class="history-list" id="historyList">
+                    <div class="history-empty">履歴はまだありません</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 基本情報 -->
+        <div class="card">
+            <div class="card-title">基本情報<span class="saved-badge" id="savedBadge">保存済み</span></div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>会社名<span class="required">*</span></label>
+                    <input type="text" id="companyName" placeholder="株式会社〇〇">
+                </div>
+                <div class="form-group">
+                    <label>所属部署</label>
+                    <input type="text" id="department" placeholder="営業部">
+                </div>
+                <div class="form-group">
+                    <label>氏名<span class="required">*</span></label>
+                    <input type="text" id="employeeName" placeholder="山田 太郎">
+                </div>
+                <div class="form-group">
+                    <label>役職</label>
+                    <select id="position" onchange="togglePositionOther(this)">
+                        <option value="一般社員">一般社員</option>
+                        <option value="マネージャー">マネージャー</option>
+                        <option value="部長">部長</option>
+                        <option value="取締役">取締役</option>
+                        <option value="代表取締役">代表取締役</option>
+                        <option value="代表社員">代表社員（合同会社）</option>
+                        <option value="業務執行社員">業務執行社員（合同会社）</option>
+                        <option value="その他">その他</option>
+                    </select>
+                    <input type="text" id="positionOther" placeholder="役職を入力" style="display:none; margin-top: 8px;">
+                </div>
+            </div>
+        </div>
+
+        <!-- 出張情報 -->
+        <div class="card">
+            <div class="card-title">出張情報</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>出張先<span class="required">*</span></label>
+                    <input type="text" id="destination" placeholder="東京都港区">
+                </div>
+                <div class="form-group">
+                    <label>出発日<span class="required">*</span></label>
+                    <input type="date" id="startDate">
+                </div>
+                <div class="form-group">
+                    <label>帰着日<span class="required">*</span></label>
+                    <input type="date" id="endDate">
+                </div>
+                <div class="form-group">
+                    <label>泊数<span class="required">*</span></label>
+                    <input type="number" id="nights" min="1" value="1" onchange="updateCalc(); updateNightsChips();">
+                    <div class="nights-chips" id="nightsChips">
+                        <button class="nights-chip active" onclick="setNights(1)">1</button>
+                        <button class="nights-chip" onclick="setNights(2)">2</button>
+                        <button class="nights-chip" onclick="setNights(3)">3</button>
+                        <button class="nights-chip" onclick="setNights(4)">4</button>
+                        <button class="nights-chip" onclick="setNights(5)">5</button>
+                        <button class="nights-chip" onclick="setNights(7)">7</button>
+                        <button class="nights-chip" onclick="setNights(10)">10</button>
+                    </div>
+                    <div class="nights-calc" id="nightsCalc">1泊2日</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 出張目的 -->
+        <div class="card">
+            <div class="card-title">出張目的<span class="required" style="margin-left:4px">*</span></div>
+
+            <div class="purpose-section-label">よく使う項目</div>
+            <div class="purpose-grid" id="favoritesGrid"></div>
+
+            <div style="margin-top: 16px;" id="categoriesContainer"></div>
+
+            <div id="detailSection" style="display:none"></div>
+
+            <div id="partnerSection" style="display:none" class="partner-field">
+                <label>打ち合わせ相手（任意）</label>
+                <div style="margin-top:6px;">
+                    <button class="partner-chip" onclick="togglePartnerChip(this)" data-name="タイングさん">タイングさん</button>
+                </div>
+                <input type="text" id="meetingPartner" placeholder="その他の相手がいれば入力" style="margin-top:8px; font-size:13px;">
+            </div>
+
+            <div class="supplement-grid">
+                <div class="form-group">
+                    <label>相談内容の補足（任意）</label>
+                    <textarea id="purposeDetail" rows="2" placeholder="具体的な相談内容があれば記入" oninput="onSupplementChange()"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>面談相手（任意）</label>
+                    <input type="text" id="meetingPartnerGeneral" placeholder="氏名・会社名など" oninput="onSupplementChange()">
+                </div>
+                <div class="form-group">
+                    <label>確認事項・成果（任意）</label>
+                    <textarea id="resultNote" rows="2" placeholder="確認できたこと、合意事項など" oninput="onSupplementChange()"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>今後の対応（任意）</label>
+                    <textarea id="nextAction" rows="2" placeholder="次回の対応予定、準備事項など" oninput="onSupplementChange()"></textarea>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 12px;">
+                <label>その他・自由入力（任意）</label>
+                <input type="text" id="purposeOther" placeholder="ボタンにない活動を入力" oninput="onSupplementChange()">
+            </div>
+
+            <div id="selectedSummary" class="selected-summary" style="display:none"></div>
+        </div>
+
+        <!-- 費用設定 -->
+        <div class="card">
+            <div class="card-title">費用設定</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>宿泊費（1泊あたり）</label>
+                    <div class="fee-display">
+                        <input type="number" id="accommodationFee" value="20000" onchange="updateCalc(); updateFeeChips();">
+                        <span>円</span>
+                    </div>
+                    <div class="preset-chips" id="accChips">
+                        <button class="preset-chip" onclick="setFee('accommodationFee', 8000)">¥8,000</button>
+                        <button class="preset-chip" onclick="setFee('accommodationFee', 10000)">¥10,000</button>
+                        <button class="preset-chip" onclick="setFee('accommodationFee', 15000)">¥15,000</button>
+                        <button class="preset-chip active" onclick="setFee('accommodationFee', 20000)">¥20,000</button>
+                        <button class="preset-chip" onclick="setFee('accommodationFee', 30000)">¥30,000</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>日当（1日あたり）</label>
+                    <div class="fee-display">
+                        <input type="number" id="dailyAllowance" value="2000" onchange="updateCalc(); updateFeeChips();">
+                        <span>円</span>
+                    </div>
+                    <div class="preset-chips" id="dailyChips">
+                        <button class="preset-chip active" onclick="setFee('dailyAllowance', 2000)">¥2,000</button>
+                        <button class="preset-chip" onclick="setFee('dailyAllowance', 2500)">¥2,500</button>
+                        <button class="preset-chip" onclick="setFee('dailyAllowance', 3000)">¥3,000</button>
+                        <button class="preset-chip" onclick="setFee('dailyAllowance', 5000)">¥5,000</button>
+                    </div>
+                </div>
+            </div>
+            <p style="font-size: 11px; color: #94a3b8; margin-top: 10px; line-height: 1.6;">
+                ※ 上記はよく使われる金額のプリセットです。該当しない金額の場合は、入力欄に直接ご入力ください。<br>
+                ※ 金額は自社の旅費規程に基づいて設定してください。
+            </p>
+        </div>
+
+        <!-- 交通費明細 -->
+        <div class="card">
+            <div class="card-title">交通費明細</div>
+            <div id="transportList">
+                <div class="transport-row" data-index="0">
+                    <div class="transport-compact-row">
+                        <div class="form-group">
+                            <label>日付</label>
+                            <input type="date" class="t-date">
+                        </div>
+                        <div class="form-group">
+                            <label>区間</label>
+                            <input type="text" class="t-route" placeholder="東京駅 → 大阪駅">
+                        </div>
+                    </div>
+                    <div class="transport-compact-row">
+                        <div class="form-group">
+                            <label>交通機関</label>
+                            <select class="t-method" onchange="onMethodChange(this)">
+                                <option value="新幹線">新幹線</option>
+                                <option value="鉄道">鉄道</option>
+                                <option value="飛行機">飛行機</option>
+                                <option value="バス">バス</option>
+                                <option value="タクシー">タクシー</option>
+                                <option value="レンタカー">レンタカー</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>金額</label>
+                            <input type="number" class="t-amount" placeholder="0" onchange="updateCalc()">
+                        </div>
+                    </div>
+                    <button class="extras-toggle" onclick="toggleExtras(this)">+ 詳細項目を追加（任意）</button>
+                    <div class="transport-extras" data-method="新幹線">
+                        <div class="form-group">
+                            <label>座席クラス（任意）</label>
+                            <select class="t-seat-class">
+                                <option value="">未選択</option>
+                                <option value="自由席">自由席</option>
+                                <option value="指定席">指定席</option>
+                                <option value="グリーン車">グリーン車</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>備考（任意）</label>
+                            <input type="text" class="t-note" placeholder="往復割引等">
+                        </div>
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1; display: flex; justify-content: flex-end;">
+                        <button class="btn btn-danger" onclick="removeTransport(this)" title="この交通費を削除" style="width: auto;">&times; 削除</button>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-secondary" onclick="addTransport()" style="margin-top: 8px;">+ 交通費を追加</button>
+        </div>
+
+        <!-- 出張理由・報告 -->
+        <div class="card">
+            <div class="card-title">出張理由・報告（自動生成）</div>
+            <div class="mode-toggle">
+                <button class="mode-btn active" id="modeReasonBtn" onclick="setMode('reason')">出張目的</button>
+                <button class="mode-btn" id="modeReportBtn" onclick="setMode('report')">実施報告</button>
+            </div>
+
+            <div id="reasonModePanel">
+                <div class="form-group full-width">
+                    <label>出張目的</label>
+                    <textarea id="tripReason" rows="10" placeholder="上のボタンを選択すると自動生成されます" oninput="markEdited('reason'); autoResizeTextarea(this)"></textarea>
+                    <div class="btn-group">
+                        <button class="btn btn-ai" onclick="regenerateText('reason')">再生成</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="reportModePanel" style="display:none;">
+                <div class="purpose-section-label">実施した項目を確認してください</div>
+                <div id="reportItemsConfirm"></div>
+                <div class="form-group full-width" style="margin-top: 12px;">
+                    <label>出張報告</label>
+                    <textarea id="tripReport" rows="14" placeholder="実施した項目を選択して再生成してください" oninput="markEdited('report'); autoResizeTextarea(this)"></textarea>
+                    <div class="btn-group">
+                        <button class="btn btn-ai" onclick="regenerateText('report')">再生成</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 合計表示 -->
+        <div class="card">
+            <div class="card-title">費用合計</div>
+            <div class="summary-box">
+                <div class="summary-row">
+                    <span>宿泊費</span>
+                    <span id="sumAccommodation">¥20,000</span>
+                </div>
+                <div class="summary-row">
+                    <span>日当</span>
+                    <span id="sumAllowance">¥4,000</span>
+                </div>
+                <div class="summary-row">
+                    <span>交通費</span>
+                    <span id="sumTransport">¥0</span>
+                </div>
+                <div class="summary-row total">
+                    <span>合計支給額</span>
+                    <span id="sumTotal">¥24,000</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 生成ボタン -->
+        <div class="generate-section">
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px;">
+                <button class="btn btn-generate" onclick="showPreview()" style="flex: 1; min-width: 280px; background: linear-gradient(135deg, #059669 0%, #047857 100%);">
+                    プレビューで確認
+                </button>
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                <button class="btn btn-generate" onclick="generateDocument('docx')" style="flex: 1; min-width: 200px;">
+                    Word (.docx) で出力
+                </button>
+                <button class="btn btn-generate" onclick="generateDocument('pdf')" style="flex: 1; min-width: 200px; background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);">
+                    PDF で出力
+                </button>
+            </div>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 8px; color: #94a3b8;">精算書を生成中...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- プレビューモーダル -->
+    <div class="preview-overlay" id="previewOverlay" onclick="if(event.target===this)closePreview()">
+        <div class="preview-container" id="previewContent">
+        </div>
+    </div>
+
+    <!-- CDN Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script>
+
+    <script>
+        // ============================================================
+        // UI Logic
+        // ============================================================
+
+        function togglePositionOther(sel) {
+            const otherInput = document.getElementById('positionOther');
+            if (sel.value === 'その他') {
+                otherInput.style.display = 'block';
+                otherInput.focus();
+            } else {
+                otherInput.style.display = 'none';
+                otherInput.value = '';
+            }
+        }
+
+        function getPositionValue() {
+            const sel = document.getElementById('position');
+            if (sel.value === 'その他') {
+                return document.getElementById('positionOther').value || 'その他';
+            }
+            return sel.value;
+        }
+
+        // ============================================================
+        // Purpose Data & State
+        // ============================================================
+
+        const PURPOSE_DATA = [
+            {
+                id: 'A', title: '資産形成・顧客相談', detailGroup: 'asset',
+                items: [
+                    { id: 'beichin', label: '米賃貸の相談' },
+                    { id: 'gunyouchi', label: '軍用地の活用相談' },
+                    { id: 'okinawa_hoyuu', label: '沖縄資産の保有相談' },
+                    { id: 'shisan_unyou', label: '資産運用の見直し' },
+                    { id: 'zeimu', label: '税務対策の相談' },
+                    { id: 'souzoku', label: '相続・資産承継の相談' },
+                    { id: 'kizon_follow', label: '既存顧客のフォロー' },
+                ]
+            },
+            {
+                id: 'B', title: '不動産の現地対応・調査',
+                items: [
+                    { id: 'fudousan_houmon', label: '不動産業者訪問', detailGroup: 'realtor' },
+                    { id: 'bukken_shisatsu', label: '物件視察', detailGroup: 'inspect' },
+                    { id: 'bukken_chousa', label: '物件調査', detailGroup: 'research' },
+                    { id: 'tochi_chousa', label: '土地調査', detailGroup: 'land' },
+                    { id: 'souba_chousa', label: '賃貸・売買相場の調査' },
+                    { id: 'torihiki_kyougi', label: '取引条件・契約の協議', detailGroup: 'stakeholder' },
+                ]
+            },
+            {
+                id: 'C', title: '建築・設計・構造', detailGroup: 'construction', showPartner: true,
+                items: [
+                    { id: 'kenchiku_uchiawase', label: '建築業者との打ち合わせ' },
+                    { id: 'sekkei_uchiawase', label: '設計の打ち合わせ' },
+                    { id: 'kouzou_keisan', label: '構造計算の打ち合わせ' },
+                    { id: 'beast_kouhou', label: 'ビースト工法の打ち合わせ' },
+                    { id: 'kenchikuhi_kyougi', label: '建築費・見積の協議' },
+                    { id: 'kouji_kakunin', label: '工事現場の確認' },
+                ]
+            },
+            {
+                id: 'D', title: '関係者・専門家との協議', detailGroup: 'stakeholder',
+                items: [
+                    { id: 'kinyu_kikan', label: '金融機関との打ち合わせ' },
+                    { id: 'zeirishi', label: '税理士・士業との打ち合わせ' },
+                    { id: 'shoukaisha', label: '紹介者・提携先との面談' },
+                    { id: 'gyousei', label: '行政窓口での確認' },
+                ]
+            },
+            {
+                id: 'E', title: '登壇・研修・事例研究',
+                items: [
+                    { id: 'seminar', label: 'セミナー登壇・相談会' },
+                    { id: 'benkyoukai', label: '勉強会・研修への参加' },
+                    { id: 'shukuhaku_shisatsu', label: '宿泊施設の視察' },
+                ]
+            },
+        ];
+
+        const DETAIL_GROUPS = {
+            asset: ['仕組みの説明', '収支の確認', '資金調達', '保有方法', '運用の見直し', '売却・承継'],
+            realtor: ['案件紹介の相談', '物件情報の収集', '地域動向の情報交換', '管理・募集の相談', '提携の相談'],
+            inspect: ['立地・周辺環境', '建物・設備', '管理状況', '改修の必要性'],
+            research: ['権利関係', '賃貸・入居状況', '収支資料', '修繕履歴', '確認済証・検査済証'],
+            land: ['接道', '境界', '用途地域・建築制限', '上下水道', '地盤・造成'],
+            construction: ['計画・仕様', '構造計算', '工法の採用検討', '施工条件', '見積・費用', '工期・工程'],
+            stakeholder: ['個別案件の相談', '条件確認', '資料確認', '役割分担', '次回対応'],
+        };
+
+        const CATEGORY_CONTEXT = {
+            'A': {
+                bg: '合同会社燈は、沖縄の不動産を活用した資産形成コンサルティング事業を展開しており、顧客の資産状況や市場環境に応じた提案を行っている',
+                purposeApp: '顧客への資産形成に関する提案や今後の事業方針の検討に活用する',
+                reportPurpose: '顧客の資産状況に応じた提案を行うため、最新の市場動向や事業環境を把握することを目的とした',
+                reportClose: '今回の相談で得られた情報は、今後の顧客への提案や事業方針の検討において参考とする',
+            },
+            'B': {
+                bg: '合同会社燈の不動産コンサルティング業務では、顧客への物件提案や投資判断に必要な情報を得るため、現地の不動産市場の動向把握と物件の実地確認を重視している',
+                purposeApp: '顧客への物件提案や投資検討の判断材料として活用する',
+                reportPurpose: '顧客への物件提案の精度を高めるため、現地での情報収集と物件の状態確認を行うことを目的とした',
+                reportClose: '今回の調査・視察で得られた情報は、今後の顧客への物件提案や投資判断の検討において参考とする',
+            },
+            'C': {
+                bg: '合同会社燈が関与する不動産案件において、建築計画の推進にあたり、設計・構造・施工に関する技術的な検討と関係者間の方針確認が必要となっている',
+                purposeApp: '建築計画の方針決定やコスト管理の検討に反映する',
+                reportPurpose: '建築計画を適切に進めるため、技術面やコスト面の課題を関係者間で共有し方針を確認することを目的とした',
+                reportClose: '今回の打ち合わせ内容は、建築計画の今後の進め方を検討する上での参考とする',
+            },
+            'D': {
+                bg: '合同会社燈の不動産取引や資産管理業務を円滑に進めるにあたり、専門家や関係機関との情報共有と方針の確認が不可欠である',
+                purposeApp: '関連する案件の判断や今後の業務方針の整理に活かす',
+                reportPurpose: '不動産取引や資産管理に関する専門的な事項について関係者と方針を確認することを目的とした',
+                reportClose: '今回の打ち合わせで確認した内容は、関連する案件の今後の対応を検討する際の参考とする',
+            },
+            'E': {
+                bg: '合同会社燈では、不動産および資産運用に関する専門知識の拡充を通じ、顧客向けサービスの質の維持・向上に取り組んでいる',
+                purposeApp: '今後の事業活動や顧客対応の充実に活かす',
+                reportPurpose: '業務に関する専門知識の拡充と実務への応用を図ることを目的とした',
+                reportClose: '今回得られた知見は、今後の業務や顧客対応を検討する上での参考とする',
+            },
+        };
+
+        const ITEM_TOPIC = {
+            'beichin': '米軍関係者向け賃貸事業に関する相談',
+            'gunyouchi': '軍用地の活用に関する相談',
+            'okinawa_hoyuu': '沖縄における資産保有に関する相談',
+            'shisan_unyou': '保有資産の運用方針の見直し',
+            'zeimu': '税務対策に関する相談',
+            'souzoku': '相続・資産承継に関する相談',
+            'kizon_follow': '既存顧客へのフォローアップ訪問',
+            'fudousan_houmon': '不動産業者への訪問',
+            'bukken_shisatsu': '物件の現地視察',
+            'bukken_chousa': '物件の詳細調査',
+            'tochi_chousa': '土地の調査',
+            'souba_chousa': '周辺の賃貸・売買相場の調査',
+            'torihiki_kyougi': '取引条件・契約内容の協議',
+            'kenchiku_uchiawase': '建築業者との打ち合わせ',
+            'sekkei_uchiawase': '設計に関する打ち合わせ',
+            'kouzou_keisan': '構造計算に関する打ち合わせ',
+            'beast_kouhou': 'ビースト工法の採用検討に関する打ち合わせ',
+            'kenchikuhi_kyougi': '建築費・見積内容の協議',
+            'kouji_kakunin': '工事現場の進捗確認',
+            'kinyu_kikan': '金融機関との打ち合わせ',
+            'zeirishi': '税理士・士業との打ち合わせ',
+            'shoukaisha': '紹介者・提携先との面談',
+            'gyousei': '行政窓口での確認・相談',
+            'seminar': 'セミナー登壇・相談会の実施',
+            'benkyoukai': '勉強会・研修への参加',
+            'shukuhaku_shisatsu': '宿泊施設の視察',
+        };
+
+        const COMBINED_TOPIC = {
+            'beichin+gunyouchi': '米軍関係者向け賃貸事業および軍用地の活用に関する相談',
+            'fudousan_houmon+bukken_shisatsu': '不動産業者への訪問および物件の現地視察',
+            'kouzou_keisan+beast_kouhou': '構造計算およびビースト工法の採用検討に関する打ち合わせ',
+            'kenchiku_uchiawase+kenchikuhi_kyougi': '建築業者との打ち合わせおよび建築費の協議',
+        };
+
+        function buildTopicSummary(itemIds, otherText) {
+            const parts = [];
+            const used = new Set();
+            for (let i = 0; i < itemIds.length; i++) {
+                if (used.has(itemIds[i])) continue;
+                let found = false;
+                for (let j = i + 1; j < itemIds.length; j++) {
+                    if (used.has(itemIds[j])) continue;
+                    const k1 = itemIds[i] + '+' + itemIds[j];
+                    const k2 = itemIds[j] + '+' + itemIds[i];
+                    if (COMBINED_TOPIC[k1] || COMBINED_TOPIC[k2]) {
+                        parts.push(COMBINED_TOPIC[k1] || COMBINED_TOPIC[k2]);
+                        used.add(itemIds[i]);
+                        used.add(itemIds[j]);
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    parts.push(ITEM_TOPIC[itemIds[i]] || itemById[itemIds[i]]?.label);
+                    used.add(itemIds[i]);
+                }
+            }
+            if (otherText) parts.push(otherText);
+            if (parts.length <= 2) return parts.join('および');
+            return parts.slice(0, -1).join('、') + '、ならびに' + parts[parts.length - 1];
+        }
+
+        function buildFragments(itemIds, mode, dest, partner, otherText) {
+            const fragments = [];
+            const used = new Set();
+            for (let i = 0; i < itemIds.length; i++) {
+                if (used.has(itemIds[i])) continue;
+                const id = itemIds[i];
+                const cat = itemCategory[id];
+                let combined = null;
+                let combinedWith = null;
+                for (let j = i + 1; j < itemIds.length; j++) {
+                    const otherId = itemIds[j];
+                    if (used.has(otherId)) continue;
+                    if (itemCategory[otherId].id === cat.id) {
+                        combined = buildCombinedFragment([id, otherId], mode, dest, partner);
+                        if (combined) { combinedWith = otherId; break; }
+                    }
+                }
+                if (combined && combinedWith) {
+                    fragments.push(combined);
+                    used.add(id);
+                    used.add(combinedWith);
+                } else {
+                    fragments.push(buildItemFragment(id, mode, dest, partner));
+                    used.add(id);
+                }
+            }
+            if (otherText) {
+                fragments.push(otherText + (mode === 'purpose' ? 'を行う' : 'を行った'));
+            }
+            return fragments;
+        }
+
+        const FAVORITE_IDS = ['beichin', 'gunyouchi', 'fudousan_houmon', 'bukken_shisatsu', 'bukken_chousa', 'kenchiku_uchiawase', 'kouzou_keisan', 'beast_kouhou'];
+
+        const allItems = [];
+        const itemById = {};
+        const itemCategory = {};
+        PURPOSE_DATA.forEach(cat => {
+            cat.items.forEach(item => {
+                allItems.push(item);
+                itemById[item.id] = item;
+                itemCategory[item.id] = cat;
+            });
+        });
+
+        let selectedItems = new Set();
+        let selectedDetails = {};
+        let primaryPurpose = null;
+        let currentMode = 'reason';
+        let reportConfirmed = new Set();
+        let manualEdited = { reason: false, report: false };
+        let openCategories = {};
+
+        function getDetailGroup(itemId) {
+            const item = itemById[itemId];
+            const cat = itemCategory[itemId];
+            return item.detailGroup || cat.detailGroup || null;
+        }
+
+        // ============================================================
+        // Purpose UI Rendering
+        // ============================================================
+
+        function renderFavorites() {
+            const grid = document.getElementById('favoritesGrid');
+            grid.innerHTML = FAVORITE_IDS.map(id => {
+                const item = itemById[id];
+                if (!item) return '';
+                const sel = selectedItems.has(id) ? 'selected' : '';
+                const pri = primaryPurpose === id ? 'primary' : '';
+                return `<button class="purpose-btn ${sel} ${pri}" onclick="toggleItem('${id}')" oncontextmenu="event.preventDefault();setPrimary('${id}')">
+                    <span class="star" onclick="event.stopPropagation();setPrimary('${id}')" title="主目的に設定">★</span>
+                    ${item.label}
+                </button>`;
+            }).join('');
+        }
+
+        function renderCategories() {
+            const container = document.getElementById('categoriesContainer');
+            container.innerHTML = PURPOSE_DATA.map(cat => {
+                const count = cat.items.filter(i => selectedItems.has(i.id)).length;
+                const isOpen = openCategories[cat.id];
+                return `<div class="purpose-category">
+                    <button class="category-header" onclick="toggleCategory('${cat.id}')">
+                        <span>${cat.id}. ${cat.title}${count > 0 ? `<span class="cat-count">${count}</span>` : ''}</span>
+                        <span class="cat-arrow ${isOpen ? 'open' : ''}">▸</span>
+                    </button>
+                    <div class="category-items" style="display:${isOpen ? 'block' : 'none'}">
+                        <div class="purpose-grid">
+                            ${cat.items.map(item => {
+                                const sel = selectedItems.has(item.id) ? 'selected' : '';
+                                const pri = primaryPurpose === item.id ? 'primary' : '';
+                                return `<button class="purpose-btn ${sel} ${pri}" onclick="toggleItem('${item.id}')" oncontextmenu="event.preventDefault();setPrimary('${item.id}')">
+                                    <span class="star" onclick="event.stopPropagation();setPrimary('${item.id}')" title="主目的に設定">★</span>
+                                    ${item.label}
+                                </button>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderDetails() {
+            const section = document.getElementById('detailSection');
+            const activeGroups = {};
+            selectedItems.forEach(id => {
+                const g = getDetailGroup(id);
+                if (g && DETAIL_GROUPS[g]) {
+                    if (!activeGroups[g]) activeGroups[g] = [];
+                    activeGroups[g].push(id);
+                }
+            });
+            if (Object.keys(activeGroups).length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+            section.style.display = 'block';
+            const groupTitles = {
+                asset: '資産相談の詳細', realtor: '不動産業者訪問の詳細', inspect: '物件視察の詳細',
+                research: '物件調査の詳細', land: '土地調査の詳細', construction: '建築・構造の詳細',
+                stakeholder: '関係者との協議の詳細',
+            };
+            let html = '<div class="detail-section"><div class="purpose-section-label">詳細（任意）</div>';
+            for (const [g, ids] of Object.entries(activeGroups)) {
+                const details = DETAIL_GROUPS[g];
+                html += `<div class="detail-group-title">${groupTitles[g] || g}</div><div>`;
+                details.forEach(d => {
+                    const key = g + ':' + d;
+                    const sel = selectedDetails[key] ? 'selected' : '';
+                    html += `<button class="detail-btn ${sel}" onclick="toggleDetail('${g}','${d}')">${d}</button>`;
+                });
+                html += '</div>';
+            }
+            html += '</div>';
+            section.innerHTML = html;
+        }
+
+        function renderPartnerSection() {
+            const showPartner = Array.from(selectedItems).some(id => {
+                const cat = itemCategory[id];
+                return cat && cat.showPartner;
+            });
+            document.getElementById('partnerSection').style.display = showPartner ? 'block' : 'none';
+        }
+
+        function renderSelectedSummary() {
+            const div = document.getElementById('selectedSummary');
+            if (selectedItems.size === 0) { div.style.display = 'none'; return; }
+            div.style.display = 'flex';
+            const ordered = getOrderedSelected();
+            div.innerHTML = ordered.map(id => {
+                const item = itemById[id];
+                const isPri = primaryPurpose === id;
+                return `<span class="selected-tag ${isPri ? 'primary-tag' : ''}">${isPri ? '★ ' : ''}${item.label}</span>`;
+            }).join('');
+        }
+
+        function renderReportConfirm() {
+            const container = document.getElementById('reportItemsConfirm');
+            const ordered = getOrderedSelected();
+            if (ordered.length === 0) {
+                container.innerHTML = '<p style="color:#64748b;font-size:12px;">出張目的が選択されていません</p>';
+                return;
+            }
+            container.innerHTML = ordered.map(id => {
+                const item = itemById[id];
+                const checked = reportConfirmed.has(id) ? 'checked' : '';
+                return `<div class="report-confirm-item">
+                    <input type="checkbox" ${checked} onchange="toggleReportConfirm('${id}', this.checked)">
+                    <span>${item.label}</span>
+                </div>`;
+            }).join('');
+        }
+
+        function renderAll() {
+            renderFavorites();
+            renderCategories();
+            renderDetails();
+            renderPartnerSection();
+            renderSelectedSummary();
+            if (currentMode === 'report') renderReportConfirm();
+        }
+
+        // ============================================================
+        // Purpose Interaction
+        // ============================================================
+
+        function toggleItem(id) {
+            if (selectedItems.has(id)) {
+                selectedItems.delete(id);
+                if (primaryPurpose === id) primaryPurpose = selectedItems.size > 0 ? Array.from(selectedItems)[0] : null;
+                Object.keys(selectedDetails).forEach(k => {
+                    const g = getDetailGroup(id);
+                    if (g && k.startsWith(g + ':')) {
+                        const stillNeeded = Array.from(selectedItems).some(sid => getDetailGroup(sid) === g);
+                        if (!stillNeeded) delete selectedDetails[k];
+                    }
+                });
+                reportConfirmed.delete(id);
+            } else {
+                selectedItems.add(id);
+                if (!primaryPurpose) primaryPurpose = id;
+                reportConfirmed.add(id);
+            }
+            renderAll();
+            autoGenerate();
+        }
+
+        function setPrimary(id) {
+            if (!selectedItems.has(id)) {
+                selectedItems.add(id);
+                reportConfirmed.add(id);
+            }
+            primaryPurpose = id;
+            renderAll();
+            autoGenerate();
+        }
+
+        function toggleDetail(group, detail) {
+            const key = group + ':' + detail;
+            selectedDetails[key] = !selectedDetails[key];
+            if (!selectedDetails[key]) delete selectedDetails[key];
+            manualEdited.reason = false;
+            manualEdited.report = false;
+            renderDetails();
+            autoGenerate();
+        }
+
+        function toggleCategory(catId) {
+            openCategories[catId] = !openCategories[catId];
+            renderCategories();
+        }
+
+        function togglePartnerChip(btn) {
+            btn.classList.toggle('selected');
+            autoGenerate();
+        }
+
+        function toggleReportConfirm(id, checked) {
+            if (checked) reportConfirmed.add(id);
+            else reportConfirmed.delete(id);
+            autoGenerate();
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById('modeReasonBtn').classList.toggle('active', mode === 'reason');
+            document.getElementById('modeReportBtn').classList.toggle('active', mode === 'report');
+            document.getElementById('reasonModePanel').style.display = mode === 'reason' ? 'block' : 'none';
+            document.getElementById('reportModePanel').style.display = mode === 'report' ? 'block' : 'none';
+            if (mode === 'report') renderReportConfirm();
+        }
+
+        function markEdited(which) { manualEdited[which] = true; }
+
+        function autoResizeTextarea(el) {
+            el.style.height = 'auto';
+            el.style.height = el.scrollHeight + 'px';
+        }
+
+        function onSupplementChange() { autoGenerate(); }
+
+        function autoGenerate() {
+            if (!manualEdited.reason) {
+                const el = document.getElementById('tripReason');
+                el.value = generatePurposeText();
+                autoResizeTextarea(el);
+            }
+            if (!manualEdited.report && currentMode === 'report') {
+                const el = document.getElementById('tripReport');
+                el.value = generateReportText();
+                autoResizeTextarea(el);
+            }
+        }
+
+        function regenerateText(which) {
+            manualEdited[which] = false;
+            if (which === 'reason') {
+                const el = document.getElementById('tripReason');
+                el.value = generatePurposeText();
+                autoResizeTextarea(el);
+            } else {
+                const el = document.getElementById('tripReport');
+                el.value = generateReportText();
+                autoResizeTextarea(el);
+            }
+        }
+
+        function getOrderedSelected() {
+            const ordered = [];
+            if (primaryPurpose && selectedItems.has(primaryPurpose)) ordered.push(primaryPurpose);
+            selectedItems.forEach(id => { if (id !== primaryPurpose) ordered.push(id); });
+            return ordered;
+        }
+
+        function getSelectedPurposes() {
+            const ordered = getOrderedSelected();
+            const labels = ordered.map(id => itemById[id]?.label || id);
+            const other = document.getElementById('purposeOther').value.trim();
+            if (other) labels.push(other);
+            return labels;
+        }
+
+        function getSelectedDetails(itemId) {
+            const g = getDetailGroup(itemId);
+            if (!g) return [];
+            return (DETAIL_GROUPS[g] || []).filter(d => selectedDetails[g + ':' + d]);
+        }
+
+        function getPartnerName() {
+            const chip = document.querySelector('.partner-chip.selected');
+            const chipName = chip ? chip.dataset.name : '';
+            const manual = document.getElementById('meetingPartner')?.value?.trim() || '';
+            const general = document.getElementById('meetingPartnerGeneral')?.value?.trim() || '';
+            return chipName || manual || general || '';
+        }
+
+        // Transport extras templates
+        const extrasTemplates = {
+            '新幹線': `
+                <div class="form-group">
+                    <label>座席クラス（任意）</label>
+                    <select class="t-seat-class">
+                        <option value="">未選択</option>
+                        <option value="自由席">自由席</option>
+                        <option value="指定席">指定席</option>
+                        <option value="グリーン車">グリーン車</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>備考（任意）</label>
+                    <input type="text" class="t-note" placeholder="往復割引等">
+                </div>`,
+            '飛行機': `
+                <div class="form-group">
+                    <label>航空会社（任意）</label>
+                    <input type="text" class="t-airline" placeholder="ANA, JAL等">
+                </div>
+                <div class="form-group">
+                    <label>便名（任意）</label>
+                    <input type="text" class="t-flight-no" placeholder="NH123">
+                </div>
+                <div class="form-group">
+                    <label>座席クラス（任意）</label>
+                    <select class="t-seat-class">
+                        <option value="">未選択</option>
+                        <option value="エコノミー">エコノミー</option>
+                        <option value="プレミアムエコノミー">プレミアムエコノミー</option>
+                        <option value="ビジネス">ビジネス</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>備考（任意）</label>
+                    <input type="text" class="t-note" placeholder="早割等">
+                </div>`,
+            '鉄道': `
+                <div class="form-group">
+                    <label>路線名（任意）</label>
+                    <input type="text" class="t-line" placeholder="JR山手線等">
+                </div>
+                <div class="form-group">
+                    <label>備考（任意）</label>
+                    <input type="text" class="t-note" placeholder="">
+                </div>`,
+            'タクシー': `
+                <div class="form-group">
+                    <label>利用理由（任意）</label>
+                    <input type="text" class="t-taxi-reason" placeholder="深夜のため公共交通機関なし等">
+                </div>
+                <div class="form-group">
+                    <label>備考（任意）</label>
+                    <input type="text" class="t-note" placeholder="">
+                </div>`,
+            'レンタカー': `
+                <div class="form-group">
+                    <label>レンタカー会社（任意）</label>
+                    <input type="text" class="t-rental-company" placeholder="トヨタレンタカー等">
+                </div>
+                <div class="form-group">
+                    <label>利用理由（任意）</label>
+                    <input type="text" class="t-rental-reason" placeholder="現地移動のため等">
+                </div>
+                <div class="form-group">
+                    <label>備考（任意）</label>
+                    <input type="text" class="t-note" placeholder="ガソリン代含む等">
+                </div>`,
+            'バス': `
+                <div class="form-group">
+                    <label>備考（任意）</label>
+                    <input type="text" class="t-note" placeholder="高速バス等">
+                </div>`,
+        };
+
+        function onMethodChange(sel) {
+            const row = sel.closest('.transport-row');
+            const extras = row.querySelector('.transport-extras');
+            const method = sel.value;
+            extras.setAttribute('data-method', method);
+            extras.innerHTML = extrasTemplates[method] || `
+                <div class="form-group">
+                    <label>備考（任意）</label>
+                    <input type="text" class="t-note" placeholder="">
+                </div>`;
+        }
+
+        function toggleExtras(btn) {
+            const row = btn.closest('.transport-row');
+            const extras = row.querySelector('.transport-extras');
+            if (extras.classList.contains('visible')) {
+                extras.classList.remove('visible');
+                btn.textContent = '+ 詳細項目を追加（任意）';
+            } else {
+                extras.classList.add('visible');
+                btn.textContent = '- 詳細項目を閉じる';
+            }
+        }
+
+        // Date sync
+        document.getElementById('startDate').addEventListener('change', syncDates);
+        document.getElementById('endDate').addEventListener('change', syncDates);
+        document.getElementById('nights').addEventListener('change', function() {
+            const start = document.getElementById('startDate').value;
+            if (start) {
+                const startD = new Date(start);
+                const nights = parseInt(this.value) || 1;
+                startD.setDate(startD.getDate() + nights);
+                document.getElementById('endDate').value = startD.toISOString().split('T')[0];
+            }
+            updateCalc();
+        });
+
+        function syncDates() {
+            const start = document.getElementById('startDate').value;
+            const end = document.getElementById('endDate').value;
+            if (start && end) {
+                const startD = new Date(start);
+                const endD = new Date(end);
+                const diff = Math.round((endD - startD) / (1000 * 60 * 60 * 24));
+                if (diff > 0) {
+                    document.getElementById('nights').value = diff;
+                    updateCalc();
+                }
+            }
+        }
+
+        function updateCalc() {
+            const nights = parseInt(document.getElementById('nights').value) || 1;
+            const days = nights + 1;
+            const accFee = parseInt(document.getElementById('accommodationFee').value) || 0;
+            const dailyFee = parseInt(document.getElementById('dailyAllowance').value) || 0;
+
+            document.getElementById('nightsCalc').textContent = `${nights}泊${days}日`;
+
+            const totalAcc = accFee * nights;
+            const totalDaily = dailyFee * days;
+
+            let totalTransport = 0;
+            document.querySelectorAll('.t-amount').forEach(el => {
+                totalTransport += parseInt(el.value) || 0;
+            });
+
+            const grand = totalAcc + totalDaily + totalTransport;
+
+            document.getElementById('sumAccommodation').textContent = formatYen(totalAcc);
+            document.getElementById('sumAllowance').textContent = formatYen(totalDaily);
+            document.getElementById('sumTransport').textContent = formatYen(totalTransport);
+            document.getElementById('sumTotal').textContent = formatYen(grand);
+        }
+
+        function formatYen(n) {
+            return '\u00a5' + n.toLocaleString('ja-JP');
+        }
+
+        function addTransport() {
+            const list = document.getElementById('transportList');
+            const idx = list.children.length;
+            const row = document.createElement('div');
+            row.className = 'transport-row';
+            row.dataset.index = idx;
+            row.innerHTML = `
+                <div class="transport-compact-row">
+                    <div class="form-group">
+                        <label>日付</label>
+                        <input type="date" class="t-date">
+                    </div>
+                    <div class="form-group">
+                        <label>区間</label>
+                        <input type="text" class="t-route" placeholder="大阪駅 → 東京駅">
+                    </div>
+                </div>
+                <div class="transport-compact-row">
+                    <div class="form-group">
+                        <label>交通機関</label>
+                        <select class="t-method" onchange="onMethodChange(this)">
+                            <option value="新幹線">新幹線</option>
+                            <option value="鉄道">鉄道</option>
+                            <option value="飛行機">飛行機</option>
+                            <option value="バス">バス</option>
+                            <option value="タクシー">タクシー</option>
+                            <option value="レンタカー">レンタカー</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>金額</label>
+                        <input type="number" class="t-amount" placeholder="0" onchange="updateCalc()">
+                    </div>
+                </div>
+                <button class="extras-toggle" onclick="toggleExtras(this)">+ 詳細項目を追加（任意）</button>
+                <div class="transport-extras" data-method="新幹線">
+                    ${extrasTemplates['新幹線']}
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1; display: flex; justify-content: flex-end;">
+                    <button class="btn btn-danger" onclick="removeTransport(this)" title="この交通費を削除" style="width: auto;">&times; 削除</button>
+                </div>
+            `;
+            list.appendChild(row);
+        }
+
+        function removeTransport(btn) {
+            const list = document.getElementById('transportList');
+            if (list.children.length > 1) {
+                btn.closest('.transport-row').remove();
+                updateCalc();
+            }
+        }
+
+        function getTransportDetails() {
+            const rows = document.querySelectorAll('.transport-row');
+            const details = [];
+            rows.forEach(row => {
+                const date = row.querySelector('.t-date').value;
+                const route = row.querySelector('.t-route').value;
+                const method = row.querySelector('.t-method').value;
+                const amount = parseInt(row.querySelector('.t-amount').value) || 0;
+                if (route || amount > 0) {
+                    const detail = { date, route, method, amount };
+                    const extras = row.querySelector('.transport-extras');
+                    if (extras) {
+                        const seatClass = extras.querySelector('.t-seat-class');
+                        const note = extras.querySelector('.t-note');
+                        const airline = extras.querySelector('.t-airline');
+                        const flightNo = extras.querySelector('.t-flight-no');
+                        const line = extras.querySelector('.t-line');
+                        const taxiReason = extras.querySelector('.t-taxi-reason');
+                        const rentalCompany = extras.querySelector('.t-rental-company');
+                        const rentalReason = extras.querySelector('.t-rental-reason');
+
+                        if (seatClass && seatClass.value) detail.seat_class = seatClass.value;
+                        if (note && note.value) detail.note = note.value;
+                        if (airline && airline.value) detail.airline = airline.value;
+                        if (flightNo && flightNo.value) detail.flight_no = flightNo.value;
+                        if (line && line.value) detail.line = line.value;
+                        if (taxiReason && taxiReason.value) detail.taxi_reason = taxiReason.value;
+                        if (rentalCompany && rentalCompany.value) detail.rental_company = rentalCompany.value;
+                        if (rentalReason && rentalReason.value) detail.rental_reason = rentalReason.value;
+                    }
+                    details.push(detail);
+                }
+            });
+            return details;
+        }
+
+        // ============================================================
+        // Text Generation
+        // ============================================================
+
+        function randomChoice(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function generatePurposeText() {
+            const dest = document.getElementById('destination').value || '現地';
+            const ordered = getOrderedSelected();
+            const supplement = document.getElementById('purposeDetail')?.value?.trim() || '';
+            const otherText = document.getElementById('purposeOther')?.value?.trim() || '';
+            const partner = getPartnerName();
+
+            if (ordered.length === 0 && !otherText) return '';
+
+            const primaryCat = ordered.length > 0 ? itemCategory[ordered[0]]?.id : 'A';
+            const ctx = CATEGORY_CONTEXT[primaryCat] || CATEGORY_CONTEXT['A'];
+            const topicSummary = buildTopicSummary(ordered, otherText);
+            const fragments = buildFragments(ordered, 'purpose', dest, partner, otherText);
+
+            let para1 = ctx.bg + '。';
+            if (dest !== '現地') {
+                para1 += '今回、' + dest + 'において' + topicSummary + 'を実施する。';
+            } else {
+                para1 += '今回、' + topicSummary + 'を実施する。';
+            }
+
+            let para2 = '具体的には、' + connectClauses(fragments) + '。';
+            if (supplement) para2 += 'なお、' + supplement + '。';
+            para2 += 'これらの結果を' + ctx.purposeApp + 'ものである。';
+
+            return para1 + '\n\n' + para2;
+        }
+
+        function generateReportText() {
+            const dest = document.getElementById('destination').value || '現地';
+            const confirmed = Array.from(reportConfirmed).filter(id => selectedItems.has(id));
+            const supplement = document.getElementById('purposeDetail')?.value?.trim() || '';
+            const resultNote = document.getElementById('resultNote')?.value?.trim() || '';
+            const nextAction = document.getElementById('nextAction')?.value?.trim() || '';
+            const otherText = document.getElementById('purposeOther')?.value?.trim() || '';
+            const partner = getPartnerName();
+
+            if (confirmed.length === 0 && !otherText) return '';
+
+            const primaryCat = confirmed.length > 0 ? itemCategory[confirmed[0]]?.id : 'A';
+            const ctx = CATEGORY_CONTEXT[primaryCat] || CATEGORY_CONTEXT['A'];
+            const topicSummary = buildTopicSummary(confirmed, otherText);
+            const fragments = buildFragments(confirmed, 'report', dest, partner, otherText);
+
+            let para1 = ctx.bg + '。';
+            if (dest !== '現地') {
+                para1 += '今回、' + dest + 'にて' + ctx.reportPurpose + '出張を実施した。';
+            } else {
+                para1 += '今回、' + ctx.reportPurpose + '出張を実施した。';
+            }
+            para1 += '主な実施内容は、' + topicSummary + 'である。';
+
+            let para2Intro = '出張では、';
+            if (partner) {
+                para2Intro = '出張では、' + partner + 'との協議において、';
+            }
+            let para2 = para2Intro + connectClauses(fragments) + '。';
+            if (supplement) para2 += 'なお、' + supplement + '。';
+
+            let para3 = '';
+            const actSummary = '以上の活動を通じ、当初の目的であった' + topicSummary + 'について、今後の業務遂行に必要な情報の収集と方針の確認を行うことができた。';
+            if (resultNote && nextAction) {
+                para3 = '以上の活動を通じ、' + resultNote + '。' + ctx.reportClose + '。今後は、' + nextAction + '。';
+            } else if (resultNote) {
+                para3 = '以上の活動を通じ、' + resultNote + '。' + ctx.reportClose + '。';
+            } else if (nextAction) {
+                para3 = actSummary + ctx.reportClose + '。今後は、' + nextAction + '。';
+            } else {
+                para3 = actSummary + ctx.reportClose + '。';
+            }
+
+            return para1 + '\n\n' + para2 + '\n\n' + para3;
+        }
+
+        function buildCombinedFragment(ids, mode, dest, partner) {
+            const isPurpose = mode === 'purpose';
+            const cat = itemCategory[ids[0]];
+            const idSet = new Set(ids);
+            const partnerPrefix = (cat.id === 'C' && partner) ? partner + 'と、' : '';
+
+            // C: 構造計算 + ビースト工法
+            if (cat.id === 'C' && idSet.has('kouzou_keisan') && idSet.has('beast_kouhou')) {
+                const allDetails = [...new Set([...getSelectedDetails('kouzou_keisan'), ...getSelectedDetails('beast_kouhou')])]
+                    .filter(d => d !== '工法の採用検討' && d !== '構造計算');
+                if (allDetails.length > 0) {
+                    const clauses = allDetails.map(d => {
+                        switch (d) {
+                            case '計画・仕様': return isPurpose
+                                ? `建築計画の仕様条件を確認する`
+                                : `建築計画の仕様条件を確認した`;
+                            case '施工条件': return isPurpose
+                                ? `現場の施工条件や制約事項を整理する`
+                                : `現場の施工条件や制約事項を整理した`;
+                            case '見積・費用': return isPurpose
+                                ? `工事費用の見積内容を精査し、在来工法との比較を行う`
+                                : `工事費用の見積内容を精査し、在来工法との比較を行った`;
+                            case '工期・工程': return isPurpose
+                                ? `施工スケジュールを確認し、工期短縮の効果を検討する`
+                                : `施工スケジュールを確認し、工期短縮の効果を検討した`;
+                            default: return isPurpose
+                                ? `${d}について確認する`
+                                : `${d}について確認した`;
+                        }
+                    });
+                    const base = isPurpose
+                        ? `${partnerPrefix}ビースト工法の採用検討に伴う構造計算の内容や安全性を確認する`
+                        : `${partnerPrefix}ビースト工法の採用検討に伴う構造計算の内容や安全性を確認した`;
+                    if (isPurpose) {
+                        return base + 'とともに、' + connectClauses(clauses, true);
+                    }
+                    return base + '。あわせて、' + connectClauses(clauses, true);
+                }
+                if (isPurpose) return `${partnerPrefix}ビースト工法の採用を見据えた構造計算について、技術的な適合性やコスト面を含めた打ち合わせを行う`;
+                return `${partnerPrefix}ビースト工法の採用を見据えた構造計算について、技術的な適合性やコスト面を含めた打ち合わせを行った`;
+            }
+
+            // A: 米賃貸 + 軍用地
+            if (cat.id === 'A' && idSet.has('beichin') && idSet.has('gunyouchi')) {
+                const allDetails = [...new Set([...getSelectedDetails('beichin'), ...getSelectedDetails('gunyouchi')])];
+                if (allDetails.includes('仕組みの説明') && allDetails.length > 1) {
+                    const other = allDetails.filter(d => d !== '仕組みの説明');
+                    const otherClauses = other.map(d => {
+                        switch (d) {
+                            case '収支の確認': return isPurpose
+                                ? `それぞれの事業における収支状況や投資利回りの見通しについて確認する`
+                                : `それぞれの事業における収支状況や投資利回りの見通しについて確認した`;
+                            case '資金調達': return isPurpose
+                                ? `取得に必要な資金計画や融資条件について相談する`
+                                : `取得に必要な資金計画や融資条件について相談した`;
+                            case '保有方法': return isPurpose
+                                ? `最適な保有形態や名義構成について検討する`
+                                : `最適な保有形態や名義構成について検討した`;
+                            case '運用の見直し': return isPurpose
+                                ? `現在の運用方針について見直しの方向性を相談する`
+                                : `現在の運用方針について見直しの方向性を相談した`;
+                            case '売却・承継': return isPurpose
+                                ? `売却時期や承継方法について方針を相談する`
+                                : `売却時期や承継方法について方針を相談した`;
+                            default: return isPurpose
+                                ? `${d}について相談する`
+                                : `${d}について相談した`;
+                        }
+                    });
+                    const base = isPurpose
+                        ? `${dest}にて、米軍関係者向け賃貸事業の運営体制と軍用地の売買・借地の仕組みについて説明する`
+                        : `${dest}にて、米軍関係者向け賃貸事業の運営体制と軍用地の売買・借地の仕組みについて説明した`;
+                    if (isPurpose) {
+                        return base + 'とともに、' + connectClauses(otherClauses, true);
+                    }
+                    return base + '。あわせて、' + connectClauses(otherClauses, true);
+                }
+                if (allDetails.length > 0) {
+                    const clauses = allDetails.map(d => {
+                        switch (d) {
+                            case '仕組みの説明': return isPurpose
+                                ? `米軍関係者向け賃貸事業と軍用地それぞれの仕組みや運営体制について説明する`
+                                : `米軍関係者向け賃貸事業と軍用地それぞれの仕組みや運営体制について説明した`;
+                            case '収支の確認': return isPurpose
+                                ? `賃貸事業と軍用地の収支状況を確認し、投資効果を比較検討する`
+                                : `賃貸事業と軍用地の収支状況を確認し、投資効果を比較検討した`;
+                            case '資金調達': return isPurpose
+                                ? `両事業への投資に必要な資金計画や融資条件を相談する`
+                                : `両事業への投資に必要な資金計画や融資条件を相談した`;
+                            case '保有方法': return isPurpose
+                                ? `賃貸物件と軍用地それぞれの最適な保有形態を検討する`
+                                : `賃貸物件と軍用地それぞれの最適な保有形態を検討した`;
+                            case '運用の見直し': return isPurpose
+                                ? `保有資産全体のポートフォリオとして運用方針の見直しを行う`
+                                : `保有資産全体のポートフォリオとして運用方針の見直しを行った`;
+                            case '売却・承継': return isPurpose
+                                ? `保有資産の売却判断や次世代への承継方法について方針を整理する`
+                                : `保有資産の売却判断や次世代への承継方法について方針を整理した`;
+                            default: return isPurpose
+                                ? `${d}について相談する`
+                                : `${d}について相談した`;
+                        }
+                    });
+                    return `${dest}にて、米軍関係者向け賃貸事業と軍用地の活用について、` + connectClauses(clauses);
+                }
+                if (isPurpose) return `${dest}にて、米軍関係者向け賃貸事業の運営状況と軍用地の取得・活用方法について総合的に相談する`;
+                return `${dest}にて、米軍関係者向け賃貸事業の運営状況と軍用地の取得・活用方法について総合的に相談した`;
+            }
+
+            // C: 建築業者 + 建築費
+            if (cat.id === 'C' && idSet.has('kenchiku_uchiawase') && idSet.has('kenchikuhi_kyougi')) {
+                const allDetails = [...new Set([...getSelectedDetails('kenchiku_uchiawase'), ...getSelectedDetails('kenchikuhi_kyougi')])];
+                const meetingTopics = allDetails.filter(d => d === '計画・仕様' || d === '施工条件');
+                const costTopics = allDetails.filter(d => d === '見積・費用' || d === '工期・工程');
+                if (meetingTopics.length > 0 && costTopics.length > 0) {
+                    const meetClauses = meetingTopics.map(d => {
+                        if (d === '計画・仕様') return isPurpose
+                            ? `建築計画の全体構成や仕上げ仕様の詳細を確認する`
+                            : `建築計画の全体構成や仕上げ仕様の詳細を確認した`;
+                        return isPurpose
+                            ? `現場の施工条件や近隣対応等の制約事項を整理する`
+                            : `現場の施工条件や近隣対応等の制約事項を整理した`;
+                    });
+                    const costClauses = costTopics.map(d => {
+                        if (d === '見積・費用') return isPurpose
+                            ? `見積書の項目ごとの費用妥当性を精査し、減額交渉の余地を検討する`
+                            : `見積書の項目ごとの費用妥当性を精査し、減額交渉の余地を検討した`;
+                        return isPurpose
+                            ? `着工から竣工までの工程表を確認し、工期やマイルストーンを整理する`
+                            : `着工から竣工までの工程表を確認し、工期やマイルストーンを整理した`;
+                    });
+                    return `${partnerPrefix}建築業者と打ち合わせを行い、` + connectClauses(meetClauses) + '。あわせて、' + connectClauses(costClauses);
+                }
+                if (allDetails.length > 0) {
+                    const clauses = allDetails.map(d => {
+                        switch (d) {
+                            case '計画・仕様': return isPurpose
+                                ? `建築計画の仕様や設計条件の詳細を確認する`
+                                : `建築計画の仕様や設計条件の詳細を確認した`;
+                            case '施工条件': return isPurpose
+                                ? `現場の施工条件について制約事項を整理する`
+                                : `現場の施工条件について制約事項を整理した`;
+                            case '見積・費用': return isPurpose
+                                ? `見積内容を精査し、建築費の妥当性を検討する`
+                                : `見積内容を精査し、建築費の妥当性を検討した`;
+                            case '工期・工程': return isPurpose
+                                ? `工程表を確認し、全体工期の妥当性を検討する`
+                                : `工程表を確認し、全体工期の妥当性を検討した`;
+                            default: return isPurpose
+                                ? `${d}について確認する`
+                                : `${d}について確認した`;
+                        }
+                    });
+                    return `${partnerPrefix}建築業者と打ち合わせを行い、` + connectClauses(clauses) + (isPurpose ? '。あわせて、建築費全体の妥当性について協議する' : '。あわせて、建築費全体の妥当性について協議した');
+                }
+                if (isPurpose) return `${partnerPrefix}建築業者と建築計画の進捗について打ち合わせを行い、あわせて建築費の見積内容や工事費用の妥当性について協議する`;
+                return `${partnerPrefix}建築業者と建築計画の進捗について打ち合わせを行い、あわせて建築費の見積内容や工事費用の妥当性について協議した`;
+            }
+
+            // B: 不動産業者訪問 + 物件視察
+            if (cat.id === 'B' && idSet.has('fudousan_houmon') && idSet.has('bukken_shisatsu')) {
+                const fDetails = getSelectedDetails('fudousan_houmon');
+                const bDetails = getSelectedDetails('bukken_shisatsu');
+                if (fDetails.length > 0 && bDetails.length > 0) {
+                    const fClauses = fDetails.map(d => {
+                        switch (d) {
+                            case '案件紹介の相談': return isPurpose
+                                ? `新規案件の紹介について相談を行い、条件に合う物件の有無を確認する`
+                                : `新規案件の紹介について相談を行い、条件に合う物件の有無を確認した`;
+                            case '物件情報の収集': return isPurpose
+                                ? `非公開物件を含めた最新の物件情報を幅広く収集する`
+                                : `非公開物件を含めた最新の物件情報を幅広く収集した`;
+                            case '地域動向の情報交換': return isPurpose
+                                ? `地域の開発計画や不動産市況について情報交換を行う`
+                                : `地域の開発計画や不動産市況について情報交換を行った`;
+                            case '管理・募集の相談': return isPurpose
+                                ? `保有物件の管理業務や入居者募集について相談する`
+                                : `保有物件の管理業務や入居者募集について相談した`;
+                            case '提携の相談': return isPurpose
+                                ? `今後の業務提携について意見交換を行う`
+                                : `今後の業務提携について意見交換を行った`;
+                            default: return isPurpose
+                                ? `${d}を行う`
+                                : `${d}を行った`;
+                        }
+                    });
+                    const bClauses = bDetails.map(d => {
+                        switch (d) {
+                            case '立地・周辺環境': return isPurpose
+                                ? `立地条件や周辺の生活環境を確認する`
+                                : `立地条件や周辺の生活環境を確認した`;
+                            case '建物・設備': return isPurpose
+                                ? `建物の構造・仕様や設備の状況を視察する`
+                                : `建物の構造・仕様や設備の状況を視察した`;
+                            case '管理状況': return isPurpose
+                                ? `共用部分の清掃状態や管理運営状況を確認する`
+                                : `共用部分の清掃状態や管理運営状況を確認した`;
+                            case '改修の必要性': return isPurpose
+                                ? `改修工事の必要性や概算費用を検討する`
+                                : `改修工事の必要性や概算費用を検討した`;
+                            default: return isPurpose
+                                ? `物件の${d}を視察する`
+                                : `物件の${d}を視察した`;
+                        }
+                    });
+                    return '現地の不動産業者を訪問し、' + connectClauses(fClauses) + '。あわせて対象物件を視察し、' + connectClauses(bClauses);
+                }
+                if (fDetails.length > 0) {
+                    const fClauses = fDetails.map(d => {
+                        switch (d) {
+                            case '案件紹介の相談': return isPurpose
+                                ? `新規案件の紹介について相談する`
+                                : `新規案件の紹介について相談した`;
+                            case '物件情報の収集': return isPurpose
+                                ? `最新の物件情報を収集する`
+                                : `最新の物件情報を収集した`;
+                            case '地域動向の情報交換': return isPurpose
+                                ? `地域の不動産市況について情報交換を行う`
+                                : `地域の不動産市況について情報交換を行った`;
+                            case '管理・募集の相談': return isPurpose
+                                ? `管理業務や入居者募集について相談する`
+                                : `管理業務や入居者募集について相談した`;
+                            case '提携の相談': return isPurpose
+                                ? `業務提携について意見交換を行う`
+                                : `業務提携について意見交換を行った`;
+                            default: return isPurpose
+                                ? `${d}を行う`
+                                : `${d}を行った`;
+                        }
+                    });
+                    return '現地の不動産業者を訪問し、' + connectClauses(fClauses) + (isPurpose ? '。あわせて、対象物件の現地視察を行う' : '。あわせて、対象物件の現地視察を行った');
+                }
+                if (bDetails.length > 0) {
+                    const bClauses = bDetails.map(d => {
+                        switch (d) {
+                            case '立地・周辺環境': return isPurpose
+                                ? `立地条件や周辺環境を確認する`
+                                : `立地条件や周辺環境を確認した`;
+                            case '建物・設備': return isPurpose
+                                ? `建物の構造や設備の状況を視察する`
+                                : `建物の構造や設備の状況を視察した`;
+                            case '管理状況': return isPurpose
+                                ? `現在の管理運営状況を確認する`
+                                : `現在の管理運営状況を確認した`;
+                            case '改修の必要性': return isPurpose
+                                ? `改修工事の必要性を検討する`
+                                : `改修工事の必要性を検討した`;
+                            default: return isPurpose
+                                ? `${d}を視察する`
+                                : `${d}を視察した`;
+                        }
+                    });
+                    return '現地の不動産業者を訪問し、取扱い物件の情報収集や地域動向の確認を行う' + (isPurpose ? 'とともに、対象物件を視察し、' : '。あわせて対象物件を視察し、') + connectClauses(bClauses);
+                }
+                if (isPurpose) return `現地の不動産業者を訪問して取扱い物件の情報収集や地域の不動産市況について相談するとともに、対象物件の立地環境や建物の状態を視察する`;
+                return `現地の不動産業者を訪問して取扱い物件の情報収集や地域の不動産市況について相談し、あわせて対象物件の立地環境や建物の状態を視察した`;
+            }
+
+            return null;
+        }
+
+        function connectClauses(clauses, skipTotomoni) {
+            if (clauses.length === 0) return '';
+            if (clauses.length === 1) return clauses[0];
+            const isPast = /[たっ]$/.test(clauses[0]);
+            if (skipTotomoni || isPast) {
+                const connectors = isPast
+                    ? ['また、', 'さらに、', 'あわせて、']
+                    : ['さらに、', 'あわせて、', '加えて、'];
+                let result = clauses[0];
+                for (let i = 1; i < clauses.length; i++) {
+                    result += '。' + connectors[Math.min(i - 1, connectors.length - 1)] + clauses[i];
+                }
+                return result;
+            }
+            if (clauses.length === 2) return clauses[0] + 'とともに、' + clauses[1];
+            const connectors = ['さらに、', 'あわせて、', '加えて、'];
+            let result = clauses[0] + 'とともに、' + clauses[1];
+            for (let i = 2; i < clauses.length; i++) {
+                result += '。' + connectors[Math.min(i - 2, connectors.length - 1)] + clauses[i];
+            }
+            return result;
+        }
+
+        function buildItemFragment(id, mode, dest, partner) {
+            const details = getSelectedDetails(id);
+            const isPurpose = mode === 'purpose';
+            const cat = itemCategory[id];
+            const partnerForC = (cat.id === 'C' && partner) ? partner + 'と、' : '';
+
+            switch (id) {
+                case 'beichin': {
+                    if (details.length > 0) {
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '仕組みの説明': return isPurpose
+                                    ? `${dest}にて米軍関係者向け賃貸事業の仕組みや運営体制について説明を行う`
+                                    : `${dest}にて米軍関係者向け賃貸事業の仕組みや運営体制について説明を行った`;
+                                case '収支の確認': return isPurpose
+                                    ? `現在の賃貸事業における収支状況や入居率を確認し、今後の収益見通しについて検討する`
+                                    : `現在の賃貸事業における収支状況や入居率を確認し、今後の収益見通しについて検討した`;
+                                case '資金調達': return isPurpose
+                                    ? `米軍関係者向け賃貸事業に必要な資金調達の方法や条件について相談する`
+                                    : `米軍関係者向け賃貸事業に必要な資金調達の方法や条件について相談した`;
+                                case '保有方法': return isPurpose
+                                    ? `物件の保有形態や名義、法的構成について最適な方法を検討する`
+                                    : `物件の保有形態や名義、法的構成について最適な方法を検討した`;
+                                case '運用の見直し': return isPurpose
+                                    ? `既存物件の賃料設定や管理体制を含め、運用方針の見直しを行う`
+                                    : `既存物件の賃料設定や管理体制を含め、運用方針の見直しを行った`;
+                                case '売却・承継': return isPurpose
+                                    ? `保有物件の売却時期や承継方法について方針を相談する`
+                                    : `保有物件の売却時期や承継方法について方針を相談した`;
+                                default: return isPurpose
+                                    ? `${dest}にて米軍関係者向け賃貸事業の${d}について相談する`
+                                    : `${dest}にて米軍関係者向け賃貸事業の${d}について相談した`;
+                            }
+                        });
+                        return connectClauses(clauses);
+                    }
+                    if (isPurpose) return `${dest}にて、沖縄の米軍関係者向け賃貸事業について市場動向や運営体制を含めた相談を行う`;
+                    return `${dest}にて、沖縄の米軍関係者向け賃貸事業について市場動向や運営体制を含めた相談を行った`;
+                }
+                case 'gunyouchi': {
+                    if (details.length > 0) {
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '仕組みの説明': return isPurpose
+                                    ? `軍用地の売買や借地の仕組み、返還リスクを含めた全体像について説明する`
+                                    : `軍用地の売買や借地の仕組み、返還リスクを含めた全体像について説明した`;
+                                case '収支の確認': return isPurpose
+                                    ? `軍用地の年間借地料や収支状況を確認し、投資利回りの見通しについて検討する`
+                                    : `軍用地の年間借地料や収支状況を確認し、投資利回りの見通しについて検討した`;
+                                case '資金調達': return isPurpose
+                                    ? `軍用地取得に必要な資金計画や融資条件について金融機関との連携を含め相談する`
+                                    : `軍用地取得に必要な資金計画や融資条件について金融機関との連携を含め相談した`;
+                                case '保有方法': return isPurpose
+                                    ? `軍用地の保有形態や登記上の名義構成について最適な方法を検討する`
+                                    : `軍用地の保有形態や登記上の名義構成について最適な方法を検討した`;
+                                case '運用の見直し': return isPurpose
+                                    ? `保有中の軍用地について、借地料の推移や将来見通しを踏まえた運用方針の見直しを行う`
+                                    : `保有中の軍用地について、借地料の推移や将来見通しを踏まえた運用方針の見直しを行った`;
+                                case '売却・承継': return isPurpose
+                                    ? `軍用地の売却タイミングや次世代への承継方法について相談する`
+                                    : `軍用地の売却タイミングや次世代への承継方法について相談した`;
+                                default: return isPurpose
+                                    ? `軍用地の活用について${d}を相談する`
+                                    : `軍用地の活用について${d}を相談した`;
+                            }
+                        });
+                        return connectClauses(clauses);
+                    }
+                    if (isPurpose) return `軍用地の取得・活用に関する市場動向や投資条件について相談する`;
+                    return `軍用地の取得・活用に関する市場動向や投資条件について相談した`;
+                }
+                case 'okinawa_hoyuu': {
+                    if (details.length > 0) {
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '仕組みの説明': return isPurpose
+                                    ? `沖縄における不動産保有の仕組みや税制上の優位性について説明する`
+                                    : `沖縄における不動産保有の仕組みや税制上の優位性について説明した`;
+                                case '収支の確認': return isPurpose
+                                    ? `沖縄保有資産の収支実績を確認し、今後の収益性について見通しを立てる`
+                                    : `沖縄保有資産の収支実績を確認し、今後の収益性について見通しを立てた`;
+                                case '資金調達': return isPurpose
+                                    ? `沖縄での資産取得に向けた資金調達の手法や金融機関との交渉方針を相談する`
+                                    : `沖縄での資産取得に向けた資金調達の手法や金融機関との交渉方針を相談した`;
+                                case '保有方法': return isPurpose
+                                    ? `沖縄資産の保有名義や法人活用を含めた最適な保有形態を検討する`
+                                    : `沖縄資産の保有名義や法人活用を含めた最適な保有形態を検討した`;
+                                case '運用の見直し': return isPurpose
+                                    ? `沖縄の保有資産について賃料水準や管理体制の見直しを含めた運用方針を再検討する`
+                                    : `沖縄の保有資産について賃料水準や管理体制の見直しを含めた運用方針を再検討した`;
+                                case '売却・承継': return isPurpose
+                                    ? `沖縄保有資産の売却判断や次世代への承継方法について方針を整理する`
+                                    : `沖縄保有資産の売却判断や次世代への承継方法について方針を整理した`;
+                                default: return isPurpose
+                                    ? `沖縄に資産を保有する意義について${d}を確認する`
+                                    : `沖縄に資産を保有する意義について${d}を確認した`;
+                            }
+                        });
+                        return connectClauses(clauses);
+                    }
+                    if (isPurpose) return `沖縄に資産を保有する意義について、地域の市場環境や税制面の優位性を踏まえて相談する`;
+                    return `沖縄に資産を保有する意義について、地域の市場環境や税制面の優位性を踏まえて相談した`;
+                }
+                case 'shisan_unyou': {
+                    if (details.length > 0) {
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '仕組みの説明': return isPurpose
+                                    ? `保有資産の運用における基本的な仕組みや方針について説明し、理解を深める`
+                                    : `保有資産の運用における基本的な仕組みや方針について説明し、理解を深めた`;
+                                case '収支の確認': return isPurpose
+                                    ? `保有資産全体の収支バランスやキャッシュフローの状況を精査し、改善点を洗い出す`
+                                    : `保有資産全体の収支バランスやキャッシュフローの状況を精査し、改善点を洗い出した`;
+                                case '資金調達': return isPurpose
+                                    ? `資産運用の拡大に向けた追加融資や借換えの可能性について検討する`
+                                    : `資産運用の拡大に向けた追加融資や借換えの可能性について検討した`;
+                                case '保有方法': return isPurpose
+                                    ? `法人・個人間の資産配分や保有名義の最適化について方針を見直す`
+                                    : `法人・個人間の資産配分や保有名義の最適化について方針を見直した`;
+                                case '運用の見直し': return isPurpose
+                                    ? `現在の運用方針を市場環境の変化に照らして再評価し、中長期的な方針を再設定する`
+                                    : `現在の運用方針を市場環境の変化に照らして再評価し、中長期的な方針を再設定した`;
+                                case '売却・承継': return isPurpose
+                                    ? `保有資産の一部売却や組み替え、将来の承継を見据えた出口戦略について相談する`
+                                    : `保有資産の一部売却や組み替え、将来の承継を見据えた出口戦略について相談した`;
+                                default: return isPurpose
+                                    ? `保有資産の${d}を含めた運用方針の見直しを相談する`
+                                    : `保有資産の${d}を含めた運用方針の見直しを相談した`;
+                            }
+                        });
+                        return connectClauses(clauses);
+                    }
+                    if (isPurpose) return `保有資産全体の運用方針について、現在の市場環境を踏まえた見直しの相談を行う`;
+                    return `保有資産全体の運用方針について、現在の市場環境を踏まえた見直しの相談を行った`;
+                }
+                case 'zeimu': {
+                    if (details.length > 0) {
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '個別案件の相談': return isPurpose
+                                    ? `個別の不動産取引に伴う税務上の取扱いや申告方法について専門家と相談する`
+                                    : `個別の不動産取引に伴う税務上の取扱いや申告方法について専門家と相談した`;
+                                case '条件確認': return isPurpose
+                                    ? `特例措置の適用条件や控除要件について最新の制度内容を確認する`
+                                    : `特例措置の適用条件や控除要件について最新の制度内容を確認した`;
+                                case '資料確認': return isPurpose
+                                    ? `確定申告や法人決算に必要な資料の整備状況を確認し、不足書類を整理する`
+                                    : `確定申告や法人決算に必要な資料の整備状況を確認し、不足書類を整理した`;
+                                case '役割分担': return isPurpose
+                                    ? `税理士との間で申告業務や資料準備の役割分担を明確にする`
+                                    : `税理士との間で申告業務や資料準備の役割分担を明確にした`;
+                                case '次回対応': return isPurpose
+                                    ? `今後の税務申告スケジュールや対応事項を確認し、次回までの準備計画を立てる`
+                                    : `今後の税務申告スケジュールや対応事項を確認し、次回までの準備計画を立てた`;
+                                default: return isPurpose
+                                    ? `${d}を踏まえ税務上の課題について相談する`
+                                    : `${d}を踏まえ税務上の課題について相談した`;
+                            }
+                        });
+                        return connectClauses(clauses);
+                    }
+                    if (isPurpose) return `不動産保有・取引に関する税務上の課題整理と節税対策について専門家と相談する`;
+                    return `不動産保有・取引に関する税務上の課題整理と節税対策について専門家と相談した`;
+                }
+                case 'souzoku': {
+                    if (details.length > 0) {
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '個別案件の相談': return isPurpose
+                                    ? `相続・資産承継に関する個別案件の進捗状況を確認し、今後の対応方針を相談する`
+                                    : `相続・資産承継に関する個別案件の進捗状況を確認し、今後の対応方針を相談した`;
+                                case '条件確認': return isPurpose
+                                    ? `相続税の特例措置や控除制度の適用条件について最新情報を確認する`
+                                    : `相続税の特例措置や控除制度の適用条件について最新情報を確認した`;
+                                case '資料確認': return isPurpose
+                                    ? `相続対策に必要な財産目録や評価資料の整備状況を確認する`
+                                    : `相続対策に必要な財産目録や評価資料の整備状況を確認した`;
+                                case '役割分担': return isPurpose
+                                    ? `相続対策における各専門家や家族間の役割分担を明確にする`
+                                    : `相続対策における各専門家や家族間の役割分担を明確にした`;
+                                case '次回対応': return isPurpose
+                                    ? `相続対策の今後のスケジュールと次回までの対応事項を確認する`
+                                    : `相続対策の今後のスケジュールと次回までの対応事項を確認した`;
+                                default: return isPurpose
+                                    ? `相続・資産承継の${d}について相談する`
+                                    : `相続・資産承継の${d}について相談した`;
+                            }
+                        });
+                        return connectClauses(clauses);
+                    }
+                    if (isPurpose) return `相続・資産承継に関する課題を整理し、中長期的な対策方針について専門家と相談する`;
+                    return `相続・資産承継に関する課題を整理し、中長期的な対策方針について専門家と相談した`;
+                }
+                case 'kizon_follow': {
+                    if (details.length > 0) {
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '個別案件の相談': return isPurpose
+                                    ? `顧客の保有物件に関する個別案件の進捗を確認し、今後の対応方針を相談する`
+                                    : `顧客の保有物件に関する個別案件の進捗を確認し、今後の対応方針を相談した`;
+                                case '条件確認': return isPurpose
+                                    ? `現行の契約条件や管理状況について詳細を確認し、見直しの必要性を検討する`
+                                    : `現行の契約条件や管理状況について詳細を確認し、見直しの必要性を検討した`;
+                                case '資料確認': return isPurpose
+                                    ? `顧客へ提出する報告資料や提案書の内容を確認し、最新情報に更新する`
+                                    : `顧客へ提出する報告資料や提案書の内容を確認し、最新情報に更新した`;
+                                case '役割分担': return isPurpose
+                                    ? `顧客対応における社内外の役割分担を整理し、連携体制を確認する`
+                                    : `顧客対応における社内外の役割分担を整理し、連携体制を確認した`;
+                                case '次回対応': return isPurpose
+                                    ? `顧客への次回訪問時期や対応内容を確認し、フォローアップの計画を立てる`
+                                    : `顧客への次回訪問時期や対応内容を確認し、フォローアップの計画を立てた`;
+                                default: return isPurpose
+                                    ? `既存顧客の${d}を確認する`
+                                    : `既存顧客の${d}を確認した`;
+                            }
+                        });
+                        return '既存顧客を訪問し、' + connectClauses(clauses);
+                    }
+                    if (isPurpose) return `既存顧客を訪問し、保有資産の状況確認や今後の運用方針に関するフォローアップを行う`;
+                    return `既存顧客を訪問し、保有資産の状況確認や今後の運用方針に関するフォローアップを行った`;
+                }
+                case 'fudousan_houmon': {
+                    if (details.length > 0) {
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '案件紹介の相談': return isPurpose
+                                    ? `新規の売買・賃貸案件の紹介について相談を行い、条件に合う物件の有無を確認する`
+                                    : `新規の売買・賃貸案件の紹介について相談を行い、条件に合う物件の有無を確認した`;
+                                case '物件情報の収集': return isPurpose
+                                    ? `地元業者が保有する非公開物件を含めた最新の物件情報を幅広く収集する`
+                                    : `地元業者が保有する非公開物件を含めた最新の物件情報を幅広く収集した`;
+                                case '地域動向の情報交換': return isPurpose
+                                    ? `地域の開発計画や人口動態、賃貸需要の変化など不動産市況に関する情報交換を行う`
+                                    : `地域の開発計画や人口動態、賃貸需要の変化など不動産市況に関する情報交換を行った`;
+                                case '管理・募集の相談': return isPurpose
+                                    ? `保有物件の入居者募集や管理業務の委託について条件や方針を相談する`
+                                    : `保有物件の入居者募集や管理業務の委託について条件や方針を相談した`;
+                                case '提携の相談': return isPurpose
+                                    ? `今後の業務提携や紹介ネットワークの構築について意見交換を行う`
+                                    : `今後の業務提携や紹介ネットワークの構築について意見交換を行った`;
+                                default: return isPurpose
+                                    ? `不動産業者と${d}について相談する`
+                                    : `不動産業者と${d}について相談した`;
+                            }
+                        });
+                        return '現地の不動産業者を訪問し、' + connectClauses(clauses);
+                    }
+                    if (isPurpose) return `現地の不動産業者を訪問し、取扱い物件の情報収集や地域の不動産市況について相談する`;
+                    return `現地の不動産業者を訪問し、取扱い物件の情報収集や地域の不動産市況について相談した`;
+                }
+                case 'bukken_shisatsu': {
+                    if (details.length > 0) {
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '立地・周辺環境': return isPurpose
+                                    ? `物件の立地条件や最寄り駅からのアクセス、周辺の商業施設・生活環境を確認する`
+                                    : `物件の立地条件や最寄り駅からのアクセス、周辺の商業施設・生活環境を確認した`;
+                                case '建物・設備': return isPurpose
+                                    ? `建物の外観や構造、室内の設備仕様および劣化状況を視察する`
+                                    : `建物の外観や構造、室内の設備仕様および劣化状況を視察した`;
+                                case '管理状況': return isPurpose
+                                    ? `共用部分の清掃状態や修繕履歴を含め、現在の管理運営状況を確認する`
+                                    : `共用部分の清掃状態や修繕履歴を含め、現在の管理運営状況を確認した`;
+                                case '改修の必要性': return isPurpose
+                                    ? `建物や設備の経年劣化を踏まえ、改修工事の必要性や概算費用を検討する`
+                                    : `建物や設備の経年劣化を踏まえ、改修工事の必要性や概算費用を検討した`;
+                                default: return isPurpose
+                                    ? `物件の${d}を視察する`
+                                    : `物件の${d}を視察した`;
+                            }
+                        });
+                        return connectClauses(clauses);
+                    }
+                    if (isPurpose) return `投資対象物件の立地環境や建物の状態を視察し、取得の可否を現地で判断する`;
+                    return `投資対象物件の立地環境や建物の状態を視察し、取得の可否を現地で判断した`;
+                }
+                case 'bukken_chousa': {
+                    if (details.length > 0) {
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '権利関係': return isPurpose
+                                    ? `登記簿謄本等を基に物件の所有権や抵当権、借地権等の権利関係を調査する`
+                                    : `登記簿謄本等を基に物件の所有権や抵当権、借地権等の権利関係を調査した`;
+                                case '賃貸・入居状況': return isPurpose
+                                    ? `現在の賃貸借契約の内容や入居率、テナント構成を確認し、収益性を評価する`
+                                    : `現在の賃貸借契約の内容や入居率、テナント構成を確認し、収益性を評価した`;
+                                case '収支資料': return isPurpose
+                                    ? `過去の収支実績やレントロールを精査し、将来の収支見込みを検証する`
+                                    : `過去の収支実績やレントロールを精査し、将来の収支見込みを検証した`;
+                                case '修繕履歴': return isPurpose
+                                    ? `これまでの大規模修繕や設備更新の履歴を確認し、今後の修繕計画を把握する`
+                                    : `これまでの大規模修繕や設備更新の履歴を確認し、今後の修繕計画を把握した`;
+                                case '確認済証・検査済証': return isPurpose
+                                    ? `建築確認済証や検査済証の有無を調査し、建物の適法性を確認する`
+                                    : `建築確認済証や検査済証の有無を調査し、建物の適法性を確認した`;
+                                default: return isPurpose
+                                    ? `物件の${d}を調査する`
+                                    : `物件の${d}を調査した`;
+                            }
+                        });
+                        return connectClauses(clauses);
+                    }
+                    if (isPurpose) return `投資対象物件の権利関係や収支状況を含めた詳細調査を行い、取得判断の材料を整理する`;
+                    return `投資対象物件の権利関係や収支状況を含めた詳細調査を行い、取得判断の材料を整理した`;
+                }
+                case 'tochi_chousa': {
+                    if (details.length > 0) {
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '接道': return isPurpose
+                                    ? `対象地の接道状況や道路幅員を確認し、建築基準法上の要件を満たすか調査する`
+                                    : `対象地の接道状況や道路幅員を確認し、建築基準法上の要件を満たすか調査した`;
+                                case '境界': return isPurpose
+                                    ? `隣地との境界位置や境界標の有無を確認し、面積の整合性を調査する`
+                                    : `隣地との境界位置や境界標の有無を確認し、面積の整合性を調査した`;
+                                case '用途地域・建築制限': return isPurpose
+                                    ? `用途地域や建ぺい率・容積率等の建築制限を確認し、計画建物の適合性を検討する`
+                                    : `用途地域や建ぺい率・容積率等の建築制限を確認し、計画建物の適合性を検討した`;
+                                case '上下水道': return isPurpose
+                                    ? `上下水道の引込み状況や配管経路を調査し、インフラ整備の必要性を確認する`
+                                    : `上下水道の引込み状況や配管経路を調査し、インフラ整備の必要性を確認した`;
+                                case '地盤・造成': return isPurpose
+                                    ? `地盤の強度や造成の履歴を調査し、基礎工事や地盤改良の要否を検討する`
+                                    : `地盤の強度や造成の履歴を調査し、基礎工事や地盤改良の要否を検討した`;
+                                default: return isPurpose
+                                    ? `土地の${d}を調査する`
+                                    : `土地の${d}を調査した`;
+                            }
+                        });
+                        return connectClauses(clauses);
+                    }
+                    if (isPurpose) return `対象地の法的条件やインフラ状況を含めた土地の詳細調査を行う`;
+                    return `対象地の法的条件やインフラ状況を含めた土地の詳細調査を行った`;
+                }
+                case 'souba_chousa': {
+                    if (isPurpose) return `${dest}周辺の賃貸相場や売買取引事例を調査し、適正価格の見極めに必要な情報を収集する`;
+                    return `${dest}周辺の賃貸相場や売買取引事例を調査し、適正価格の見極めに必要な情報を収集した`;
+                }
+                case 'torihiki_kyougi': {
+                    if (details.length > 0) {
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '個別案件の相談': return isPurpose
+                                    ? `進行中の取引案件について、条件面の課題や交渉の方向性を関係者と協議する`
+                                    : `進行中の取引案件について、条件面の課題や交渉の方向性を関係者と協議した`;
+                                case '条件確認': return isPurpose
+                                    ? `売買価格や引渡し条件、特約事項等の取引条件を精査し、合意内容を確認する`
+                                    : `売買価格や引渡し条件、特約事項等の取引条件を精査し、合意内容を確認した`;
+                                case '資料確認': return isPurpose
+                                    ? `契約書案や重要事項説明書等の書類内容を確認し、記載内容の正確性を検証する`
+                                    : `契約書案や重要事項説明書等の書類内容を確認し、記載内容の正確性を検証した`;
+                                case '役割分担': return isPurpose
+                                    ? `取引完了までの各関係者の担当業務やスケジュールを明確にし、連携体制を整える`
+                                    : `取引完了までの各関係者の担当業務やスケジュールを明確にし、連携体制を整えた`;
+                                case '次回対応': return isPurpose
+                                    ? `取引の次のステップとなる対応事項を確認し、期限や担当を設定する`
+                                    : `取引の次のステップとなる対応事項を確認し、期限や担当を設定した`;
+                                default: return isPurpose
+                                    ? `取引条件の${d}について関係者と協議する`
+                                    : `取引条件の${d}について関係者と協議した`;
+                            }
+                        });
+                        return connectClauses(clauses);
+                    }
+                    if (isPurpose) return `取引条件や契約内容について関係者間で詳細を確認し、合意形成に向けた協議を行う`;
+                    return `取引条件や契約内容について関係者間で詳細を確認し、合意形成に向けた協議を行った`;
+                }
+                case 'kenchiku_uchiawase': {
+                    if (details.length > 0) {
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '計画・仕様': return isPurpose
+                                    ? `建築計画の全体構成や仕上げ仕様について建築業者と詳細を詰める`
+                                    : `建築計画の全体構成や仕上げ仕様について建築業者と詳細を詰めた`;
+                                case '構造計算': return isPurpose
+                                    ? `構造計算の前提条件や計算結果について確認し、安全性を検証する`
+                                    : `構造計算の前提条件や計算結果について確認し、安全性を検証した`;
+                                case '工法の採用検討': return isPurpose
+                                    ? `建物の工法選定について、コストや工期への影響を含め比較検討する`
+                                    : `建物の工法選定について、コストや工期への影響を含め比較検討した`;
+                                case '施工条件': return isPurpose
+                                    ? `現場の施工条件や近隣対応、搬入経路等の制約事項を確認する`
+                                    : `現場の施工条件や近隣対応、搬入経路等の制約事項を確認した`;
+                                case '見積・費用': return isPurpose
+                                    ? `建築工事の見積内容を精査し、項目ごとの費用妥当性を確認する`
+                                    : `建築工事の見積内容を精査し、項目ごとの費用妥当性を確認した`;
+                                case '工期・工程': return isPurpose
+                                    ? `着工から竣工までの工程表を確認し、各工程の所要期間やマイルストーンを整理する`
+                                    : `着工から竣工までの工程表を確認し、各工程の所要期間やマイルストーンを整理した`;
+                                default: return isPurpose
+                                    ? `建築業者と${d}について打ち合わせる`
+                                    : `建築業者と${d}について打ち合わせた`;
+                            }
+                        });
+                        return `${partnerForC}建築業者と打ち合わせを行い、` + connectClauses(clauses);
+                    }
+                    if (isPurpose) return `${partnerForC}建築業者と建築計画の進捗や施工内容について打ち合わせを行う`;
+                    return `${partnerForC}建築業者と建築計画の進捗や施工内容について打ち合わせを行った`;
+                }
+                case 'sekkei_uchiawase': {
+                    if (details.length > 0) {
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '計画・仕様': return isPurpose
+                                    ? `設計図面の内容や仕上げ仕様について設計担当者と詳細を確認する`
+                                    : `設計図面の内容や仕上げ仕様について設計担当者と詳細を確認した`;
+                                case '構造計算': return isPurpose
+                                    ? `構造設計の計算条件や耐震性能について設計担当者と確認する`
+                                    : `構造設計の計算条件や耐震性能について設計担当者と確認した`;
+                                case '工法の採用検討': return isPurpose
+                                    ? `採用する工法の技術的要件や設計への影響を検討する`
+                                    : `採用する工法の技術的要件や設計への影響を検討した`;
+                                case '施工条件': return isPurpose
+                                    ? `設計上の施工条件や制約事項について整理し、対応方針を協議する`
+                                    : `設計上の施工条件や制約事項について整理し、対応方針を協議した`;
+                                case '見積・費用': return isPurpose
+                                    ? `設計変更に伴うコストへの影響を確認し、予算内での対応方針を検討する`
+                                    : `設計変更に伴うコストへの影響を確認し、予算内での対応方針を検討した`;
+                                case '工期・工程': return isPurpose
+                                    ? `設計スケジュールの進捗を確認し、確認申請や施工開始までの工程を整理する`
+                                    : `設計スケジュールの進捗を確認し、確認申請や施工開始までの工程を整理した`;
+                                default: return isPurpose
+                                    ? `設計担当者と${d}について打ち合わせる`
+                                    : `設計担当者と${d}について打ち合わせた`;
+                            }
+                        });
+                        return `${partnerForC}設計担当者と打ち合わせを行い、` + connectClauses(clauses);
+                    }
+                    if (isPurpose) return `${partnerForC}設計担当者と設計内容や図面の詳細について打ち合わせを行う`;
+                    return `${partnerForC}設計担当者と設計内容や図面の詳細について打ち合わせを行った`;
+                }
+                case 'kouzou_keisan': {
+                    if (details.length > 0) {
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '計画・仕様': return isPurpose
+                                    ? `構造計算に関わる建築計画の前提条件や仕様を確認する`
+                                    : `構造計算に関わる建築計画の前提条件や仕様を確認した`;
+                                case '構造計算': return isPurpose
+                                    ? `構造計算書の内容を精査し、荷重条件や安全率の妥当性を検証する`
+                                    : `構造計算書の内容を精査し、荷重条件や安全率の妥当性を検証した`;
+                                case '工法の採用検討': return isPurpose
+                                    ? `構造計算の結果を踏まえ、最適な工法の選定について検討する`
+                                    : `構造計算の結果を踏まえ、最適な工法の選定について検討した`;
+                                case '施工条件': return isPurpose
+                                    ? `構造上の施工条件や現場制約について確認し、対応策を協議する`
+                                    : `構造上の施工条件や現場制約について確認し、対応策を協議した`;
+                                case '見積・費用': return isPurpose
+                                    ? `構造計算に基づく工事費用の見積内容を確認し、コスト面の妥当性を検討する`
+                                    : `構造計算に基づく工事費用の見積内容を確認し、コスト面の妥当性を検討した`;
+                                case '工期・工程': return isPurpose
+                                    ? `構造関連の工程スケジュールを確認し、全体工期への影響を整理する`
+                                    : `構造関連の工程スケジュールを確認し、全体工期への影響を整理した`;
+                                default: return isPurpose
+                                    ? `構造計算の${d}について確認する`
+                                    : `構造計算の${d}について確認した`;
+                            }
+                        });
+                        return `${partnerForC}` + connectClauses(clauses);
+                    }
+                    if (isPurpose) return `${partnerForC}構造計算の内容や安全性について確認し、技術的な課題を整理するための打ち合わせを行う`;
+                    return `${partnerForC}構造計算の内容や安全性について確認し、技術的な課題を整理するための打ち合わせを行った`;
+                }
+                case 'beast_kouhou': {
+                    if (details.length > 0) {
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '計画・仕様': return isPurpose
+                                    ? `ビースト工法を前提とした建築計画の仕様や設計条件を確認する`
+                                    : `ビースト工法を前提とした建築計画の仕様や設計条件を確認した`;
+                                case '構造計算': return isPurpose
+                                    ? `ビースト工法に対応した構造計算の内容や安全性を検証する`
+                                    : `ビースト工法に対応した構造計算の内容や安全性を検証した`;
+                                case '工法の採用検討': return isPurpose
+                                    ? `ビースト工法の採用にあたり、技術的な適合性やコスト面のメリットを比較検討する`
+                                    : `ビースト工法の採用にあたり、技術的な適合性やコスト面のメリットを比較検討した`;
+                                case '施工条件': return isPurpose
+                                    ? `ビースト工法の施工に必要な現場条件や資材搬入の制約を確認する`
+                                    : `ビースト工法の施工に必要な現場条件や資材搬入の制約を確認した`;
+                                case '見積・費用': return isPurpose
+                                    ? `ビースト工法を採用した場合の工事費見積を確認し、在来工法との費用比較を行う`
+                                    : `ビースト工法を採用した場合の工事費見積を確認し、在来工法との費用比較を行った`;
+                                case '工期・工程': return isPurpose
+                                    ? `ビースト工法による施工スケジュールを確認し、工期短縮の効果を検討する`
+                                    : `ビースト工法による施工スケジュールを確認し、工期短縮の効果を検討した`;
+                                default: return isPurpose
+                                    ? `ビースト工法の${d}について確認する`
+                                    : `ビースト工法の${d}について確認した`;
+                            }
+                        });
+                        return `${partnerForC}` + connectClauses(clauses);
+                    }
+                    if (isPurpose) return `${partnerForC}ビースト工法の採用検討について、技術面やコスト面の比較を含めた打ち合わせを行う`;
+                    return `${partnerForC}ビースト工法の採用検討について、技術面やコスト面の比較を含めた打ち合わせを行った`;
+                }
+                case 'kenchikuhi_kyougi': {
+                    if (details.length > 0) {
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '計画・仕様': return isPurpose
+                                    ? `建築計画の仕様変更がコストに与える影響を精査する`
+                                    : `建築計画の仕様変更がコストに与える影響を精査した`;
+                                case '構造計算': return isPurpose
+                                    ? `構造計算の見直しに伴う建築費への影響を確認する`
+                                    : `構造計算の見直しに伴う建築費への影響を確認した`;
+                                case '工法の採用検討': return isPurpose
+                                    ? `工法の選択による建築コストの変動幅を比較検討する`
+                                    : `工法の選択による建築コストの変動幅を比較検討した`;
+                                case '施工条件': return isPurpose
+                                    ? `施工条件の変更が費用に与える影響を確認し、追加費用の有無を整理する`
+                                    : `施工条件の変更が費用に与える影響を確認し、追加費用の有無を整理した`;
+                                case '見積・費用': return isPurpose
+                                    ? `建築工事の見積書を項目ごとに精査し、減額交渉の余地を検討する`
+                                    : `建築工事の見積書を項目ごとに精査し、減額交渉の余地を検討した`;
+                                case '工期・工程': return isPurpose
+                                    ? `工期の延長や短縮がコストに及ぼす影響を確認し、最適な工程を協議する`
+                                    : `工期の延長や短縮がコストに及ぼす影響を確認し、最適な工程を協議した`;
+                                default: return isPurpose
+                                    ? `建築費の${d}について協議する`
+                                    : `建築費の${d}について協議した`;
+                            }
+                        });
+                        return `${partnerForC}` + connectClauses(clauses);
+                    }
+                    if (isPurpose) return `${partnerForC}建築費の見積内容や工事費用の妥当性について詳細な協議を行う`;
+                    return `${partnerForC}建築費の見積内容や工事費用の妥当性について詳細な協議を行った`;
+                }
+                case 'kouji_kakunin': {
+                    if (isPurpose) return `${partnerForC}工事現場を訪問し、施工の進捗状況や品質管理の状態を確認する`;
+                    return `${partnerForC}工事現場を訪問し、施工の進捗状況や品質管理の状態を確認した`;
+                }
+                case 'kinyu_kikan': {
+                    if (details.length > 0) {
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '個別案件の相談': return isPurpose
+                                    ? `個別の融資案件について進捗状況や審査条件を確認し、対応方針を相談する`
+                                    : `個別の融資案件について進捗状況や審査条件を確認し、対応方針を相談した`;
+                                case '条件確認': return isPurpose
+                                    ? `融資条件や金利、返済スケジュール等の詳細について金融機関と確認する`
+                                    : `融資条件や金利、返済スケジュール等の詳細について金融機関と確認した`;
+                                case '資料確認': return isPurpose
+                                    ? `融資審査に必要な提出書類の内容や不足資料を確認し、準備を進める`
+                                    : `融資審査に必要な提出書類の内容や不足資料を確認し、準備を進めた`;
+                                case '役割分担': return isPurpose
+                                    ? `融資手続きにおける各関係者の役割分担やスケジュールを確認する`
+                                    : `融資手続きにおける各関係者の役割分担やスケジュールを確認した`;
+                                case '次回対応': return isPurpose
+                                    ? `次回の金融機関訪問までに準備すべき資料や対応事項を確認する`
+                                    : `次回の金融機関訪問までに準備すべき資料や対応事項を確認した`;
+                                default: return isPurpose
+                                    ? `金融機関と${d}について打ち合わせる`
+                                    : `金融機関と${d}について打ち合わせた`;
+                            }
+                        });
+                        return '金融機関を訪問し、' + connectClauses(clauses);
+                    }
+                    if (isPurpose) return `金融機関を訪問し、融資条件や資金調達の方針について打ち合わせを行う`;
+                    return `金融機関を訪問し、融資条件や資金調達の方針について打ち合わせを行った`;
+                }
+                case 'zeirishi': {
+                    if (details.length > 0) {
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '個別案件の相談': return isPurpose
+                                    ? `個別の税務案件について進捗や対応方針を税理士と相談する`
+                                    : `個別の税務案件について進捗や対応方針を税理士と相談した`;
+                                case '条件確認': return isPurpose
+                                    ? `税務上の特例措置や適用要件の詳細について専門家と確認する`
+                                    : `税務上の特例措置や適用要件の詳細について専門家と確認した`;
+                                case '資料確認': return isPurpose
+                                    ? `申告に必要な証憑書類や計算資料の整備状況を確認する`
+                                    : `申告に必要な証憑書類や計算資料の整備状況を確認した`;
+                                case '役割分担': return isPurpose
+                                    ? `申告業務や書類作成における税理士との役割分担を明確にする`
+                                    : `申告業務や書類作成における税理士との役割分担を明確にした`;
+                                case '次回対応': return isPurpose
+                                    ? `次回の打ち合わせまでに準備すべき資料や確認事項を整理する`
+                                    : `次回の打ち合わせまでに準備すべき資料や確認事項を整理した`;
+                                default: return isPurpose
+                                    ? `税理士・士業と${d}について打ち合わせる`
+                                    : `税理士・士業と${d}について打ち合わせた`;
+                            }
+                        });
+                        return '税理士・士業と面談し、' + connectClauses(clauses);
+                    }
+                    if (isPurpose) return `税理士・士業と面談し、税務対策や申告業務に関する打ち合わせを行う`;
+                    return `税理士・士業と面談し、税務対策や申告業務に関する打ち合わせを行った`;
+                }
+                case 'shoukaisha': {
+                    if (details.length > 0) {
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '個別案件の相談': return isPurpose
+                                    ? `紹介案件の進捗状況を共有し、今後の進め方について相談する`
+                                    : `紹介案件の進捗状況を共有し、今後の進め方について相談した`;
+                                case '条件確認': return isPurpose
+                                    ? `紹介条件や提携内容の詳細について確認し、双方の認識を合わせる`
+                                    : `紹介条件や提携内容の詳細について確認し、双方の認識を合わせた`;
+                                case '資料確認': return isPurpose
+                                    ? `提携先との間で共有すべき資料の内容や提出状況を確認する`
+                                    : `提携先との間で共有すべき資料の内容や提出状況を確認した`;
+                                case '役割分担': return isPurpose
+                                    ? `紹介者・提携先との間で今後の役割分担や連携方法を整理する`
+                                    : `紹介者・提携先との間で今後の役割分担や連携方法を整理した`;
+                                case '次回対応': return isPurpose
+                                    ? `次回の面談時期や対応事項を確認し、連携のスケジュールを立てる`
+                                    : `次回の面談時期や対応事項を確認し、連携のスケジュールを立てた`;
+                                default: return isPurpose
+                                    ? `紹介者・提携先と${d}について面談する`
+                                    : `紹介者・提携先と${d}について面談した`;
+                            }
+                        });
+                        return '紹介者・提携先と面談し、' + connectClauses(clauses);
+                    }
+                    if (isPurpose) return `紹介者・提携先と面談し、案件の紹介状況や今後の連携方針について意見交換を行う`;
+                    return `紹介者・提携先と面談し、案件の紹介状況や今後の連携方針について意見交換を行った`;
+                }
+                case 'gyousei': {
+                    if (details.length > 0) {
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '個別案件の相談': return isPurpose
+                                    ? `行政窓口にて個別案件に関する許認可や届出の要件について相談する`
+                                    : `行政窓口にて個別案件に関する許認可や届出の要件について相談した`;
+                                case '条件確認': return isPurpose
+                                    ? `行政手続きに必要な条件や規制の詳細について窓口で確認する`
+                                    : `行政手続きに必要な条件や規制の詳細について窓口で確認した`;
+                                case '資料確認': return isPurpose
+                                    ? `申請に必要な書類の記載内容や添付資料の要件を確認する`
+                                    : `申請に必要な書類の記載内容や添付資料の要件を確認した`;
+                                case '役割分担': return isPurpose
+                                    ? `行政手続きにおける申請者側の対応事項と専門家への委託範囲を整理する`
+                                    : `行政手続きにおける申請者側の対応事項と専門家への委託範囲を整理した`;
+                                case '次回対応': return isPurpose
+                                    ? `行政窓口での確認結果を踏まえ、次回の申請・届出に向けた準備事項を整理する`
+                                    : `行政窓口での確認結果を踏まえ、次回の申請・届出に向けた準備事項を整理した`;
+                                default: return isPurpose
+                                    ? `行政窓口にて${d}の確認を行う`
+                                    : `行政窓口にて${d}の確認を行った`;
+                            }
+                        });
+                        return connectClauses(clauses);
+                    }
+                    if (isPurpose) return `行政窓口にて、法規制や許認可に関する確認および相談を行う`;
+                    return `行政窓口にて、法規制や許認可に関する確認および相談を行った`;
+                }
+                case 'seminar': {
+                    if (isPurpose) return `不動産や資産運用に関するセミナーへ登壇し、参加者への情報提供や個別相談会を実施する`;
+                    return `不動産や資産運用に関するセミナーへ登壇し、参加者への情報提供や個別相談会を実施した`;
+                }
+                case 'benkyoukai': {
+                    if (isPurpose) return `不動産投資や資産管理に関する勉強会・研修に参加し、最新の知見や事例を学ぶ`;
+                    return `不動産投資や資産管理に関する勉強会・研修に参加し、最新の知見や事例を学んだ`;
+                }
+                case 'shukuhaku_shisatsu': {
+                    if (isPurpose) return `宿泊施設の取得・活用を検討するため、立地環境や施設の状態、運営体制を含めた現地視察を行う`;
+                    return `宿泊施設の取得・活用を検討するため、立地環境や施設の状態、運営体制を含めた現地視察を行った`;
+                }
+                default: {
+                    const item = itemById[id];
+                    const label = item ? item.label : id;
+                    if (isPurpose) return `${label}を行う`;
+                    return `${label}を行った`;
+                }
+            }
+        }
+
+
+        // Legacy wrappers for collectPayload auto-generation fallback
+        function _generateTripReason() { return generatePurposeText(); }
+        function _generateTripReport() { return generateReportText(); }
+        function generateReason() { regenerateText('reason'); }
+        function generateReport() { regenerateText('report'); }
+
+        // Date formatting helpers (Japanese era)
+        // ============================================================
+
+        function formatDateJp(dateStr) {
+            if (!dateStr) return '';
+            try {
+                const parts = dateStr.split('-');
+                const year = parseInt(parts[0]);
+                const month = parseInt(parts[1]);
+                const day = parseInt(parts[2]);
+                let era, warekiYear;
+                if (year >= 2019) {
+                    warekiYear = year - 2018;
+                    era = '令和';
+                } else if (year >= 1989) {
+                    warekiYear = year - 1988;
+                    era = '平成';
+                } else {
+                    warekiYear = year - 1925;
+                    era = '昭和';
+                }
+                return `${era}${warekiYear}年${month}月${day}日`;
+            } catch (e) {
+                return dateStr;
+            }
+        }
+
+        function formatCurrency(amount) {
+            return '\u00a5' + Number(amount).toLocaleString('ja-JP');
+        }
+
+        function buildTransportNote(td) {
+            const parts = [];
+            if (td.airline) parts.push(td.airline);
+            if (td.flight_no) parts.push('便名:' + td.flight_no);
+            if (td.seat_class) parts.push(td.seat_class);
+            if (td.line) parts.push(td.line);
+            if (td.taxi_reason) parts.push('理由:' + td.taxi_reason);
+            if (td.rental_company) parts.push(td.rental_company);
+            if (td.rental_reason) parts.push('理由:' + td.rental_reason);
+            if (td.note) parts.push(td.note);
+            return parts.join('\uff0f');
+        }
+
+        // ============================================================
+        // DOCX Generation (client-side using docx library)
+        // ============================================================
+
+        async function generateDocx(payload) {
+            const {
+                Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+                WidthType, AlignmentType, BorderStyle, ShadingType,
+                HeadingLevel, convertInchesToTwip, TableLayoutType,
+                VerticalAlign, PageOrientation
+            } = window.docx;
+
+            const nights = payload.nights;
+            const days = nights + 1;
+            const totalAccommodation = payload.accommodation_fee * nights;
+            const totalAllowance = payload.daily_allowance * days;
+            const transportTotal = payload.transport_details.reduce((s, t) => s + (t.amount || 0), 0);
+            const grandTotal = totalAccommodation + totalAllowance + transportTotal;
+
+            const startDateJp = formatDateJp(payload.start_date);
+            const endDateJp = formatDateJp(payload.end_date);
+            const today = new Date();
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+            const todayJp = formatDateJp(todayStr);
+
+            const purpose = payload.purpose || payload.purposes.join('\u30FB');
+
+            // Helper: create a text run
+            function tr(text, opts = {}) {
+                return new TextRun({
+                    text: text,
+                    font: opts.font || '游明朝',
+                    size: (opts.size || 10.5) * 2,
+                    bold: opts.bold || false,
+                    color: opts.color || '000000',
+                    eastAsiaFont: opts.font || '游明朝',
+                });
+            }
+
+            // Helper: header cell
+            function headerCell(text, width) {
+                return new TableCell({
+                    width: { size: width, type: WidthType.DXA },
+                    shading: { type: ShadingType.SOLID, color: 'E8F0FE', fill: 'E8F0FE' },
+                    verticalAlign: VerticalAlign.CENTER,
+                    children: [new Paragraph({
+                        alignment: AlignmentType.CENTER,
+                        children: [tr(text, { font: '游ゴシック', size: 9, bold: true })],
+                    })],
+                });
+            }
+
+            // Helper: value cell
+            function valueCell(text, width, alignment) {
+                return new TableCell({
+                    width: { size: width, type: WidthType.DXA },
+                    verticalAlign: VerticalAlign.CENTER,
+                    children: [new Paragraph({
+                        alignment: alignment || AlignmentType.LEFT,
+                        children: [tr(text, { size: 10 })],
+                    })],
+                });
+            }
+
+            // Basic info table
+            const infoRows = [
+                ['所属部署', payload.department, '役職', payload.position],
+                ['出張者氏名', payload.employee_name, '', ''],
+                ['出張期間', `${startDateJp}\u3000～\u3000${endDateJp}`, '泊数', `${nights}泊${days}日`],
+                ['出張先', payload.destination, '出張目的', purpose],
+            ];
+
+            const infoTableRows = infoRows.map(r =>
+                new TableRow({
+                    children: [
+                        headerCell(r[0], 1600),
+                        valueCell(r[1], 3100),
+                        headerCell(r[2], 1600),
+                        valueCell(r[3], 2300),
+                    ],
+                })
+            );
+
+            // Trip reason section
+            let reasonText = payload.trip_reason;
+            if (payload.purpose_detail) {
+                reasonText += `\n\n【詳細】${payload.purpose_detail}`;
+            }
+            const reasonParagraphs = reasonText.split('\n').map(line =>
+                new Paragraph({ children: [tr(line, { size: 10 })] })
+            );
+
+            // Transport table
+            const transportRows = [];
+            const hasNotes = payload.transport_details.some(td => buildTransportNote(td));
+            if (payload.transport_details.length > 0) {
+                const tHeaders = ['日付', '区間', '交通機関', '金額'];
+                if (hasNotes) tHeaders.push('備考');
+
+                const tWidths = hasNotes ? [1400, 2600, 1400, 1400, 1800] : [1800, 3200, 1800, 1800];
+
+                transportRows.push(new TableRow({
+                    children: tHeaders.map((h, i) => headerCell(h, tWidths[i])),
+                }));
+
+                for (const td of payload.transport_details) {
+                    const cells = [
+                        valueCell(formatDateJp(td.date || ''), tWidths[0]),
+                        valueCell(td.route || '', tWidths[1]),
+                        valueCell(td.method || '', tWidths[2]),
+                        new TableCell({
+                            width: { size: tWidths[3], type: WidthType.DXA },
+                            children: [new Paragraph({
+                                alignment: AlignmentType.RIGHT,
+                                children: [tr(formatCurrency(td.amount || 0), { size: 10 })],
+                            })],
+                        }),
+                    ];
+                    if (hasNotes) {
+                        cells.push(valueCell(buildTransportNote(td), tWidths[4]));
+                    }
+                    transportRows.push(new TableRow({ children: cells }));
+                }
+            }
+
+            // Accommodation/allowance table
+            const summaryHeaders = ['項目', '単価', '数量', '金額'];
+            const sWidths = [2200, 2000, 1400, 3000];
+            const summaryData = [
+                ['宿泊費', formatCurrency(payload.accommodation_fee), `${nights}泊`, formatCurrency(totalAccommodation)],
+                ['日当', formatCurrency(payload.daily_allowance), `${days}日`, formatCurrency(totalAllowance)],
+                ['交通費合計', '', '', formatCurrency(transportTotal)],
+            ];
+
+            const summaryTableRows = [
+                new TableRow({
+                    children: summaryHeaders.map((h, i) => headerCell(h, sWidths[i])),
+                }),
+                ...summaryData.map(row =>
+                    new TableRow({
+                        children: row.map((val, j) =>
+                            j === 3
+                                ? new TableCell({
+                                    width: { size: sWidths[j], type: WidthType.DXA },
+                                    children: [new Paragraph({
+                                        alignment: AlignmentType.RIGHT,
+                                        children: [tr(val, { size: 10 })],
+                                    })],
+                                })
+                                : valueCell(val, sWidths[j])
+                        ),
+                    })
+                ),
+            ];
+
+            // Total row
+            const totalTableRow = new TableRow({
+                children: [
+                    new TableCell({
+                        width: { size: 2800, type: WidthType.DXA },
+                        shading: { type: ShadingType.SOLID, color: '1F4E79', fill: '1F4E79' },
+                        verticalAlign: VerticalAlign.CENTER,
+                        children: [new Paragraph({
+                            alignment: AlignmentType.CENTER,
+                            children: [tr('合計支給額', { font: '游ゴシック', size: 12, bold: true, color: 'FFFFFF' })],
+                        })],
+                    }),
+                    new TableCell({
+                        width: { size: 5800, type: WidthType.DXA },
+                        verticalAlign: VerticalAlign.CENTER,
+                        children: [new Paragraph({
+                            alignment: AlignmentType.RIGHT,
+                            children: [tr(formatCurrency(grandTotal), { font: '游ゴシック', size: 14, bold: true })],
+                        })],
+                    }),
+                ],
+            });
+
+            // Trip report section
+            const reportParagraphs = (payload.trip_report || '').split('\n').map(line =>
+                new Paragraph({ children: [tr(line, { size: 10 })] })
+            );
+
+            // Approval table
+            const approvalHeaders = ['申請者', '所属長', '経理部', '代表取締役'];
+            const aWidth = 2150;
+            const approvalHeaderRow = new TableRow({
+                children: approvalHeaders.map(h => headerCell(h, aWidth)),
+            });
+            const approvalEmptyRow = new TableRow({
+                height: { value: 1400, rule: 'atLeast' },
+                children: approvalHeaders.map(() =>
+                    new TableCell({
+                        width: { size: aWidth, type: WidthType.DXA },
+                        children: [new Paragraph({ children: [tr('')] })],
+                    })
+                ),
+            });
+
+            // Borders for all tables
+            const tableBorders = {
+                top: { style: BorderStyle.SINGLE, size: 1, color: '888888' },
+                bottom: { style: BorderStyle.SINGLE, size: 1, color: '888888' },
+                left: { style: BorderStyle.SINGLE, size: 1, color: '888888' },
+                right: { style: BorderStyle.SINGLE, size: 1, color: '888888' },
+                insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: '888888' },
+                insideVertical: { style: BorderStyle.SINGLE, size: 1, color: '888888' },
+            };
+
+            // Build document sections
+            const children = [
+                // Title
+                new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    spacing: { after: 120 },
+                    children: [tr('出張旅費精算書', { font: '游ゴシック', size: 18, bold: true })],
+                }),
+                // Date
+                new Paragraph({
+                    alignment: AlignmentType.RIGHT,
+                    spacing: { after: 40 },
+                    children: [tr(`作成日：${todayJp}`, { size: 9 })],
+                }),
+                // Company
+                new Paragraph({
+                    alignment: AlignmentType.RIGHT,
+                    spacing: { after: 120 },
+                    children: [tr(payload.company_name, { font: '游ゴシック', size: 11, bold: true })],
+                }),
+                // Info table
+                new Table({
+                    rows: infoTableRows,
+                    width: { size: 8600, type: WidthType.DXA },
+                    borders: tableBorders,
+                }),
+                new Paragraph({ spacing: { after: 200 }, children: [] }),
+                // Reason header
+                new Paragraph({
+                    spacing: { after: 40 },
+                    children: [tr('■ 出張理由', { font: '游ゴシック', size: 11, bold: true })],
+                }),
+                // Reason table
+                new Table({
+                    rows: [new TableRow({
+                        children: [new TableCell({
+                            width: { size: 8600, type: WidthType.DXA },
+                            children: reasonParagraphs,
+                        })],
+                    })],
+                    width: { size: 8600, type: WidthType.DXA },
+                    borders: tableBorders,
+                }),
+                new Paragraph({ spacing: { after: 200 }, children: [] }),
+                // Expense details header
+                new Paragraph({
+                    spacing: { after: 40 },
+                    children: [tr('■ 旅費明細', { font: '游ゴシック', size: 11, bold: true })],
+                }),
+            ];
+
+            // Transport table
+            if (transportRows.length > 0) {
+                children.push(
+                    new Paragraph({
+                        spacing: { after: 20 },
+                        children: [tr('【交通費】', { font: '游ゴシック', size: 10, bold: true })],
+                    }),
+                    new Table({
+                        rows: transportRows,
+                        width: { size: 8600, type: WidthType.DXA },
+                        borders: tableBorders,
+                    }),
+                    new Paragraph({ spacing: { after: 120 }, children: [] })
+                );
+            }
+
+            // Accommodation/allowance
+            children.push(
+                new Paragraph({
+                    spacing: { after: 20 },
+                    children: [tr('【宿泊費・日当】', { font: '游ゴシック', size: 10, bold: true })],
+                }),
+                new Table({
+                    rows: summaryTableRows,
+                    width: { size: 8600, type: WidthType.DXA },
+                    borders: tableBorders,
+                }),
+                new Paragraph({ spacing: { after: 200 }, children: [] }),
+                // Grand total
+                new Table({
+                    rows: [totalTableRow],
+                    width: { size: 8600, type: WidthType.DXA },
+                    borders: tableBorders,
+                }),
+                new Paragraph({ spacing: { after: 200 }, children: [] }),
+                // Report header
+                new Paragraph({
+                    spacing: { after: 40 },
+                    children: [tr('■ 出張報告', { font: '游ゴシック', size: 11, bold: true })],
+                }),
+                // Report table
+                new Table({
+                    rows: [new TableRow({
+                        children: [new TableCell({
+                            width: { size: 8600, type: WidthType.DXA },
+                            children: reportParagraphs,
+                        })],
+                    })],
+                    width: { size: 8600, type: WidthType.DXA },
+                    borders: tableBorders,
+                }),
+                new Paragraph({ spacing: { after: 200 }, children: [] }),
+                // Approval header
+                new Paragraph({
+                    spacing: { after: 40 },
+                    children: [tr('■ 承認', { font: '游ゴシック', size: 11, bold: true })],
+                }),
+                // Approval table
+                new Table({
+                    rows: [approvalHeaderRow, approvalEmptyRow],
+                    width: { size: 8600, type: WidthType.DXA },
+                    borders: tableBorders,
+                }),
+                new Paragraph({ spacing: { after: 200 }, children: [] }),
+                // Notes
+                new Paragraph({
+                    spacing: { after: 20 },
+                    children: [tr('備考：本精算書は出張旅費規程に基づき作成されています。', { size: 8 })],
+                }),
+                new Paragraph({
+                    spacing: { after: 20 },
+                    children: [tr('※宿泊費は規程に定める限度額の範囲内で実費精算とします。', { size: 8 })],
+                }),
+                new Paragraph({
+                    children: [tr('※交通費は領収書を添付してください。', { size: 8 })],
+                }),
+            );
+
+            const doc = new Document({
+                sections: [{
+                    properties: {
+                        page: {
+                            size: { width: 11906, height: 16838 }, // A4
+                            margin: { top: 1417, bottom: 1134, left: 1417, right: 1417 },
+                        },
+                    },
+                    children: children,
+                }],
+            });
+
+            const blob = await Packer.toBlob(doc);
+            return blob;
+        }
+
+        // ============================================================
+        // PDF Generation (client-side using pdf-lib + fontkit)
+        // ============================================================
+
+        let _cachedFontBytes = null;
+
+        async function loadJapaneseFont() {
+            if (_cachedFontBytes) return _cachedFontBytes;
+            const fontUrls = [
+                'NotoSansJP-Regular.ttf',
+                'https://fonts.gstatic.com/s/notosansjp/v56/-F6jfjtqLzI2JPCgQBnw7HFyzSD-AsregP8VFBEj75s.ttf',
+            ];
+            for (const url of fontUrls) {
+                try {
+                    const resp = await fetch(url);
+                    if (!resp.ok) continue;
+                    _cachedFontBytes = await resp.arrayBuffer();
+                    return _cachedFontBytes;
+                } catch (e) { console.warn('Font load failed:', url); }
+            }
+            throw new Error('日本語フォントの読み込みに失敗しました');
+        }
+
+        async function generatePdf(payload) {
+            const { PDFDocument, rgb, StandardFonts } = PDFLib;
+
+            const fontBytes = await loadJapaneseFont();
+            const pdfDoc = await PDFDocument.create();
+            pdfDoc.registerFontkit(fontkit);
+            const jpFont = await pdfDoc.embedFont(fontBytes, { subset: false });
+
+            const nights = payload.nights;
+            const days = nights + 1;
+            const totalAccommodation = payload.accommodation_fee * nights;
+            const totalAllowance = payload.daily_allowance * days;
+            const transportTotal = payload.transport_details.reduce((s, t) => s + (t.amount || 0), 0);
+            const grandTotal = totalAccommodation + totalAllowance + transportTotal;
+
+            const startDateJp = formatDateJp(payload.start_date);
+            const endDateJp = formatDateJp(payload.end_date);
+            const todayD = new Date();
+            const todayStr = `${todayD.getFullYear()}-${String(todayD.getMonth()+1).padStart(2,'0')}-${String(todayD.getDate()).padStart(2,'0')}`;
+            const todayJp = formatDateJp(todayStr);
+            const purpose = payload.purpose || payload.purposes.join('・');
+
+            // A4 dimensions in points
+            const W = 595.28, H = 841.89;
+            const ML = 70, MR = 70, MT = 70;
+            const CW = W - ML - MR;
+
+            let page = pdfDoc.addPage([W, H]);
+            let y = H - MT;
+
+            function checkPage(need) {
+                if (y - need < 50) {
+                    page = pdfDoc.addPage([W, H]);
+                    y = H - MT;
+                }
+            }
+
+            // Helper: draw text
+            function drawText(text, x, yp, size, opts = {}) {
+                page.drawText(text || '', { x, y: yp, size, font: jpFont, color: opts.color || rgb(0,0,0) });
+            }
+
+            // Helper: wrap text to fit within maxWidth (points)
+            function wrapTextLines(text, fontSize, maxWidth) {
+                const rawLines = (text || '').split('\n');
+                const wrapped = [];
+                for (const rawLine of rawLines) {
+                    if (!rawLine) { wrapped.push(''); continue; }
+                    const w = jpFont.widthOfTextAtSize(rawLine, fontSize);
+                    if (w <= maxWidth) { wrapped.push(rawLine); continue; }
+                    let cur = '';
+                    for (const ch of rawLine) {
+                        const test = cur + ch;
+                        if (jpFont.widthOfTextAtSize(test, fontSize) > maxWidth) {
+                            if (cur) wrapped.push(cur);
+                            cur = ch;
+                        } else {
+                            cur = test;
+                        }
+                    }
+                    if (cur) wrapped.push(cur);
+                }
+                return wrapped;
+            }
+
+            // Helper: draw wrapped text block in a bordered rectangle (handles page breaks)
+            function drawTextBlock(text, fontSize, lineH, padX, padY) {
+                const maxTextW = CW - padX * 2;
+                const lines = wrapTextLines(text, fontSize, maxTextW);
+                const blockH = Math.max(30, lines.length * lineH + padY * 2);
+                const pageBottom = 50;
+                const avail = y - pageBottom;
+                if (blockH <= avail) {
+                    page.drawRectangle({ x: ML, y: y - blockH, width: CW, height: blockH,
+                        borderColor: rgb(0.5, 0.5, 0.5), borderWidth: 0.5 });
+                    lines.forEach((line, i) => {
+                        const ly = y - padY - (i + 1) * lineH + (lineH - fontSize) / 2;
+                        drawText(line, ML + padX, ly, fontSize);
+                    });
+                    y -= blockH;
+                } else {
+                    // Draw line by line across pages with border segments
+                    let rectStartY = y;
+                    let lineIdx = 0;
+                    y -= padY;
+                    while (lineIdx < lines.length) {
+                        if (y - lineH < pageBottom) {
+                            // Close current rectangle segment
+                            page.drawRectangle({ x: ML, y: pageBottom, width: CW, height: rectStartY - pageBottom,
+                                borderColor: rgb(0.5, 0.5, 0.5), borderWidth: 0.5 });
+                            page = pdfDoc.addPage([W, H]);
+                            y = H - MT;
+                            rectStartY = y;
+                            y -= padY;
+                        }
+                        const ly = y - lineH + (lineH - fontSize) / 2;
+                        drawText(lines[lineIdx], ML + padX, ly, fontSize);
+                        y -= lineH;
+                        lineIdx++;
+                    }
+                    y -= padY;
+                    page.drawRectangle({ x: ML, y: y, width: CW, height: rectStartY - y,
+                        borderColor: rgb(0.5, 0.5, 0.5), borderWidth: 0.5 });
+                }
+            }
+
+            // Helper: draw table (with font-based wrapping and dynamic row height)
+            function drawTable(rows, colWidths, startY, opts = {}) {
+                const minRowH = opts.rowHeight || 22;
+                const headerBg = opts.headerBg || null;
+                const fontSize = opts.fontSize || 9;
+                const headerRows = opts.headerRows || 0;
+                const lineH = fontSize + 3;
+                const cellPad = 4;
+                let cy = startY;
+
+                for (let ri = 0; ri < rows.length; ri++) {
+                    const row = rows[ri];
+                    const isHeader = ri < headerRows;
+                    const baseRowH = isHeader ? minRowH : (opts.bodyRowHeight || minRowH);
+
+                    // Pre-wrap all cells to determine dynamic row height
+                    const cellLines = [];
+                    let maxLines = 1;
+                    for (let ci = 0; ci < row.length; ci++) {
+                        const cw = colWidths[ci];
+                        const cellText = String(row[ci] || '');
+                        const maxTextW = cw - cellPad * 2;
+                        const lines = wrapTextLines(cellText, fontSize, maxTextW);
+                        if (lines.length === 0) lines.push('');
+                        cellLines.push(lines);
+                        if (lines.length > maxLines) maxLines = lines.length;
+                    }
+                    const currentRowH = Math.max(baseRowH, maxLines * lineH + cellPad * 2);
+
+                    checkPage(currentRowH + 10);
+                    let cx = ML;
+
+                    for (let ci = 0; ci < row.length; ci++) {
+                        const cw = colWidths[ci];
+                        // Background
+                        if (isHeader && headerBg) {
+                            page.drawRectangle({ x: cx, y: cy - currentRowH, width: cw, height: currentRowH, color: headerBg });
+                        }
+                        if (opts.cellBg && opts.cellBg[ri] && opts.cellBg[ri][ci]) {
+                            page.drawRectangle({ x: cx, y: cy - currentRowH, width: cw, height: currentRowH, color: opts.cellBg[ri][ci] });
+                        }
+                        // Border
+                        page.drawRectangle({ x: cx, y: cy - currentRowH, width: cw, height: currentRowH,
+                            borderColor: rgb(0.5, 0.5, 0.5), borderWidth: 0.5 });
+                        // Text
+                        const textColor = (opts.textColor && opts.textColor[ri] && opts.textColor[ri][ci]) || rgb(0,0,0);
+                        const lines = cellLines[ci];
+                        const textStartY = cy - currentRowH / 2 + (lines.length - 1) * lineH / 2;
+                        lines.forEach((line, li) => {
+                            const align = (opts.align && opts.align[ci]) || 'left';
+                            let tx = cx + cellPad;
+                            if (align === 'center') {
+                                const tw = jpFont.widthOfTextAtSize(line, fontSize);
+                                tx = cx + (cw - tw) / 2;
+                            } else if (align === 'right') {
+                                const tw = jpFont.widthOfTextAtSize(line, fontSize);
+                                tx = cx + cw - tw - cellPad;
+                            }
+                            page.drawText(line, { x: tx, y: textStartY - li * lineH, size: fontSize, font: jpFont, color: textColor });
+                        });
+                        cx += cw;
+                    }
+                    cy -= currentRowH;
+                }
+                return cy;
+            }
+
+            // === Title ===
+            const titleText = '出張旅費精算書';
+            const titleW = jpFont.widthOfTextAtSize(titleText, 18);
+            drawText(titleText, (W - titleW) / 2, y, 18);
+            y -= 28;
+
+            // === Date ===
+            const dateText = `作成日：${todayJp}`;
+            const dateW = jpFont.widthOfTextAtSize(dateText, 9);
+            drawText(dateText, W - MR - dateW, y, 9);
+            y -= 14;
+
+            // === Company ===
+            const compW = jpFont.widthOfTextAtSize(payload.company_name, 11);
+            drawText(payload.company_name, W - MR - compW, y, 11);
+            y -= 18;
+
+            // === Basic info table ===
+            const hdrBg = rgb(0.91, 0.94, 0.99);
+            const c1 = 80, c2 = 155, c3 = 80, c4 = CW - c1 - c2 - c3;
+            const infoRows = [
+                ['所属部署', payload.department, '役職', payload.position],
+                ['出張者氏名', payload.employee_name, '', ''],
+                ['出張期間', `${startDateJp} ～ ${endDateJp}`, '泊数', `${nights}泊${days}日`],
+                ['出張先', payload.destination, '出張目的', purpose],
+            ];
+            const infoCellBg = {};
+            infoRows.forEach((_, ri) => { infoCellBg[ri] = { 0: hdrBg, 2: hdrBg }; });
+            y = drawTable(infoRows, [c1, c2, c3, c4], y, {
+                fontSize: 9, rowHeight: 22, cellBg: infoCellBg,
+                align: { 0: 'center', 2: 'center' },
+            });
+            y -= 12;
+
+            // === Trip reason ===
+            checkPage(40);
+            drawText('■ 出張理由', ML, y, 11);
+            y -= 16;
+            let reasonText = payload.trip_reason || '';
+            if (payload.purpose_detail) reasonText += `\n【詳細】${payload.purpose_detail}`;
+            drawTextBlock(reasonText, 9, 14, 6, 8);
+            y -= 12;
+
+            // === Expense details ===
+            checkPage(30);
+            drawText('■ 旅費明細', ML, y, 11);
+            y -= 16;
+
+            // Transport table
+            if (payload.transport_details.length > 0) {
+                drawText('【交通費】', ML, y, 10);
+                y -= 14;
+                const tHead = ['日付', '区間', '交通機関', '金額'];
+                const tRows = [tHead];
+                payload.transport_details.forEach(td => {
+                    tRows.push([
+                        formatDateJp(td.date || ''), td.route || '', td.method || '', formatCurrency(td.amount || 0),
+                    ]);
+                });
+                const tBg = { 0: { 0: hdrBg, 1: hdrBg, 2: hdrBg, 3: hdrBg } };
+                y = drawTable(tRows, [CW*0.2, CW*0.35, CW*0.2, CW*0.25], y, {
+                    fontSize: 9, headerRows: 1, cellBg: tBg,
+                    align: { 0: 'center', 2: 'center', 3: 'right' },
+                });
+                y -= 8;
+            }
+
+            // Accommodation table
+            checkPage(40);
+            drawText('【宿泊費・日当】', ML, y, 10);
+            y -= 14;
+            const sHead = ['項目', '単価', '数量', '金額'];
+            const sRows = [
+                sHead,
+                ['宿泊費', formatCurrency(payload.accommodation_fee), `${nights}泊`, formatCurrency(totalAccommodation)],
+                ['日当', formatCurrency(payload.daily_allowance), `${days}日`, formatCurrency(totalAllowance)],
+                ['交通費合計', '', '', formatCurrency(transportTotal)],
+            ];
+            const sBg = { 0: { 0: hdrBg, 1: hdrBg, 2: hdrBg, 3: hdrBg } };
+            y = drawTable(sRows, [CW*0.25, CW*0.25, CW*0.2, CW*0.3], y, {
+                fontSize: 9, headerRows: 1, cellBg: sBg,
+                align: { 1: 'right', 2: 'center', 3: 'right' },
+            });
+            y -= 10;
+
+            // Grand total
+            checkPage(25);
+            const totalBg = rgb(0.12, 0.31, 0.47);
+            const gtRows = [['合計支給額', formatCurrency(grandTotal)]];
+            y = drawTable(gtRows, [CW * 0.35, CW * 0.65], y, {
+                fontSize: 13, rowHeight: 28,
+                cellBg: { 0: { 0: totalBg } },
+                textColor: { 0: { 0: rgb(1,1,1) } },
+                align: { 0: 'center', 1: 'right' },
+            });
+            y -= 12;
+
+            // Trip report
+            checkPage(40);
+            drawText('■ 出張報告', ML, y, 11);
+            y -= 16;
+            const reportText = payload.trip_report || '';
+            drawTextBlock(reportText, 9, 14, 6, 8);
+            y -= 12;
+
+            // Approval
+            checkPage(50);
+            drawText('■ 承認', ML, y, 11);
+            y -= 16;
+            const aCW = CW / 4;
+            const aRows = [['申請者', '所属長', '経理部', '代表取締役'], ['', '', '', '']];
+            const aBg = { 0: { 0: hdrBg, 1: hdrBg, 2: hdrBg, 3: hdrBg } };
+            y = drawTable(aRows, [aCW, aCW, aCW, aCW], y, {
+                fontSize: 9, headerRows: 1, bodyRowHeight: 50, cellBg: aBg,
+                align: { 0: 'center', 1: 'center', 2: 'center', 3: 'center' },
+            });
+            y -= 10;
+
+            // Notes
+            checkPage(20);
+            drawText('備考：本精算書は出張旅費規程に基づき作成されています。', ML, y, 7);
+            y -= 10;
+            drawText('※宿泊費は規程に定める限度額の範囲内で実費精算とします。', ML, y, 7);
+            y -= 10;
+            drawText('※交通費は領収書を添付してください。', ML, y, 7);
+
+            const pdfBytes = await pdfDoc.save();
+            return new Blob([pdfBytes], { type: 'application/pdf' });
+        }
+
+        // ============================================================
+        // Preview
+        // ============================================================
+
+        function showPreview() {
+            const payload = collectPayload();
+            if (!payload) return;
+
+            const nights = payload.nights;
+            const days = nights + 1;
+            const totalAcc = payload.accommodation_fee * nights;
+            const totalDaily = payload.daily_allowance * days;
+            const transportTotal = payload.transport_details.reduce((s, t) => s + (t.amount || 0), 0);
+            const grandTotal = totalAcc + totalDaily + transportTotal;
+            const startJp = formatDateJp(payload.start_date);
+            const endJp = formatDateJp(payload.end_date);
+            const todayD = new Date();
+            const todayJp = formatDateJp(`${todayD.getFullYear()}-${String(todayD.getMonth()+1).padStart(2,'0')}-${String(todayD.getDate()).padStart(2,'0')}`);
+            const purpose = payload.purposes ? payload.purposes.join('・') : '';
+
+            let reasonText = payload.trip_reason || '';
+            if (payload.purpose_detail) reasonText += '\n\n【詳細】' + payload.purpose_detail;
+
+            // Transport rows HTML
+            let transportHtml = '';
+            if (payload.transport_details.length > 0) {
+                const hasNotes = payload.transport_details.some(td => buildTransportNote(td));
+                transportHtml = `<table class="preview-table">
+                    <tr><th>日付</th><th>区間</th><th>交通機関</th><th>金額</th>${hasNotes ? '<th>備考</th>' : ''}</tr>`;
+                payload.transport_details.forEach(td => {
+                    const note = buildTransportNote(td);
+                    transportHtml += `<tr>
+                        <td>${formatDateJp(td.date || '')}</td>
+                        <td>${td.route || ''}</td>
+                        <td style="text-align:center">${td.method || ''}</td>
+                        <td style="text-align:right">${formatCurrency(td.amount || 0)}</td>
+                        ${hasNotes ? '<td>' + (note || '') + '</td>' : ''}
+                    </tr>`;
+                });
+                transportHtml += '</table>';
+            }
+
+            const html = `
+                <button class="preview-close" onclick="closePreview()">&times;</button>
+                <div class="preview-title">出 張 旅 費 精 算 書</div>
+                <div class="preview-right">作成日：${todayJp}</div>
+                <div class="preview-right" style="font-size:14px; margin-bottom:12px;">${payload.company_name}</div>
+
+                <table class="preview-table">
+                    <tr><th>所属部署</th><td>${payload.department}</td><th>役職</th><td>${payload.position}</td></tr>
+                    <tr><th>出張者氏名</th><td colspan="3">${payload.employee_name}</td></tr>
+                    <tr><th>出張期間</th><td>${startJp} ～ ${endJp}</td><th>泊数</th><td>${nights}泊${days}日</td></tr>
+                    <tr><th>出張先</th><td>${payload.destination}</td><th>出張目的</th><td>${purpose}</td></tr>
+                </table>
+
+                <div class="preview-section-title">■ 出張理由</div>
+                <div class="preview-box">${(reasonText || '').replace(/\n/g, '<br>')}</div>
+
+                <div class="preview-section-title">■ 旅費明細</div>
+                ${transportHtml ? '<p style="font-size:12px; font-weight:bold; margin:8px 0 4px;">【交通費】</p>' + transportHtml : ''}
+
+                <p style="font-size:12px; font-weight:bold; margin:12px 0 4px;">【宿泊費・日当】</p>
+                <table class="preview-table">
+                    <tr><th>項目</th><th>単価</th><th>数量</th><th>金額</th></tr>
+                    <tr><td>宿泊費</td><td style="text-align:right">${formatCurrency(payload.accommodation_fee)}</td><td style="text-align:center">${nights}泊</td><td style="text-align:right">${formatCurrency(totalAcc)}</td></tr>
+                    <tr><td>日当</td><td style="text-align:right">${formatCurrency(payload.daily_allowance)}</td><td style="text-align:center">${days}日</td><td style="text-align:right">${formatCurrency(totalDaily)}</td></tr>
+                    <tr><td>交通費合計</td><td></td><td></td><td style="text-align:right">${formatCurrency(transportTotal)}</td></tr>
+                </table>
+
+                <table class="preview-table" style="margin-bottom:16px;">
+                    <tr class="preview-total-row"><th>合計支給額</th><td>${formatCurrency(grandTotal)}</td></tr>
+                </table>
+
+                <div class="preview-section-title">■ 出張報告</div>
+                <div class="preview-box">${(payload.trip_report || '').replace(/\n/g, '<br>')}</div>
+
+                <div class="preview-section-title">■ 承認</div>
+                <table class="preview-table preview-stamp-table">
+                    <tr><th>申請者</th><th>所属長</th><th>経理部</th><th>代表取締役</th></tr>
+                    <tr><td></td><td></td><td></td><td></td></tr>
+                </table>
+
+                <div class="preview-notes">
+                    備考：本精算書は出張旅費規程に基づき作成されています。<br>
+                    ※宿泊費は規程に定める限度額の範囲内で実費精算とします。<br>
+                    ※交通費は領収書を添付してください。
+                </div>
+
+                <div class="preview-actions">
+                    <button class="preview-btn-word" onclick="closePreview();generateDocument('docx')">Word出力</button>
+                    <button class="preview-btn-pdf" onclick="closePreview();generateDocument('pdf')">PDF出力</button>
+                    <button class="preview-btn-print" onclick="window.print()">印刷</button>
+                </div>
+            `;
+
+            document.getElementById('previewContent').innerHTML = html;
+            document.getElementById('previewOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePreview() {
+            document.getElementById('previewOverlay').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // ============================================================
+        // Document Generation Entry Point
+        // ============================================================
+
+        function collectPayload() {
+            const required = [
+                { id: 'companyName', name: '会社名' },
+                { id: 'employeeName', name: '氏名' },
+                { id: 'destination', name: '出張先' },
+                { id: 'startDate', name: '出発日' },
+                { id: 'endDate', name: '帰着日' },
+            ];
+            for (const field of required) {
+                if (!document.getElementById(field.id).value) {
+                    alert(`${field.name}を入力してください`);
+                    document.getElementById(field.id).focus();
+                    return null;
+                }
+            }
+            const purposes = getSelectedPurposes();
+            if (purposes.length === 0) {
+                alert('出張目的を1つ以上選択してください');
+                return null;
+            }
+            const payload = {
+                company_name: document.getElementById('companyName').value,
+                employee_name: document.getElementById('employeeName').value,
+                position: getPositionValue(),
+                department: document.getElementById('department').value,
+                destination: document.getElementById('destination').value,
+                purpose: purposes.join('\u30FB'),
+                purposes: purposes,
+                purpose_detail: document.getElementById('purposeDetail')?.value || '',
+                start_date: document.getElementById('startDate').value,
+                end_date: document.getElementById('endDate').value,
+                nights: parseInt(document.getElementById('nights').value),
+                accommodation_fee: parseInt(document.getElementById('accommodationFee').value),
+                daily_allowance: parseInt(document.getElementById('dailyAllowance').value),
+                transport_details: getTransportDetails(),
+                trip_reason: document.getElementById('tripReason').value,
+                trip_report: document.getElementById('tripReport').value,
+                result_note: document.getElementById('resultNote')?.value || '',
+                next_action: document.getElementById('nextAction')?.value || '',
+                meeting_partner: getPartnerName(),
+                selected_items: Array.from(selectedItems),
+                selected_details: {...selectedDetails},
+                primary_purpose: primaryPurpose,
+            };
+            if (!payload.trip_reason) {
+                payload.trip_reason = generatePurposeText();
+            }
+            if (!payload.trip_report) {
+                payload.trip_report = generateReportText();
+            }
+            return payload;
+        }
+
+        async function generateDocument(format) {
+            format = format || 'docx';
+            const payload = collectPayload();
+            if (!payload) return;
+
+            const loading = document.getElementById('loading');
+            loading.classList.add('active');
+
+            // Save to history
+            saveToHistory(payload);
+
+            try {
+                let blob;
+                let ext;
+                if (format === 'pdf') {
+                    blob = await generatePdf(payload);
+                    ext = '.pdf';
+                } else {
+                    blob = await generateDocx(payload);
+                    ext = '.docx';
+                }
+
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `出張旅費精算書_${payload.employee_name}_${payload.start_date}${ext}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } catch (e) {
+                console.error(e);
+                alert('エラーが発生しました: ' + e.message);
+            } finally {
+                loading.classList.remove('active');
+            }
+        }
+
+        // ============================================================
+        // localStorage: Profile auto-save/restore
+        // ============================================================
+        const PROFILE_KEY = 'travel_expense_profile';
+        const HISTORY_KEY = 'travel_expense_history';
+
+        function saveProfile() {
+            const profile = {
+                companyName: document.getElementById('companyName').value,
+                department: document.getElementById('department').value,
+                employeeName: document.getElementById('employeeName').value,
+                position: getPositionValue(),
+            };
+            localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+            showSavedBadge();
+        }
+
+        function loadProfile() {
+            const data = localStorage.getItem(PROFILE_KEY);
+            if (!data) return;
+            try {
+                const profile = JSON.parse(data);
+                if (profile.companyName) document.getElementById('companyName').value = profile.companyName;
+                if (profile.department) document.getElementById('department').value = profile.department;
+                if (profile.employeeName) document.getElementById('employeeName').value = profile.employeeName;
+                if (profile.position) {
+                    const posSelect = document.getElementById('position');
+                    const optionValues = Array.from(posSelect.options).map(o => o.value);
+                    if (optionValues.includes(profile.position)) {
+                        posSelect.value = profile.position;
+                    } else {
+                        posSelect.value = 'その他';
+                        document.getElementById('positionOther').value = profile.position;
+                        document.getElementById('positionOther').style.display = 'block';
+                    }
+                }
+                showSavedBadge();
+            } catch (e) {}
+        }
+
+        function showSavedBadge() {
+            const badge = document.getElementById('savedBadge');
+            badge.classList.add('show');
+            setTimeout(() => badge.classList.remove('show'), 2000);
+        }
+
+        // Auto-save on change
+        ['companyName', 'department', 'employeeName', 'position', 'positionOther'].forEach(id => {
+            document.getElementById(id).addEventListener('change', saveProfile);
+            document.getElementById(id).addEventListener('blur', saveProfile);
+        });
+
+        // ============================================================
+        // History
+        // ============================================================
+        function toggleHistory() {
+            const section = document.getElementById('historySection');
+            const arrow = document.getElementById('historyArrow');
+            if (section.style.display === 'none') {
+                section.style.display = 'block';
+                arrow.classList.add('open');
+                renderHistory();
+            } else {
+                section.style.display = 'none';
+                arrow.classList.remove('open');
+            }
+        }
+
+        function getHistory() {
+            try {
+                return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+            } catch (e) { return []; }
+        }
+
+        function saveToHistory(payload) {
+            const history = getHistory();
+            const entry = {
+                id: Date.now(),
+                savedAt: new Date().toISOString(),
+                data: payload,
+            };
+            history.unshift(entry);
+            if (history.length > 20) history.length = 20;
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+        }
+
+        function deleteHistory(id) {
+            let history = getHistory();
+            history = history.filter(h => h.id !== id);
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            const history = getHistory();
+
+            if (history.length === 0) {
+                list.innerHTML = '<div class="history-empty">履歴はまだありません</div>';
+                return;
+            }
+
+            list.innerHTML = history.map(entry => {
+                const d = entry.data;
+                const date = new Date(entry.savedAt);
+                const dateStr = `${date.getFullYear()}/${(date.getMonth()+1).toString().padStart(2,'0')}/${date.getDate().toString().padStart(2,'0')}`;
+                const nights = d.nights || 0;
+                const days = nights + 1;
+                const accTotal = (d.accommodation_fee || 0) * nights;
+                const dailyTotal = (d.daily_allowance || 0) * days;
+                const transTotal = (d.transport_details || []).reduce((s, t) => s + (t.amount || 0), 0);
+                const total = accTotal + dailyTotal + transTotal;
+
+                return `
+                    <div class="history-item">
+                        <div class="history-info">
+                            <div class="history-title">${d.destination || '未入力'} - ${d.purpose || '未入力'}</div>
+                            <div class="history-meta">${d.start_date || '?'} ～ ${d.end_date || '?'}（${nights}泊${days}日）/ 保存: ${dateStr}</div>
+                        </div>
+                        <div class="history-amount">${formatYen(total)}</div>
+                        <div class="history-actions">
+                            <button class="btn btn-secondary" onclick="loadFromHistory(${entry.id})">読込</button>
+                            <button class="btn btn-danger" style="font-size:14px; padding:6px 10px;" onclick="deleteHistory(${entry.id})">&#215;</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function loadFromHistory(id) {
+            const history = getHistory();
+            const entry = history.find(h => h.id === id);
+            if (!entry) return;
+
+            const d = entry.data;
+
+            document.getElementById('companyName').value = d.company_name || '';
+            document.getElementById('department').value = d.department || '';
+            document.getElementById('employeeName').value = d.employee_name || '';
+            const posVal = d.position || '';
+            const posSelect = document.getElementById('position');
+            const posOptions = Array.from(posSelect.options).map(o => o.value);
+            if (posOptions.includes(posVal)) {
+                posSelect.value = posVal;
+                document.getElementById('positionOther').style.display = 'none';
+            } else {
+                posSelect.value = 'その他';
+                document.getElementById('positionOther').value = posVal;
+                document.getElementById('positionOther').style.display = 'block';
+            }
+
+            document.getElementById('destination').value = d.destination || '';
+            document.getElementById('startDate').value = d.start_date || '';
+            document.getElementById('endDate').value = d.end_date || '';
+            document.getElementById('nights').value = d.nights || 1;
+            document.getElementById('purposeDetail').value = d.purpose_detail || '';
+
+            if (document.getElementById('resultNote')) document.getElementById('resultNote').value = d.result_note || '';
+            if (document.getElementById('nextAction')) document.getElementById('nextAction').value = d.next_action || '';
+            if (document.getElementById('meetingPartnerGeneral')) document.getElementById('meetingPartnerGeneral').value = d.meeting_partner || '';
+
+            selectedItems = new Set(d.selected_items || []);
+            selectedDetails = d.selected_details ? {...d.selected_details} : {};
+            primaryPurpose = d.primary_purpose || (selectedItems.size > 0 ? Array.from(selectedItems)[0] : null);
+            reportConfirmed = new Set(d.selected_items || []);
+            document.getElementById('purposeOther').value = '';
+            manualEdited = { reason: true, report: true };
+            renderAll();
+
+            document.getElementById('accommodationFee').value = d.accommodation_fee || 20000;
+            document.getElementById('dailyAllowance').value = d.daily_allowance || 2000;
+
+            const list = document.getElementById('transportList');
+            list.innerHTML = '';
+            const transports = d.transport_details || [];
+            if (transports.length === 0) {
+                addTransport();
+            } else {
+                transports.forEach((td, i) => {
+                    addTransport();
+                    const row = list.children[i];
+                    row.querySelector('.t-date').value = td.date || '';
+                    row.querySelector('.t-route').value = td.route || '';
+                    row.querySelector('.t-method').value = td.method || '新幹線';
+                    row.querySelector('.t-amount').value = td.amount || '';
+                    onMethodChange(row.querySelector('.t-method'));
+                });
+            }
+
+            document.getElementById('tripReason').value = d.trip_reason || '';
+            document.getElementById('tripReport').value = d.trip_report || '';
+            autoResizeTextarea(document.getElementById('tripReason'));
+            autoResizeTextarea(document.getElementById('tripReport'));
+
+            updateCalc();
+            updateFeeChips();
+            updateNightsChips();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ============================================================
+        // Nights chips / Fee presets
+        // ============================================================
+        function setNights(n) {
+            document.getElementById('nights').value = n;
+            const start = document.getElementById('startDate').value;
+            if (start) {
+                const startD = new Date(start);
+                startD.setDate(startD.getDate() + n);
+                document.getElementById('endDate').value = startD.toISOString().split('T')[0];
+                if (window.endPicker) endPicker.setDate(startD, false);
+            }
+            updateCalc();
+            updateNightsChips();
+        }
+
+        function updateNightsChips() {
+            const n = parseInt(document.getElementById('nights').value) || 0;
+            document.querySelectorAll('#nightsChips .nights-chip').forEach(chip => {
+                const val = parseInt(chip.textContent);
+                chip.classList.toggle('active', val === n);
+            });
+        }
+
+        function setFee(fieldId, amount) {
+            document.getElementById(fieldId).value = amount;
+            updateCalc();
+            updateFeeChips();
+        }
+
+        function updateFeeChips() {
+            const accVal = parseInt(document.getElementById('accommodationFee').value) || 0;
+            document.querySelectorAll('#accChips .preset-chip').forEach(chip => {
+                const val = parseInt(chip.textContent.replace(/[¥,]/g, ''));
+                chip.classList.toggle('active', val === accVal);
+            });
+            const dailyVal = parseInt(document.getElementById('dailyAllowance').value) || 0;
+            document.querySelectorAll('#dailyChips .preset-chip').forEach(chip => {
+                const val = parseInt(chip.textContent.replace(/[¥,]/g, ''));
+                chip.classList.toggle('active', val === dailyVal);
+            });
+        }
+
+        // Init
+        loadProfile();
+        renderAll();
+        addTransport();
+        updateCalc();
+        updateFeeChips();
+        updateNightsChips();
+    </script>
+
+    <!-- Flatpickr -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ja.js"></script>
+    <script>
+        // Flatpickr calendar init
+        const fpConfig = {
+            locale: 'ja',
+            dateFormat: 'Y-m-d',
+            allowInput: true,
+            disableMobile: true,
+        };
+
+        const startPicker = flatpickr('#startDate', {
+            ...fpConfig,
+            onChange: function(dates, dateStr) {
+                if (dates[0]) {
+                    const nights = parseInt(document.getElementById('nights').value) || 1;
+                    const endDate = new Date(dates[0]);
+                    endDate.setDate(endDate.getDate() + nights);
+                    endPicker.setDate(endDate, true);
+                }
+                syncDates();
+            }
+        });
+
+        const endPicker = flatpickr('#endDate', {
+            ...fpConfig,
+            onChange: function() { syncDates(); }
+        });
+
+        // Apply flatpickr to transport date inputs
+        function initTransportDatePickers() {
+            document.querySelectorAll('.t-date:not(.flatpickr-input)').forEach(el => {
+                flatpickr(el, fpConfig);
+            });
+        }
+        initTransportDatePickers();
+
+        // Extend addTransport to also init date pickers
+        const _origAddTransport = addTransport;
+        addTransport = function() {
+            _origAddTransport();
+            initTransportDatePickers();
+        };
+    </script>
+</body>
+</html>
