@@ -1907,8 +1907,30 @@
             if (ordered.length === 0 && !otherText) return '';
 
             const fragments = [];
-            for (const id of ordered) {
-                fragments.push(buildItemFragment(id, 'purpose', dest, partner));
+            const used = new Set();
+
+            for (let i = 0; i < ordered.length; i++) {
+                if (used.has(ordered[i])) continue;
+                const id = ordered[i];
+                const cat = itemCategory[id];
+                let combined = null;
+                let combinedWith = null;
+                for (let j = i + 1; j < ordered.length; j++) {
+                    const otherId = ordered[j];
+                    if (used.has(otherId)) continue;
+                    if (itemCategory[otherId].id === cat.id) {
+                        combined = buildCombinedFragment([id, otherId], 'purpose', dest, partner);
+                        if (combined) { combinedWith = otherId; break; }
+                    }
+                }
+                if (combined && combinedWith) {
+                    fragments.push(combined);
+                    used.add(id);
+                    used.add(combinedWith);
+                } else {
+                    fragments.push(buildItemFragment(id, 'purpose', dest, partner));
+                    used.add(id);
+                }
             }
             if (otherText) fragments.push(otherText + 'を行う');
 
@@ -1918,9 +1940,10 @@
             } else if (fragments.length === 2) {
                 text = fragments[0] + 'とともに、' + fragments[1] + 'ため。';
             } else {
-                text = fragments.slice(0, -1).join('。\nあわせて、') + '。\nまた、' + fragments[fragments.length - 1] + 'ため。';
+                const last = fragments[fragments.length - 1];
+                const rest = fragments.slice(0, -1);
+                text = rest.join('。\n') + '。\nまた、' + last + 'ため。';
             }
-
             if (supplement) text += '\n' + supplement;
             return text;
         }
@@ -1937,8 +1960,30 @@
             if (confirmed.length === 0 && !otherText) return '';
 
             const fragments = [];
-            for (const id of confirmed) {
-                fragments.push(buildItemFragment(id, 'report', dest, partner));
+            const used = new Set();
+
+            for (let i = 0; i < confirmed.length; i++) {
+                if (used.has(confirmed[i])) continue;
+                const id = confirmed[i];
+                const cat = itemCategory[id];
+                let combined = null;
+                let combinedWith = null;
+                for (let j = i + 1; j < confirmed.length; j++) {
+                    const otherId = confirmed[j];
+                    if (used.has(otherId)) continue;
+                    if (itemCategory[otherId].id === cat.id) {
+                        combined = buildCombinedFragment([id, otherId], 'report', dest, partner);
+                        if (combined) { combinedWith = otherId; break; }
+                    }
+                }
+                if (combined && combinedWith) {
+                    fragments.push(combined);
+                    used.add(id);
+                    used.add(combinedWith);
+                } else {
+                    fragments.push(buildItemFragment(id, 'report', dest, partner));
+                    used.add(id);
+                }
             }
             if (otherText) fragments.push(otherText + 'を行った');
 
@@ -1951,138 +1996,307 @@
             return text;
         }
 
+        function buildCombinedFragment(ids, mode, dest, partner) {
+            const isPurpose = mode === 'purpose';
+            const cat = itemCategory[ids[0]];
+            const idSet = new Set(ids);
+            const partnerPrefix = (cat.id === 'C' && partner) ? partner + 'と、' : '';
+
+            // C: 構造計算 + ビースト工法
+            if (cat.id === 'C' && idSet.has('kouzou_keisan') && idSet.has('beast_kouhou')) {
+                const allDetails = [...new Set([...getSelectedDetails('kouzou_keisan'), ...getSelectedDetails('beast_kouhou')])]
+                    .filter(d => d !== '工法の採用検討' && d !== '構造計算');
+                if (allDetails.length > 0) {
+                    const d = allDetails.join('や');
+                    if (isPurpose) return `${partnerPrefix}ビースト工法の採用検討に伴う構造計算や${d}について打ち合わせを行う`;
+                    return `${partnerPrefix}ビースト工法の採用検討に伴う構造計算や${d}について打ち合わせを行った`;
+                }
+                if (isPurpose) return `${partnerPrefix}構造計算とビースト工法の採用検討について打ち合わせを行う`;
+                return `${partnerPrefix}構造計算とビースト工法の採用検討について打ち合わせを行った`;
+            }
+
+            // A: 米賃貸 + 軍用地
+            if (cat.id === 'A' && idSet.has('beichin') && idSet.has('gunyouchi')) {
+                const allDetails = [...new Set([...getSelectedDetails('beichin'), ...getSelectedDetails('gunyouchi')])];
+                if (allDetails.includes('仕組みの説明') && allDetails.length > 1) {
+                    const other = allDetails.filter(d => d !== '仕組みの説明');
+                    if (isPurpose) return `${dest}にて、米軍関係者向け賃貸事業と軍用地の仕組みを説明し、${other.join('や')}について相談する`;
+                    return `${dest}にて、米軍関係者向け賃貸事業と軍用地の仕組みを説明し、${other.join('や')}について相談した`;
+                }
+                if (allDetails.length > 0) {
+                    const d = allDetails.join('や');
+                    if (isPurpose) return `${dest}にて、米軍関係者向け賃貸事業と軍用地の活用について${d}を相談する`;
+                    return `${dest}にて、米軍関係者向け賃貸事業と軍用地の活用について${d}を相談した`;
+                }
+                if (isPurpose) return `${dest}にて、米軍関係者向け賃貸事業と軍用地の活用について相談する`;
+                return `${dest}にて、米軍関係者向け賃貸事業と軍用地の活用について相談した`;
+            }
+
+            // C: 建築業者 + 建築費
+            if (cat.id === 'C' && idSet.has('kenchiku_uchiawase') && idSet.has('kenchikuhi_kyougi')) {
+                const allDetails = [...new Set([...getSelectedDetails('kenchiku_uchiawase'), ...getSelectedDetails('kenchikuhi_kyougi')])];
+                const meetingTopics = allDetails.filter(d => d === '計画・仕様' || d === '施工条件');
+                const costTopics = allDetails.filter(d => d === '見積・費用' || d === '工期・工程');
+                if (meetingTopics.length > 0 && costTopics.length > 0) {
+                    if (isPurpose) return `${partnerPrefix}建築業者と${meetingTopics.join('や')}を確認し、${costTopics.join('や')}について協議する`;
+                    return `${partnerPrefix}建築業者と${meetingTopics.join('や')}を確認し、${costTopics.join('や')}について協議した`;
+                }
+                if (allDetails.length > 0) {
+                    if (isPurpose) return `${partnerPrefix}建築業者と${allDetails.join('や')}を確認し、建築費について協議する`;
+                    return `${partnerPrefix}建築業者と${allDetails.join('や')}を確認し、建築費について協議した`;
+                }
+                if (isPurpose) return `${partnerPrefix}建築業者と打ち合わせを行い、建築費と見積内容について協議する`;
+                return `${partnerPrefix}建築業者と打ち合わせを行い、建築費と見積内容について協議した`;
+            }
+
+            // B: 不動産業者訪問 + 物件視察
+            if (cat.id === 'B' && idSet.has('fudousan_houmon') && idSet.has('bukken_shisatsu')) {
+                const fDetails = getSelectedDetails('fudousan_houmon');
+                const bDetails = getSelectedDetails('bukken_shisatsu');
+                if (fDetails.length > 0 && bDetails.length > 0) {
+                    if (isPurpose) return `現地の不動産業者を訪問して${fDetails.join('や')}を行うとともに、物件の${bDetails.join('や')}を視察する`;
+                    return `現地の不動産業者を訪問して${fDetails.join('や')}を行い、物件の${bDetails.join('や')}を視察した`;
+                }
+                if (fDetails.length > 0) {
+                    if (isPurpose) return `現地の不動産業者を訪問して${fDetails.join('や')}を行うとともに、物件を視察する`;
+                    return `現地の不動産業者を訪問して${fDetails.join('や')}を行い、物件を視察した`;
+                }
+                if (bDetails.length > 0) {
+                    if (isPurpose) return `現地の不動産業者を訪問するとともに、物件の${bDetails.join('や')}を視察する`;
+                    return `現地の不動産業者を訪問し、物件の${bDetails.join('や')}を視察した`;
+                }
+                if (isPurpose) return `現地の不動産業者を訪問するとともに、物件を視察する`;
+                return `現地の不動産業者を訪問し、物件を視察した`;
+            }
+
+            return null;
+        }
+
         function buildItemFragment(id, mode, dest, partner) {
             const details = getSelectedDetails(id);
             const isPurpose = mode === 'purpose';
             const cat = itemCategory[id];
-
             const partnerForC = (cat.id === 'C' && partner) ? partner + 'と、' : '';
-            const partnerGeneral = (cat.id !== 'C' && partner) ? partner + 'と面談し、' : '';
 
             switch (id) {
                 case 'beichin': {
-                    const d = details.length > 0 ? details.join('、') + 'について' : '';
-                    if (isPurpose) return `${dest}にて、沖縄の米軍関係者向け賃貸事業${d ? 'の' + d : 'について'}${partnerGeneral}相談する`;
-                    return `${dest}にて、沖縄の米軍関係者向け賃貸事業${d ? 'の' + d : 'について'}${partnerGeneral}相談した`;
+                    if (details.length > 0) {
+                        const d = details.join('や');
+                        if (isPurpose) return `${dest}にて、米軍関係者向け賃貸事業の${d}について相談する`;
+                        return `${dest}にて、米軍関係者向け賃貸事業の${d}について相談した`;
+                    }
+                    if (isPurpose) return `${dest}にて、沖縄の米軍関係者向け賃貸事業について相談する`;
+                    return `${dest}にて、沖縄の米軍関係者向け賃貸事業について相談した`;
                 }
                 case 'gunyouchi': {
-                    const d = details.length > 0 ? details.join('、') + 'について' : '';
-                    if (isPurpose) return `軍用地の活用${d ? 'に関して' + d : 'について'}相談する`;
-                    return `軍用地の活用${d ? 'に関して' + d : 'について'}相談した`;
+                    if (details.length > 0) {
+                        const d = details.join('や');
+                        if (isPurpose) return `軍用地の活用について、${d}を相談する`;
+                        return `軍用地の活用について、${d}を相談した`;
+                    }
+                    if (isPurpose) return `軍用地の活用について相談する`;
+                    return `軍用地の活用について相談した`;
                 }
                 case 'okinawa_hoyuu': {
-                    const d = details.length > 0 ? details.join('や') + 'を確認し、' : '';
-                    if (isPurpose) return `沖縄に資産を保有する意義について、${d}相談する`;
-                    return `沖縄に資産を保有する意義について、${d}相談した`;
+                    if (details.length > 0) {
+                        const d = details.join('や');
+                        if (isPurpose) return `沖縄に資産を保有する意義について、${d}を確認しながら相談する`;
+                        return `沖縄に資産を保有する意義について、${d}を確認しながら相談した`;
+                    }
+                    if (isPurpose) return `沖縄に資産を保有する意義について相談する`;
+                    return `沖縄に資産を保有する意義について相談した`;
                 }
                 case 'shisan_unyou': {
-                    const d = details.length > 0 ? '、' + details.join('や') + 'を含めて' : '';
-                    if (isPurpose) return `保有資産の運用方針${d}見直しの相談を行う`;
-                    return `保有資産の運用方針${d}見直しについて相談した`;
+                    if (details.length > 0) {
+                        const d = details.join('や');
+                        if (isPurpose) return `保有資産の${d}を含めた運用方針の見直しを相談する`;
+                        return `保有資産の${d}を含めた運用方針の見直しを相談した`;
+                    }
+                    if (isPurpose) return `保有資産の運用方針について見直しの相談を行う`;
+                    return `保有資産の運用方針について見直しの相談を行った`;
                 }
                 case 'zeimu': {
-                    const d = details.length > 0 ? details.join('や') + 'について、' : '';
-                    if (isPurpose) return `${d}税務上の課題整理と対策について相談する`;
-                    return `${d}税務上の課題整理と対策について相談した`;
+                    if (details.length > 0) {
+                        const d = details.join('や');
+                        if (isPurpose) return `${d}を踏まえ、税務上の課題整理と対策について相談する`;
+                        return `${d}を踏まえ、税務上の課題整理と対策について相談した`;
+                    }
+                    if (isPurpose) return `税務上の課題整理と対策について相談する`;
+                    return `税務上の課題整理と対策について相談した`;
                 }
                 case 'souzoku': {
-                    const d = details.length > 0 ? details.join('、') + 'を含めて' : '';
-                    if (isPurpose) return `相続・資産承継について、${d}課題の整理と方針の相談を行う`;
-                    return `相続・資産承継について、${d}課題の整理と方針を相談した`;
+                    if (details.length > 0) {
+                        const d = details.join('や');
+                        if (isPurpose) return `相続・資産承継について、${d}を含めた課題整理と方針の相談を行う`;
+                        return `相続・資産承継について、${d}を含めた課題整理と方針を相談した`;
+                    }
+                    if (isPurpose) return `相続・資産承継に関する課題の整理と方針について相談する`;
+                    return `相続・資産承継に関する課題の整理と方針について相談した`;
                 }
                 case 'kizon_follow': {
-                    const d = details.length > 0 ? '、' + details.join('や') + 'の確認を含めて' : '';
-                    if (isPurpose) return `${dest}にて既存顧客のフォローアップ面談${d}を行う`;
-                    return `${dest}にて既存顧客とフォローアップ面談${d}を行った`;
+                    if (details.length > 0) {
+                        const d = details.join('や');
+                        if (isPurpose) return `既存顧客を訪問し、${d}の確認を含めたフォローアップを行う`;
+                        return `既存顧客を訪問し、${d}の確認を含めたフォローアップを行った`;
+                    }
+                    if (isPurpose) return `既存顧客のフォローアップのため訪問する`;
+                    return `既存顧客のフォローアップのため訪問した`;
                 }
                 case 'fudousan_houmon': {
-                    const d = details.length > 0 ? details.join('、') + 'のため、' : '';
-                    if (isPurpose) return `${d}現地の不動産業者を訪問する`;
-                    return `${d}現地の不動産業者を訪問した`;
+                    if (details.length > 0) {
+                        const d = details.join('や');
+                        if (isPurpose) return `現地の不動産業者を訪問し、${d}を行う`;
+                        return `現地の不動産業者を訪問し、${d}を行った`;
+                    }
+                    if (isPurpose) return `現地の不動産業者を訪問する`;
+                    return `現地の不動産業者を訪問した`;
                 }
                 case 'bukken_shisatsu': {
-                    const d = details.length > 0 ? '物件の' + details.join('や') + 'を確認する' : '物件を視察する';
-                    if (isPurpose) return d;
-                    return d.replace(/する$/, 'した');
+                    if (details.length > 0) {
+                        const d = details.join('や');
+                        if (isPurpose) return `物件の${d}を視察する`;
+                        return `物件の${d}を視察した`;
+                    }
+                    if (isPurpose) return `物件を視察する`;
+                    return `物件を視察した`;
                 }
                 case 'bukken_chousa': {
-                    const d = details.length > 0 ? details.join('、') + 'を調査する' : '物件の調査を行う';
-                    if (isPurpose) return d;
-                    return d.replace(/する$/, 'した');
+                    if (details.length > 0) {
+                        const docDetails = details.filter(d => d === '確認済証・検査済証' || d === '権利関係');
+                        const otherDetails = details.filter(d => d !== '確認済証・検査済証' && d !== '権利関係');
+                        if (otherDetails.length > 0 && docDetails.length > 0) {
+                            const od = otherDetails.join('や');
+                            const dd = docDetails.join('や');
+                            if (isPurpose) return `物件の${od}を確認するとともに、${dd}を調査する`;
+                            return `物件の${od}を確認し、${dd}を調査した`;
+                        }
+                        if (docDetails.length > 0) {
+                            if (isPurpose) return `物件の${docDetails.join('や')}を調査する`;
+                            return `物件の${docDetails.join('や')}を調査した`;
+                        }
+                        if (isPurpose) return `物件の${otherDetails.join('や')}を確認する`;
+                        return `物件の${otherDetails.join('や')}を確認した`;
+                    }
+                    if (isPurpose) return `物件の調査を行う`;
+                    return `物件の調査を行った`;
                 }
                 case 'tochi_chousa': {
-                    const d = details.length > 0 ? '土地の' + details.join('、') + 'を調査する' : '土地の調査を行う';
-                    if (isPurpose) return d;
-                    return d.replace(/する$/, 'した');
+                    if (details.length > 0) {
+                        const d = details.join('や');
+                        if (isPurpose) return `土地の${d}を調査する`;
+                        return `土地の${d}を調査した`;
+                    }
+                    if (isPurpose) return `土地の調査を行う`;
+                    return `土地の調査を行った`;
                 }
                 case 'souba_chousa': {
                     if (isPurpose) return `${dest}周辺の賃貸・売買相場を調査する`;
                     return `${dest}周辺の賃貸・売買相場を調査した`;
                 }
                 case 'torihiki_kyougi': {
-                    const d = details.length > 0 ? details.join('、') + 'について' : '';
-                    if (isPurpose) return `取引条件・契約内容${d ? 'に関して' + d : 'について'}関係者と協議する`;
-                    return `取引条件・契約内容${d ? 'に関して' + d : 'について'}関係者と協議した`;
+                    if (details.length > 0) {
+                        const d = details.join('や');
+                        if (isPurpose) return `取引条件や契約内容について、${d}を関係者と協議する`;
+                        return `取引条件や契約内容について、${d}を関係者と協議した`;
+                    }
+                    if (isPurpose) return `取引条件・契約内容について関係者と協議する`;
+                    return `取引条件・契約内容について関係者と協議した`;
                 }
                 case 'kenchiku_uchiawase': {
-                    const d = details.length > 0 ? details.join('や') + 'について' : '';
-                    if (isPurpose) return `${partnerForC}建築業者と${d}打ち合わせを行う`;
-                    return `${partnerForC}建築業者と${d}打ち合わせを行った`;
+                    if (details.length > 0) {
+                        const d = details.join('や');
+                        if (isPurpose) return `${partnerForC}建築業者と${d}について打ち合わせを行う`;
+                        return `${partnerForC}建築業者と${d}について打ち合わせを行った`;
+                    }
+                    if (isPurpose) return `${partnerForC}建築業者と打ち合わせを行う`;
+                    return `${partnerForC}建築業者と打ち合わせを行った`;
                 }
                 case 'sekkei_uchiawase': {
-                    const d = details.length > 0 ? details.join('や') + 'について' : '';
-                    if (isPurpose) return `${partnerForC}設計担当者と${d}打ち合わせを行う`;
-                    return `${partnerForC}設計担当者と${d}打ち合わせを行った`;
+                    if (details.length > 0) {
+                        const d = details.join('や');
+                        if (isPurpose) return `${partnerForC}設計担当者と${d}について打ち合わせを行う`;
+                        return `${partnerForC}設計担当者と${d}について打ち合わせを行った`;
+                    }
+                    if (isPurpose) return `${partnerForC}設計担当者と打ち合わせを行う`;
+                    return `${partnerForC}設計担当者と打ち合わせを行った`;
                 }
                 case 'kouzou_keisan': {
-                    const d = details.length > 0 ? '、' + details.join('や') + 'に関する' : 'の';
-                    if (isPurpose) return `${partnerForC}構造計算${d}打ち合わせを行う`;
-                    return `${partnerForC}構造計算${d}打ち合わせを行った`;
+                    if (details.length > 0) {
+                        const d = details.join('や');
+                        if (isPurpose) return `${partnerForC}構造計算について、${d}に関する打ち合わせを行う`;
+                        return `${partnerForC}構造計算について、${d}に関する打ち合わせを行った`;
+                    }
+                    if (isPurpose) return `${partnerForC}構造計算の打ち合わせを行う`;
+                    return `${partnerForC}構造計算の打ち合わせを行った`;
                 }
                 case 'beast_kouhou': {
-                    const d = details.length > 0 ? '、' + details.join('や') + 'について' : 'の採用検討について';
-                    if (isPurpose) return `${partnerForC}ビースト工法${d}打ち合わせを行う`;
-                    return `${partnerForC}ビースト工法${d}打ち合わせを行った`;
+                    if (details.length > 0) {
+                        const d = details.join('や');
+                        if (isPurpose) return `${partnerForC}ビースト工法の${d}について打ち合わせを行う`;
+                        return `${partnerForC}ビースト工法の${d}について打ち合わせを行った`;
+                    }
+                    if (isPurpose) return `${partnerForC}ビースト工法の採用検討について打ち合わせを行う`;
+                    return `${partnerForC}ビースト工法の採用検討について打ち合わせを行った`;
                 }
                 case 'kenchikuhi_kyougi': {
-                    const d = details.length > 0 ? details.join('と') + 'について' : '';
-                    if (isPurpose) return `建築費${d ? 'の' + d : 'と見積内容について'}協議する`;
-                    return `建築費${d ? 'の' + d : 'と見積内容について'}協議した`;
+                    if (details.length > 0) {
+                        const d = details.join('や');
+                        if (isPurpose) return `${partnerForC}${d}について協議する`;
+                        return `${partnerForC}${d}について協議した`;
+                    }
+                    if (isPurpose) return `${partnerForC}建築費と見積内容について協議する`;
+                    return `${partnerForC}建築費と見積内容について協議した`;
                 }
                 case 'kouji_kakunin': {
-                    if (isPurpose) return `工事現場の進捗状況を確認する`;
-                    return `工事現場の進捗状況を確認した`;
+                    if (isPurpose) return `${partnerForC}工事現場の進捗状況を確認する`;
+                    return `${partnerForC}工事現場の進捗状況を確認した`;
                 }
                 case 'kinyu_kikan': {
-                    const d = details.length > 0 ? details.join('、') + 'について' : '';
-                    if (isPurpose) return `金融機関と${d}打ち合わせを行う`;
-                    return `金融機関と${d}打ち合わせを行った`;
+                    if (details.length > 0) {
+                        const d = details.join('や');
+                        if (isPurpose) return `金融機関と${d}について打ち合わせを行う`;
+                        return `金融機関と${d}について打ち合わせを行った`;
+                    }
+                    if (isPurpose) return `金融機関との打ち合わせを行う`;
+                    return `金融機関との打ち合わせを行った`;
                 }
                 case 'zeirishi': {
-                    const d = details.length > 0 ? details.join('、') + 'について' : '';
-                    if (isPurpose) return `税理士・士業と${d}打ち合わせを行う`;
-                    return `税理士・士業と${d}打ち合わせを行った`;
+                    if (details.length > 0) {
+                        const d = details.join('や');
+                        if (isPurpose) return `税理士・士業と${d}について打ち合わせを行う`;
+                        return `税理士・士業と${d}について打ち合わせを行った`;
+                    }
+                    if (isPurpose) return `税理士・士業との打ち合わせを行う`;
+                    return `税理士・士業との打ち合わせを行った`;
                 }
                 case 'shoukaisha': {
-                    const d = details.length > 0 ? details.join('、') + 'のため、' : '';
-                    if (isPurpose) return `${d}紹介者・提携先と面談する`;
-                    return `${d}紹介者・提携先と面談した`;
+                    if (details.length > 0) {
+                        const d = details.join('や');
+                        if (isPurpose) return `紹介者・提携先と${d}について面談する`;
+                        return `紹介者・提携先と${d}について面談した`;
+                    }
+                    if (isPurpose) return `紹介者・提携先と面談する`;
+                    return `紹介者・提携先と面談した`;
                 }
                 case 'gyousei': {
-                    const d = details.length > 0 ? details.join('、') + 'について' : '';
-                    if (isPurpose) return `行政窓口にて${d}確認を行う`;
-                    return `行政窓口にて${d}確認を行った`;
+                    if (details.length > 0) {
+                        const d = details.join('や');
+                        if (isPurpose) return `行政窓口にて${d}の確認を行う`;
+                        return `行政窓口にて${d}の確認を行った`;
+                    }
+                    if (isPurpose) return `行政窓口での確認を行う`;
+                    return `行政窓口での確認を行った`;
                 }
                 case 'seminar': {
-                    if (isPurpose) return `${dest}にてセミナーへの登壇または相談会を実施する`;
-                    return `${dest}にてセミナーへの登壇または相談会を実施した`;
+                    if (isPurpose) return `セミナーへの登壇または相談会を実施する`;
+                    return `セミナーへの登壇または相談会を実施した`;
                 }
                 case 'benkyoukai': {
-                    if (isPurpose) return `${dest}で開催される勉強会・研修に参加する`;
-                    return `${dest}で開催された勉強会・研修に参加した`;
+                    if (isPurpose) return `勉強会・研修に参加する`;
+                    return `勉強会・研修に参加した`;
                 }
                 case 'shukuhaku_shisatsu': {
-                    if (isPurpose) return `宿泊施設の取得・活用の検討のため視察を行う`;
+                    if (isPurpose) return `宿泊施設の取得・活用を検討するため視察を行う`;
                     return `宿泊施設の取得・活用を検討するため視察を行った`;
                 }
                 default: {
@@ -2093,6 +2307,7 @@
                 }
             }
         }
+
 
         // Legacy wrappers for collectPayload auto-generation fallback
         function _generateTripReason() { return generatePurposeText(); }
