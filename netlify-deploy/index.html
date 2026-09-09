@@ -2842,20 +2842,37 @@
                 }
             }
 
-            // Helper: draw table
+            // Helper: draw table (with font-based wrapping and dynamic row height)
             function drawTable(rows, colWidths, startY, opts = {}) {
-                const rowH = opts.rowHeight || 22;
+                const minRowH = opts.rowHeight || 22;
                 const headerBg = opts.headerBg || null;
                 const fontSize = opts.fontSize || 9;
                 const headerRows = opts.headerRows || 0;
+                const lineH = fontSize + 3;
+                const cellPad = 4;
                 let cy = startY;
 
                 for (let ri = 0; ri < rows.length; ri++) {
-                    checkPage(rowH + 10);
                     const row = rows[ri];
-                    let cx = ML;
                     const isHeader = ri < headerRows;
-                    const currentRowH = isHeader ? rowH : (opts.bodyRowHeight || rowH);
+                    const baseRowH = isHeader ? minRowH : (opts.bodyRowHeight || minRowH);
+
+                    // Pre-wrap all cells to determine dynamic row height
+                    const cellLines = [];
+                    let maxLines = 1;
+                    for (let ci = 0; ci < row.length; ci++) {
+                        const cw = colWidths[ci];
+                        const cellText = String(row[ci] || '');
+                        const maxTextW = cw - cellPad * 2;
+                        const lines = wrapTextLines(cellText, fontSize, maxTextW);
+                        if (lines.length === 0) lines.push('');
+                        cellLines.push(lines);
+                        if (lines.length > maxLines) maxLines = lines.length;
+                    }
+                    const currentRowH = Math.max(baseRowH, maxLines * lineH + cellPad * 2);
+
+                    checkPage(currentRowH + 10);
+                    let cx = ML;
 
                     for (let ci = 0; ci < row.length; ci++) {
                         const cw = colWidths[ci];
@@ -2871,25 +2888,17 @@
                             borderColor: rgb(0.5, 0.5, 0.5), borderWidth: 0.5 });
                         // Text
                         const textColor = (opts.textColor && opts.textColor[ri] && opts.textColor[ri][ci]) || rgb(0,0,0);
-                        const cellText = String(row[ci] || '');
-                        // Wrap long text
-                        const maxChars = Math.floor(cw / (fontSize * 0.55));
-                        const lines = [];
-                        for (let s = 0; s < cellText.length; s += maxChars) {
-                            lines.push(cellText.substring(s, s + maxChars));
-                        }
-                        if (lines.length === 0) lines.push('');
-                        const lineH = fontSize + 3;
+                        const lines = cellLines[ci];
                         const textStartY = cy - currentRowH / 2 + (lines.length - 1) * lineH / 2;
                         lines.forEach((line, li) => {
                             const align = (opts.align && opts.align[ci]) || 'left';
-                            let tx = cx + 4;
+                            let tx = cx + cellPad;
                             if (align === 'center') {
                                 const tw = jpFont.widthOfTextAtSize(line, fontSize);
                                 tx = cx + (cw - tw) / 2;
                             } else if (align === 'right') {
                                 const tw = jpFont.widthOfTextAtSize(line, fontSize);
-                                tx = cx + cw - tw - 4;
+                                tx = cx + cw - tw - cellPad;
                             }
                             page.drawText(line, { x: tx, y: textStartY - li * lineH, size: fontSize, font: jpFont, color: textColor });
                         });
