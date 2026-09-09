@@ -186,16 +186,6 @@
             background: rgba(99, 179, 237, 0.2);
         }
 
-        .btn-accent {
-            background: rgba(251, 191, 36, 0.15);
-            color: #f59e0b;
-            border: 1px solid rgba(251, 191, 36, 0.4);
-        }
-
-        .btn-accent:hover {
-            background: rgba(251, 191, 36, 0.3);
-        }
-
         .btn-danger {
             background: rgba(248, 113, 113, 0.1);
             color: #f87171;
@@ -746,7 +736,232 @@
                 padding: 8px 16px;
                 font-size: 13px;
             }
+            .purpose-grid { grid-template-columns: 1fr !important; }
         }
+
+        /* Purpose category styles */
+        .purpose-section-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            margin-top: 16px;
+        }
+        .purpose-section-label:first-child { margin-top: 0; }
+
+        .purpose-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 6px;
+        }
+
+        .purpose-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 179, 237, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
+            color: #e2e8f0;
+            font-family: inherit;
+            text-align: left;
+            line-height: 1.3;
+        }
+        .purpose-btn:hover { border-color: rgba(99, 179, 237, 0.4); }
+        .purpose-btn.selected {
+            border-color: #63b3ed;
+            background: rgba(99, 179, 237, 0.15);
+            color: #90cdf4;
+        }
+        .purpose-btn.primary {
+            border-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.15);
+            box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.3);
+        }
+        .purpose-btn .star {
+            font-size: 14px;
+            color: #64748b;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .purpose-btn.selected .star { color: #94a3b8; }
+        .purpose-btn.primary .star { color: #f59e0b; }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(99, 179, 237, 0.05);
+            border: 1px solid rgba(99, 179, 237, 0.15);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: #63b3ed;
+            font-family: inherit;
+            margin-bottom: 4px;
+            transition: all 0.2s;
+        }
+        .category-header:hover {
+            background: rgba(99, 179, 237, 0.1);
+            border-color: rgba(99, 179, 237, 0.3);
+        }
+        .category-header .cat-arrow {
+            font-size: 11px;
+            transition: transform 0.2s;
+        }
+        .category-header .cat-arrow.open { transform: rotate(90deg); }
+        .category-header .cat-count {
+            font-size: 11px;
+            background: #3b82f6;
+            color: white;
+            border-radius: 10px;
+            padding: 1px 7px;
+            margin-left: 8px;
+        }
+        .category-items {
+            padding: 6px 0 8px;
+        }
+
+        .detail-section {
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(139, 92, 246, 0.05);
+            border: 1px solid rgba(139, 92, 246, 0.15);
+            border-radius: 10px;
+        }
+        .detail-section .purpose-section-label {
+            color: #a78bfa;
+        }
+        .detail-group-title {
+            font-size: 11px;
+            color: #8b8fa3;
+            margin: 8px 0 4px;
+            padding-left: 2px;
+        }
+        .detail-group-title:first-child { margin-top: 0; }
+        .detail-btn {
+            display: inline-block;
+            padding: 4px 10px;
+            font-size: 11px;
+            border-radius: 14px;
+            background: rgba(139, 92, 246, 0.08);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            color: #c4b5fd;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            margin: 2px;
+        }
+        .detail-btn:hover { background: rgba(139, 92, 246, 0.15); border-color: rgba(139, 92, 246, 0.4); }
+        .detail-btn.selected {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: #8b5cf6;
+            color: #e9d5ff;
+        }
+
+        .mode-toggle {
+            display: flex;
+            gap: 0;
+            margin-bottom: 16px;
+            border: 1px solid rgba(99, 179, 237, 0.2);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .mode-btn {
+            flex: 1;
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            background: rgba(15, 23, 42, 0.4);
+            border: none;
+            color: #94a3b8;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        .mode-btn.active {
+            background: rgba(59, 130, 246, 0.2);
+            color: #63b3ed;
+        }
+        .mode-btn:hover:not(.active) {
+            background: rgba(99, 179, 237, 0.1);
+        }
+
+        .partner-field {
+            margin-top: 12px;
+            padding: 10px 12px;
+            background: rgba(16, 185, 129, 0.05);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            border-radius: 8px;
+        }
+        .partner-field label { color: #6ee7b7; }
+        .partner-chip {
+            display: inline-block;
+            padding: 3px 10px;
+            font-size: 11px;
+            border-radius: 12px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            color: #6ee7b7;
+            cursor: pointer;
+            margin: 4px 4px 0 0;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        .partner-chip:hover { background: rgba(16, 185, 129, 0.2); }
+        .partner-chip.selected {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: #10b981;
+        }
+
+        .supplement-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .supplement-grid .form-group { margin: 0; }
+        @media (max-width: 500px) { .supplement-grid { grid-template-columns: 1fr; } }
+
+        .selected-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 8px;
+        }
+        .selected-tag {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(59, 130, 246, 0.15);
+            color: #93c5fd;
+        }
+        .selected-tag.primary-tag {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+        }
+
+        .report-confirm-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(99, 179, 237, 0.15);
+            border-radius: 6px;
+            margin: 3px 0;
+            font-size: 12px;
+        }
+        .report-confirm-item input { accent-color: #10b981; }
     </style>
 </head>
 <body>
@@ -812,22 +1027,7 @@
             <div class="form-grid">
                 <div class="form-group">
                     <label>出張先<span class="required">*</span></label>
-                    <input type="text" id="destination" placeholder="大阪市北区">
-                </div>
-                <div class="form-group">
-                    <label>出張目的<span class="required">*</span>（複数選択可）</label>
-                    <div class="checkbox-grid" id="purposeCheckboxes">
-                        <label class="checkbox-item"><input type="checkbox" value="不動産会社周り" checked onchange="toggleCheckbox(this)"><span>不動産会社周り</span></label>
-                        <label class="checkbox-item"><input type="checkbox" value="物件視察" onchange="toggleCheckbox(this)"><span>物件視察</span></label>
-                        <label class="checkbox-item"><input type="checkbox" value="企業訪問" onchange="toggleCheckbox(this)"><span>企業訪問</span></label>
-                        <label class="checkbox-item"><input type="checkbox" value="収益物件調査" onchange="toggleCheckbox(this)"><span>収益物件調査</span></label>
-                        <label class="checkbox-item"><input type="checkbox" value="管理会社打合せ" onchange="toggleCheckbox(this)"><span>管理会社打合せ</span></label>
-                        <label class="checkbox-item"><input type="checkbox" value="コンサル案件" onchange="toggleCheckbox(this)"><span>コンサル案件</span></label>
-                        <label class="checkbox-item"><input type="checkbox" value="セミナー・研修" onchange="toggleCheckbox(this)"><span>セミナー・研修</span></label>
-                        <label class="checkbox-item"><input type="checkbox" value="契約締結・交渉" onchange="toggleCheckbox(this)"><span>契約締結・交渉</span></label>
-                        <label class="checkbox-item"><input type="checkbox" value="その他" onchange="toggleOther(this)"><span>その他</span></label>
-                    </div>
-                    <input type="text" id="purposeOther" placeholder="その他の目的を入力" style="display:none; margin-top: 8px;">
+                    <input type="text" id="destination" placeholder="東京都港区">
                 </div>
                 <div class="form-group">
                     <label>出発日<span class="required">*</span></label>
@@ -851,11 +1051,53 @@
                     </div>
                     <div class="nights-calc" id="nightsCalc">1泊2日</div>
                 </div>
+            </div>
+        </div>
+
+        <!-- 出張目的 -->
+        <div class="card">
+            <div class="card-title">出張目的<span class="required" style="margin-left:4px">*</span></div>
+
+            <div class="purpose-section-label">よく使う項目</div>
+            <div class="purpose-grid" id="favoritesGrid"></div>
+
+            <div style="margin-top: 16px;" id="categoriesContainer"></div>
+
+            <div id="detailSection" style="display:none"></div>
+
+            <div id="partnerSection" style="display:none" class="partner-field">
+                <label>打ち合わせ相手（任意）</label>
+                <div style="margin-top:6px;">
+                    <button class="partner-chip" onclick="togglePartnerChip(this)" data-name="タイングさん">タイングさん</button>
+                </div>
+                <input type="text" id="meetingPartner" placeholder="その他の相手がいれば入力" style="margin-top:8px; font-size:13px;">
+            </div>
+
+            <div class="supplement-grid">
                 <div class="form-group">
-                    <label>目的の詳細（任意）</label>
-                    <textarea id="purposeDetail" placeholder="具体的な内容があれば記入&#10;例：○○株式会社との業務提携に関する打ち合わせ、現地物件3件の内見・調査 等" rows="4" style="resize: vertical; min-height: 80px;"></textarea>
+                    <label>相談内容の補足（任意）</label>
+                    <textarea id="purposeDetail" rows="2" placeholder="具体的な相談内容があれば記入" oninput="onSupplementChange()"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>面談相手（任意）</label>
+                    <input type="text" id="meetingPartnerGeneral" placeholder="氏名・会社名など" oninput="onSupplementChange()">
+                </div>
+                <div class="form-group">
+                    <label>確認事項・成果（任意）</label>
+                    <textarea id="resultNote" rows="2" placeholder="確認できたこと、合意事項など" oninput="onSupplementChange()"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>今後の対応（任意）</label>
+                    <textarea id="nextAction" rows="2" placeholder="次回の対応予定、準備事項など" oninput="onSupplementChange()"></textarea>
                 </div>
             </div>
+
+            <div class="form-group" style="margin-top: 12px;">
+                <label>その他・自由入力（任意）</label>
+                <input type="text" id="purposeOther" placeholder="ボタンにない活動を入力" oninput="onSupplementChange()">
+            </div>
+
+            <div id="selectedSummary" class="selected-summary" style="display:none"></div>
         </div>
 
         <!-- 費用設定 -->
@@ -952,26 +1194,32 @@
             <button class="btn btn-secondary" onclick="addTransport()" style="margin-top: 8px;">+ 交通費を追加</button>
         </div>
 
-        <!-- 出張理由（AI生成） -->
+        <!-- 出張理由・報告 -->
         <div class="card">
-            <div class="card-title">出張理由・報告（自動生成対応）</div>
-            <div class="form-grid">
+            <div class="card-title">出張理由・報告（自動生成）</div>
+            <div class="mode-toggle">
+                <button class="mode-btn active" id="modeReasonBtn" onclick="setMode('reason')">出張目的</button>
+                <button class="mode-btn" id="modeReportBtn" onclick="setMode('report')">実施報告</button>
+            </div>
+
+            <div id="reasonModePanel">
                 <div class="form-group full-width">
-                    <label>出張理由</label>
-                    <textarea id="tripReason" rows="8" placeholder="自分で書いて「肉付けする」で拡張、または「自動生成」で一から作成"></textarea>
+                    <label>出張目的</label>
+                    <textarea id="tripReason" rows="6" placeholder="上のボタンを選択すると自動生成されます" oninput="markEdited('reason')"></textarea>
                     <div class="btn-group">
-                        <button class="btn btn-ai" onclick="generateReason()">自動生成</button>
-                        <button class="btn btn-secondary" onclick="generateReason()">別のパターン</button>
-                        <button class="btn btn-accent" onclick="expandReason()">肉付けする</button>
+                        <button class="btn btn-ai" onclick="regenerateText('reason')">再生成</button>
                     </div>
                 </div>
-                <div class="form-group full-width">
+            </div>
+
+            <div id="reportModePanel" style="display:none;">
+                <div class="purpose-section-label">実施した項目を確認してください</div>
+                <div id="reportItemsConfirm"></div>
+                <div class="form-group full-width" style="margin-top: 12px;">
                     <label>出張報告</label>
-                    <textarea id="tripReport" rows="8" placeholder="自分で書いて「肉付けする」で拡張、または「自動生成」で一から作成"></textarea>
+                    <textarea id="tripReport" rows="8" placeholder="実施した項目を選択して再生成してください" oninput="markEdited('report')"></textarea>
                     <div class="btn-group">
-                        <button class="btn btn-ai" onclick="generateReport()">自動生成</button>
-                        <button class="btn btn-secondary" onclick="generateReport()">別のパターン</button>
-                        <button class="btn btn-accent" onclick="expandReport()">肉付けする</button>
+                        <button class="btn btn-ai" onclick="regenerateText('report')">再生成</button>
                     </div>
                 </div>
             </div>
@@ -1035,32 +1283,8 @@
 
     <script>
         // ============================================================
-        // UI Logic (identical to original)
+        // UI Logic
         // ============================================================
-
-        // Initial checkbox state
-        (function() {
-            const first = document.querySelector('#purposeCheckboxes .checkbox-item input');
-            if (first) { first.checked = true; first.closest('.checkbox-item').classList.add('checked'); }
-            document.querySelectorAll('#purposeCheckboxes .checkbox-item').forEach(item => {
-                const cb = item.querySelector('input');
-                if (cb.checked) item.classList.add('checked');
-                else item.classList.remove('checked');
-            });
-        })();
-
-        function toggleCheckbox(cb) {
-            const item = cb.closest('.checkbox-item');
-            if (cb.checked) item.classList.add('checked');
-            else item.classList.remove('checked');
-        }
-
-        function toggleOther(cb) {
-            toggleCheckbox(cb);
-            const otherInput = document.getElementById('purposeOther');
-            otherInput.style.display = cb.checked ? 'block' : 'none';
-            if (!cb.checked) otherInput.value = '';
-        }
 
         function togglePositionOther(sel) {
             const otherInput = document.getElementById('positionOther');
@@ -1081,15 +1305,343 @@
             return sel.value;
         }
 
-        function getSelectedPurposes() {
-            const checked = document.querySelectorAll('#purposeCheckboxes input:checked');
-            return Array.from(checked).map(cb => {
-                if (cb.value === 'その他') {
-                    const custom = document.getElementById('purposeOther').value.trim();
-                    return custom || 'その他';
-                }
-                return cb.value;
+        // ============================================================
+        // Purpose Data & State
+        // ============================================================
+
+        const PURPOSE_DATA = [
+            {
+                id: 'A', title: '資産形成・顧客相談', detailGroup: 'asset',
+                items: [
+                    { id: 'beichin', label: '米賃貸の相談' },
+                    { id: 'gunyouchi', label: '軍用地の活用相談' },
+                    { id: 'okinawa_hoyuu', label: '沖縄資産の保有相談' },
+                    { id: 'shisan_unyou', label: '資産運用の見直し' },
+                    { id: 'zeimu', label: '税務対策の相談' },
+                    { id: 'souzoku', label: '相続・資産承継の相談' },
+                    { id: 'kizon_follow', label: '既存顧客のフォロー' },
+                ]
+            },
+            {
+                id: 'B', title: '不動産の現地対応・調査',
+                items: [
+                    { id: 'fudousan_houmon', label: '不動産業者訪問', detailGroup: 'realtor' },
+                    { id: 'bukken_shisatsu', label: '物件視察', detailGroup: 'inspect' },
+                    { id: 'bukken_chousa', label: '物件調査', detailGroup: 'research' },
+                    { id: 'tochi_chousa', label: '土地調査', detailGroup: 'land' },
+                    { id: 'souba_chousa', label: '賃貸・売買相場の調査' },
+                    { id: 'torihiki_kyougi', label: '取引条件・契約の協議', detailGroup: 'stakeholder' },
+                ]
+            },
+            {
+                id: 'C', title: '建築・設計・構造', detailGroup: 'construction', showPartner: true,
+                items: [
+                    { id: 'kenchiku_uchiawase', label: '建築業者との打ち合わせ' },
+                    { id: 'sekkei_uchiawase', label: '設計の打ち合わせ' },
+                    { id: 'kouzou_keisan', label: '構造計算の打ち合わせ' },
+                    { id: 'beast_kouhou', label: 'ビースト工法の打ち合わせ' },
+                    { id: 'kenchikuhi_kyougi', label: '建築費・見積の協議' },
+                    { id: 'kouji_kakunin', label: '工事現場の確認' },
+                ]
+            },
+            {
+                id: 'D', title: '関係者・専門家との協議', detailGroup: 'stakeholder',
+                items: [
+                    { id: 'kinyu_kikan', label: '金融機関との打ち合わせ' },
+                    { id: 'zeirishi', label: '税理士・士業との打ち合わせ' },
+                    { id: 'shoukaisha', label: '紹介者・提携先との面談' },
+                    { id: 'gyousei', label: '行政窓口での確認' },
+                ]
+            },
+            {
+                id: 'E', title: '登壇・研修・事例研究',
+                items: [
+                    { id: 'seminar', label: 'セミナー登壇・相談会' },
+                    { id: 'benkyoukai', label: '勉強会・研修への参加' },
+                    { id: 'shukuhaku_shisatsu', label: '宿泊施設の視察' },
+                ]
+            },
+        ];
+
+        const DETAIL_GROUPS = {
+            asset: ['仕組みの説明', '収支の確認', '資金調達', '保有方法', '運用の見直し', '売却・承継'],
+            realtor: ['案件紹介の相談', '物件情報の収集', '地域動向の情報交換', '管理・募集の相談', '提携の相談'],
+            inspect: ['立地・周辺環境', '建物・設備', '管理状況', '改修の必要性'],
+            research: ['権利関係', '賃貸・入居状況', '収支資料', '修繕履歴', '確認済証・検査済証'],
+            land: ['接道', '境界', '用途地域・建築制限', '上下水道', '地盤・造成'],
+            construction: ['計画・仕様', '構造計算', '工法の採用検討', '施工条件', '見積・費用', '工期・工程'],
+            stakeholder: ['個別案件の相談', '条件確認', '資料確認', '役割分担', '次回対応'],
+        };
+
+        const FAVORITE_IDS = ['beichin', 'gunyouchi', 'fudousan_houmon', 'bukken_shisatsu', 'bukken_chousa', 'kenchiku_uchiawase', 'kouzou_keisan', 'beast_kouhou'];
+
+        const allItems = [];
+        const itemById = {};
+        const itemCategory = {};
+        PURPOSE_DATA.forEach(cat => {
+            cat.items.forEach(item => {
+                allItems.push(item);
+                itemById[item.id] = item;
+                itemCategory[item.id] = cat;
             });
+        });
+
+        let selectedItems = new Set();
+        let selectedDetails = {};
+        let primaryPurpose = null;
+        let currentMode = 'reason';
+        let reportConfirmed = new Set();
+        let manualEdited = { reason: false, report: false };
+        let openCategories = {};
+
+        function getDetailGroup(itemId) {
+            const item = itemById[itemId];
+            const cat = itemCategory[itemId];
+            return item.detailGroup || cat.detailGroup || null;
+        }
+
+        // ============================================================
+        // Purpose UI Rendering
+        // ============================================================
+
+        function renderFavorites() {
+            const grid = document.getElementById('favoritesGrid');
+            grid.innerHTML = FAVORITE_IDS.map(id => {
+                const item = itemById[id];
+                if (!item) return '';
+                const sel = selectedItems.has(id) ? 'selected' : '';
+                const pri = primaryPurpose === id ? 'primary' : '';
+                return `<button class="purpose-btn ${sel} ${pri}" onclick="toggleItem('${id}')" oncontextmenu="event.preventDefault();setPrimary('${id}')">
+                    <span class="star" onclick="event.stopPropagation();setPrimary('${id}')" title="主目的に設定">★</span>
+                    ${item.label}
+                </button>`;
+            }).join('');
+        }
+
+        function renderCategories() {
+            const container = document.getElementById('categoriesContainer');
+            container.innerHTML = PURPOSE_DATA.map(cat => {
+                const count = cat.items.filter(i => selectedItems.has(i.id)).length;
+                const isOpen = openCategories[cat.id];
+                return `<div class="purpose-category">
+                    <button class="category-header" onclick="toggleCategory('${cat.id}')">
+                        <span>${cat.id}. ${cat.title}${count > 0 ? `<span class="cat-count">${count}</span>` : ''}</span>
+                        <span class="cat-arrow ${isOpen ? 'open' : ''}">▸</span>
+                    </button>
+                    <div class="category-items" style="display:${isOpen ? 'block' : 'none'}">
+                        <div class="purpose-grid">
+                            ${cat.items.map(item => {
+                                const sel = selectedItems.has(item.id) ? 'selected' : '';
+                                const pri = primaryPurpose === item.id ? 'primary' : '';
+                                return `<button class="purpose-btn ${sel} ${pri}" onclick="toggleItem('${item.id}')" oncontextmenu="event.preventDefault();setPrimary('${item.id}')">
+                                    <span class="star" onclick="event.stopPropagation();setPrimary('${item.id}')" title="主目的に設定">★</span>
+                                    ${item.label}
+                                </button>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderDetails() {
+            const section = document.getElementById('detailSection');
+            const activeGroups = {};
+            selectedItems.forEach(id => {
+                const g = getDetailGroup(id);
+                if (g && DETAIL_GROUPS[g]) {
+                    if (!activeGroups[g]) activeGroups[g] = [];
+                    activeGroups[g].push(id);
+                }
+            });
+            if (Object.keys(activeGroups).length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+            section.style.display = 'block';
+            const groupTitles = {
+                asset: '資産相談の詳細', realtor: '不動産業者訪問の詳細', inspect: '物件視察の詳細',
+                research: '物件調査の詳細', land: '土地調査の詳細', construction: '建築・構造の詳細',
+                stakeholder: '関係者との協議の詳細',
+            };
+            let html = '<div class="detail-section"><div class="purpose-section-label">詳細（任意）</div>';
+            for (const [g, ids] of Object.entries(activeGroups)) {
+                const details = DETAIL_GROUPS[g];
+                html += `<div class="detail-group-title">${groupTitles[g] || g}</div><div>`;
+                details.forEach(d => {
+                    const key = g + ':' + d;
+                    const sel = selectedDetails[key] ? 'selected' : '';
+                    html += `<button class="detail-btn ${sel}" onclick="toggleDetail('${g}','${d}')">${d}</button>`;
+                });
+                html += '</div>';
+            }
+            html += '</div>';
+            section.innerHTML = html;
+        }
+
+        function renderPartnerSection() {
+            const showPartner = Array.from(selectedItems).some(id => {
+                const cat = itemCategory[id];
+                return cat && cat.showPartner;
+            });
+            document.getElementById('partnerSection').style.display = showPartner ? 'block' : 'none';
+        }
+
+        function renderSelectedSummary() {
+            const div = document.getElementById('selectedSummary');
+            if (selectedItems.size === 0) { div.style.display = 'none'; return; }
+            div.style.display = 'flex';
+            const ordered = getOrderedSelected();
+            div.innerHTML = ordered.map(id => {
+                const item = itemById[id];
+                const isPri = primaryPurpose === id;
+                return `<span class="selected-tag ${isPri ? 'primary-tag' : ''}">${isPri ? '★ ' : ''}${item.label}</span>`;
+            }).join('');
+        }
+
+        function renderReportConfirm() {
+            const container = document.getElementById('reportItemsConfirm');
+            const ordered = getOrderedSelected();
+            if (ordered.length === 0) {
+                container.innerHTML = '<p style="color:#64748b;font-size:12px;">出張目的が選択されていません</p>';
+                return;
+            }
+            container.innerHTML = ordered.map(id => {
+                const item = itemById[id];
+                const checked = reportConfirmed.has(id) ? 'checked' : '';
+                return `<div class="report-confirm-item">
+                    <input type="checkbox" ${checked} onchange="toggleReportConfirm('${id}', this.checked)">
+                    <span>${item.label}</span>
+                </div>`;
+            }).join('');
+        }
+
+        function renderAll() {
+            renderFavorites();
+            renderCategories();
+            renderDetails();
+            renderPartnerSection();
+            renderSelectedSummary();
+            if (currentMode === 'report') renderReportConfirm();
+        }
+
+        // ============================================================
+        // Purpose Interaction
+        // ============================================================
+
+        function toggleItem(id) {
+            if (selectedItems.has(id)) {
+                selectedItems.delete(id);
+                if (primaryPurpose === id) primaryPurpose = selectedItems.size > 0 ? Array.from(selectedItems)[0] : null;
+                Object.keys(selectedDetails).forEach(k => {
+                    const g = getDetailGroup(id);
+                    if (g && k.startsWith(g + ':')) {
+                        const stillNeeded = Array.from(selectedItems).some(sid => getDetailGroup(sid) === g);
+                        if (!stillNeeded) delete selectedDetails[k];
+                    }
+                });
+                reportConfirmed.delete(id);
+            } else {
+                selectedItems.add(id);
+                if (!primaryPurpose) primaryPurpose = id;
+                reportConfirmed.add(id);
+            }
+            renderAll();
+            autoGenerate();
+        }
+
+        function setPrimary(id) {
+            if (!selectedItems.has(id)) {
+                selectedItems.add(id);
+                reportConfirmed.add(id);
+            }
+            primaryPurpose = id;
+            renderAll();
+            autoGenerate();
+        }
+
+        function toggleDetail(group, detail) {
+            const key = group + ':' + detail;
+            selectedDetails[key] = !selectedDetails[key];
+            if (!selectedDetails[key]) delete selectedDetails[key];
+            renderDetails();
+            autoGenerate();
+        }
+
+        function toggleCategory(catId) {
+            openCategories[catId] = !openCategories[catId];
+            renderCategories();
+        }
+
+        function togglePartnerChip(btn) {
+            btn.classList.toggle('selected');
+            autoGenerate();
+        }
+
+        function toggleReportConfirm(id, checked) {
+            if (checked) reportConfirmed.add(id);
+            else reportConfirmed.delete(id);
+            autoGenerate();
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.getElementById('modeReasonBtn').classList.toggle('active', mode === 'reason');
+            document.getElementById('modeReportBtn').classList.toggle('active', mode === 'report');
+            document.getElementById('reasonModePanel').style.display = mode === 'reason' ? 'block' : 'none';
+            document.getElementById('reportModePanel').style.display = mode === 'report' ? 'block' : 'none';
+            if (mode === 'report') renderReportConfirm();
+        }
+
+        function markEdited(which) { manualEdited[which] = true; }
+
+        function onSupplementChange() { autoGenerate(); }
+
+        function autoGenerate() {
+            if (!manualEdited.reason) {
+                document.getElementById('tripReason').value = generatePurposeText();
+            }
+            if (!manualEdited.report && currentMode === 'report') {
+                document.getElementById('tripReport').value = generateReportText();
+            }
+        }
+
+        function regenerateText(which) {
+            manualEdited[which] = false;
+            if (which === 'reason') {
+                document.getElementById('tripReason').value = generatePurposeText();
+            } else {
+                document.getElementById('tripReport').value = generateReportText();
+            }
+        }
+
+        function getOrderedSelected() {
+            const ordered = [];
+            if (primaryPurpose && selectedItems.has(primaryPurpose)) ordered.push(primaryPurpose);
+            selectedItems.forEach(id => { if (id !== primaryPurpose) ordered.push(id); });
+            return ordered;
+        }
+
+        function getSelectedPurposes() {
+            const ordered = getOrderedSelected();
+            const labels = ordered.map(id => itemById[id]?.label || id);
+            const other = document.getElementById('purposeOther').value.trim();
+            if (other) labels.push(other);
+            return labels;
+        }
+
+        function getSelectedDetails(itemId) {
+            const g = getDetailGroup(itemId);
+            if (!g) return [];
+            return (DETAIL_GROUPS[g] || []).filter(d => selectedDetails[g + ':' + d]);
+        }
+
+        function getPartnerName() {
+            const chip = document.querySelector('.partner-chip.selected');
+            const chipName = chip ? chip.dataset.name : '';
+            const manual = document.getElementById('meetingPartner')?.value?.trim() || '';
+            const general = document.getElementById('meetingPartnerGeneral')?.value?.trim() || '';
+            return chipName || manual || general || '';
         }
 
         // Transport extras templates
@@ -1338,259 +1890,216 @@
         }
 
         // ============================================================
-        // Client-side Text Generation (ported from Python app.py)
+        // Text Generation
         // ============================================================
 
         function randomChoice(arr) {
             return arr[Math.floor(Math.random() * arr.length)];
         }
 
-        function _generateTripReason(purposes, destination, nights, purposeDetail) {
-            const days = nights + 1;
-            const reasonSnippets = {
-                '不動産会社周り': [
-                    `当社の資産運用戦略に基づき、${destination}所在の不動産仲介業者複数社を訪問し、投資用不動産に関する市場調査および具体的案件の検討を実施する。訪問先においては、現在流通中の収益物件に関する詳細情報の収集、物件の立地環境・周辺相場・建物の構造的健全性・修繕履歴・管理体制・収益性（表面利回り・実質利回り・NOI）等について、書面および写真資料のみでは判断が困難な現場固有の情報を実地に確認する。加えて、当該エリアにおける今後の都市開発計画・人口動態・賃貸需要の見通し等について、地元業者からの一次情報を直接聴取する。不動産仲介業者との対面での信頼関係構築は、非公開の優良物件情報を優先的に入手するうえで極めて重要であり、電話・メール等の非対面手段では代替できない業務である。`,
-                    `${destination}における不動産投資市場の最新動向把握および具体的な投資案件の精査を目的とする。当社は資産管理会社として中長期的な資産形成を経営方針に掲げており、定期的な現地市場調査は投資判断の精度向上に不可欠な業務である。現地の不動産会社を複数社訪問し、取扱物件の内覧（外観・内装・設備の状態確認）、周辺環境の実地調査（最寄り駅からの実際の徒歩距離・時間帯による人通り・騒音レベル・日照条件・嫌悪施設の有無等）、および管理状況の視察を行う。不動産投資においては、インターネット上の情報や書面資料では把握しきれない現地固有の事情（建物の実際の管理状態・入居者層・近隣住民の属性・将来の再開発情報等）を直接確認することが、リスク回避と適正な投資判断のために必要不可欠であり、リモートでの対応では到底代替できない業務である。`,
-                    `当社の事業計画に基づく不動産ポートフォリオの拡充・最適化を目的とし、${destination}エリアの不動産仲介会社を訪問する。具体的には、当該エリアにおける賃貸市場の需給バランス・家賃相場のトレンド・空室率の推移・新規供給の動向等について、現地業者からの最新情報を直接聴取するとともに、投資候補物件について現地での内覧・周辺環境調査を実施する。また、既存の取引仲介業者との関係強化および新規仲介ルートの開拓を通じて、今後の優良案件の確保に向けた基盤整備を行う。資産管理会社としての適正な投資判断を下すためには、現地の状況を自らの目で確認し、数字には表れない定性的情報を収集することが経営上の責務であり、遠隔では対応不可能な業務である。`,
-                ],
-                'クライアント相談': [
-                    `不動産コンサルティング業務の一環として、${destination}のクライアント（不動産オーナー・投資家）との対面による資産運用相談を実施する。今回の訪問では、クライアントが保有する収益物件のポートフォリオ分析結果の報告、各物件の収益性改善提案（リノベーション計画・家賃改定・テナントミックスの見直し等）、新規物件取得に関する投資判断のアドバイス、物件売却の適正タイミングに関するマーケット分析の共有、および資産承継・相続対策を見据えた中長期的な不動産戦略の策定を予定している。本件はクライアントの資産情報・財務状況・家族構成等の極めて機密性の高い個人情報を扱う協議であり、情報漏洩リスクの観点からオンライン会議ではなく対面での実施が不可欠と判断した。加えて、不動産コンサルティングにおいてはクライアントとの深い信頼関係が業務の根幹であり、対面でのきめ細やかなコミュニケーションが顧客満足度とリピート率の向上に直結する。`,
-                    `${destination}のクライアント（法人・個人投資家）を訪問し、不動産資産の運用状況に関する定期レビューおよびコンサルティング協議を行う。具体的には、保有物件の稼働状況・収支実績の分析報告、市場環境の変化に応じた運用方針の見直し提案、バリューアップ施策（設備更新・間取り変更・用途変更等）の検討、融資条件の見直しに伴うキャッシュフロー改善策の提示、および税務面を考慮した最適な物件入替え戦略の協議を実施する。不動産コンサルティングにおいては、クライアントの経営環境・資産背景・将来ビジョンを深く理解した上での個別最適な提案が求められるため、定期的な対面での深い対話が不可欠である。`,
-                ],
-                '企業訪問': [
-                    `${destination}の不動産関連企業（デベロッパー・建設会社・リフォーム会社・設計事務所等）を訪問し、当社の不動産コンサルティング事業に関連する対面打ち合わせを実施する。訪問先においては、物件のバリューアップに関する施工提案の検討・見積り協議、保有物件の修繕計画に関する技術的な打ち合わせ、新規開発案件に関する情報交換、業界の最新トレンド（建築コストの動向・建材の供給状況・省エネ基準の改正等）に関する意見交換、および今後の事業連携に向けた協力体制の構築を行う。不動産事業においては、施工会社・設計事務所等の協力パートナーとの密接な信頼関係が物件の品質と収益性を左右するため、定期的な対面訪問による関係構築・維持が不可欠である。`,
-                    `${destination}において、当社の不動産コンサルティング事業に関係する金融機関・税理士事務所・司法書士事務所・保険会社等の専門機関を訪問する。各訪問先では、クライアントへの提案に必要な融資条件の最新動向ヒアリング、不動産関連税制の改正に伴う対応策の協議、物件取引に関する法務手続きの確認、および火災保険・賠償責任保険等のリスクマネジメントに関する情報収集を行う。不動産コンサルティングでは、不動産のみならず金融・税務・法務等の多角的な専門知識を駆使した総合的なアドバイスが求められるため、各分野の専門家との対面での情報交換と人脈構築が事業遂行上必要不可欠である。`,
-                ],
-                'コンサル案件': [
-                    `不動産コンサルティング契約に基づき、${destination}のクライアント所有物件の現地調査および収益改善に関する包括的なコンサルティングを実施する。本訪問では、対象物件の現況確認（建物の物理的状態・設備の劣化度・共用部の管理水準・テナント構成の適正性等）、周辺マーケットの実地調査（競合物件の賃料設定・設備グレード・空室状況・新規供給の動向等）、およびクライアントとの戦略会議（収益改善施策の優先順位付け・投資回収シミュレーションの共有・実行スケジュールの策定等）を予定している。不動産コンサルティングの性質上、物件の実態と市場環境を自らの目で確認し、現場の感覚に基づいた実効性のある提案を行うことが、クライアントの資産価値最大化と当社のサービス品質確保のために不可欠である。`,
-                    `${destination}のクライアントが検討中の不動産投資案件について、デューデリジェンス（物件精査）およびフィージビリティスタディ（事業性調査）を実施する。具体的には、投資対象物件の現地内覧と詳細調査（構造・設備・法的制約・環境リスク等）、周辺エリアの市場分析（賃貸需要・供給動向・人口推移・再開発計画等）、収支シミュレーションの前提条件の現地検証、および地元不動産業者・管理会社・金融機関からの情報収集を行う。不動産投資のコンサルティングにおいては、書面資料やデータだけでは把握できない現場固有のリスク要因と収益機会を直接確認することが、クライアントに対する責任あるアドバイスの前提条件である。`,
-                ],
-                'セミナー・研修': [
-                    `${destination}で開催される不動産投資・資産運用に関する専門セミナーに参加し、当社の不動産コンサルティング事業に直結する最新の知見を習得する。セミナーの内容には、不動産関連税制の改正動向（減価償却制度・譲渡所得課税・相続税評価等）、融資環境の変化と資金調達戦略、不動産市場の中長期予測、ESG・SDGsに対応した不動産運用のトレンド、および先進的な不動産テック（PropTech）の活用事例等が含まれる。セミナー終了後は、参加する不動産オーナー・投資家・デベロッパー・金融機関担当者等との情報交換・ネットワーキングを実施し、新規クライアントの獲得および業界内の人脈形成を図る。取得した知見はクライアントへのコンサルティングサービスの高度化に直接活用するとともに、当社の競争優位性強化に資する。本セミナーは対面参加のみの開催形式であり、オンライン代替が不可能である。`,
-                    `${destination}で開催される宅地建物取引業・不動産コンサルティング関連の研修プログラムに参加する。当該研修は、不動産コンサルティング技能の向上を目的とし、最新の不動産鑑定評価手法・マーケット分析技術・クライアントコミュニケーション手法・コンプライアンス対応等の実務的内容を扱う。研修にはケーススタディ・グループワーク形式のセッションが含まれるため、オンラインでの参加では十分な学習効果が得られず、現地への出張が不可欠である。研修で習得した知見は、帰社後にクライアント対応の品質向上に直接反映する。`,
-                ],
-                '契約締結・交渉': [
-                    `${destination}において、不動産売買契約・賃貸借契約・管理委託契約等に関する重要な契約交渉を実施する。交渉事項には、売買代金・賃料等の価格条件、引渡し時期・条件、瑕疵担保（契約不適合）責任の範囲と期間、原状回復義務の範囲、修繕費用の負担区分、中途解約条件、敷金・保証金の取扱い、および特約条項の内容等、不動産取引特有の専門的かつ詳細な協議が含まれる。不動産取引は数千万円から数億円規模の高額取引であり、契約書の各条項がクライアントの資産価値と将来の収益に直接影響するため、対面での慎重な逐条確認と相手方との直接交渉が不可欠である。不動産コンサルタントとして、クライアントの利益を最大限に保護する契約内容の実現を図る。`,
-                    `${destination}の取引先（売主・買主・テナント・管理会社等）を訪問し、不動産関連契約の締結または条件変更に係る交渉を実施する。具体的には、既存賃貸借契約の更新条件交渉（賃料改定・契約期間・特約事項の見直し）、新規物件取得に伴う売買契約条件の詰め、管理委託契約の内容見直しと管理報酬の適正化交渉、および工事請負契約の仕様・金額・工期に関する協議を行う。不動産に関する契約は権利関係が複雑であり、書面のみのやり取りでは認識の齟齬が生じやすいため、専門知識を持つ当社が対面で直接交渉に臨むことが、クライアントの利益保護と円滑な取引成立のために必要不可欠である。`,
-                ],
-                '物件視察': [
-                    `当社が保有・管理する${destination}所在の不動産物件について、定期的な現地視察および管理状況の総合的な確認を実施する。視察項目には、建物外観の劣化状況（外壁のひび割れ・塗装の剥離・屋上防水の状態等）、共用部の管理状態（清掃状況・照明設備・掲示物・郵便受け周辺の整理状況等）、専有部の空室確認（室内の状態・原状回復の必要性判断）、設備の動作確認（エレベーター・消防設備・給排水・電気設備等）、および周辺環境の変化（新規競合物件の建設状況・商業施設の開閉業・道路工事等）が含まれる。これらは写真や管理会社からの書面報告のみでは把握しきれない項目であり、オーナーとして資産価値の適正な維持・向上を図るためには、定期的な現地確認が法人の善管注意義務の観点からも不可欠である。`,
-                    `${destination}における保有物件の現地管理業務を実施する。建物の経年劣化に伴う修繕必要箇所の早期発見と対応優先度の判定、空室の現況確認と原状回復工事の要否判断、入居者からの要望事項の現場確認、周辺環境の変化が物件価値に与える影響の実地調査等を行う。資産管理会社として、保有不動産の価値最大化と適正な維持管理は経営の根幹に関わる業務であり、現地を直接確認せずにリモートのみで判断することは、経営上のリスクを増大させるため適切ではない。本視察は法人として必要かつ合理的な業務である。`,
-                ],
-                '収益物件調査': [
-                    `当社の中長期事業計画に基づく不動産ポートフォリオの拡充を目的とし、${destination}における収益不動産の購入候補物件に関する現地調査を実施する。調査内容には、候補物件の内覧（建物の構造・内装・設備の状態確認、各室の間取り・採光・通風の確認）、周辺環境の詳細調査（最寄り駅からの実測徒歩時間、複数時間帯での人通り・騒音レベルの確認、商業施設・教育機関・医療機関へのアクセス、競合物件の立地と賃料設定の調査）、地元不動産業者からの市場情報収集（エリアの賃貸需要動向・入居者層の特性・将来の開発計画・地域の人口動態等）、および投資採算性の現地検証が含まれる。不動産投資は数千万円から数億円規模の高額な経営判断であり、インターネット上の情報や書面資料のみに基づいて意思決定を行うことは、経営者としての善管注意義務の観点から著しく不適切である。現地を自らの目と足で確認し、五感を用いた総合的な判断を行うことが、投資リスクの適正な評価と回避のために不可欠である。`,
-                    `新規収益物件の取得検討に係る現地調査を目的とする。${destination}エリアの賃貸市場動向の把握、候補物件の立地・建物状況・収益性の実地確認、管理体制の適正性評価、および地元の不動産仲介業者との情報交換を実施する。物件の収益性を正確に評価するためには、書面上の利回り計算だけでなく、現地の実態（建物の実際の管理レベル・入居者の質・周辺の生活利便性・将来的な資産価値の見通し等）を直接確認することが不可欠であり、これは資産管理会社としての適正な投資判断プロセスにおいて省略できない業務である。`,
-                ],
-                '管理会社打合せ': [
-                    `保有物件の管理業務を委託している${destination}の管理会社を訪問し、管理業務に関する定期総合打ち合わせを実施する。協議事項には、物件ごとの入居率・稼働率の推移分析、家賃収納状況の確認と滞納対応策の協議、入居者からの要望・クレームへの対応報告と改善策の検討、退去予定者への対応と空室募集戦略の策定、修繕計画（大規模修繕の時期・内容・予算）の協議、管理費用の精査と費用対効果の検証、および管理会社の業務品質に対する評価と改善要請が含まれる。物件の収益性を最大化するためには、管理会社との密接なコミュニケーションが極めて重要であり、書面やメールのみでは伝えきれない経営方針の共有と現場感覚の擦り合わせを、対面で行うことが必要である。`,
-                    `${destination}の物件管理会社を訪問し、半期に一度の包括的な管理業務レビューを実施する。管理報告書の詳細な内容確認、各物件の収支分析と改善提案の協議、空室対策（リフォーム・家賃設定・広告戦略）の検討、入居審査基準の見直し、および今後の管理体制に関する戦略的な検討を行う。管理会社との良好な関係維持と適正な管理品質の確保は、保有不動産の資産価値と安定収益を守るために欠かせない経営業務である。`,
-                ],
-            };
+        function generatePurposeText() {
+            const dest = document.getElementById('destination').value || '現地';
+            const ordered = getOrderedSelected();
+            const supplement = document.getElementById('purposeDetail')?.value?.trim() || '';
+            const otherText = document.getElementById('purposeOther')?.value?.trim() || '';
+            const partner = getPartnerName();
 
-            const detailParts = [];
-            for (const p of purposes) {
-                const snippets = reasonSnippets[p] || [`${p}に関する業務について、${destination}の関係先との対面での協議・調査を実施する。当該業務は、取り扱う情報の機密性・意思決定の重要性・現場確認の必要性等の観点から、電話・メール・オンライン会議等の非対面手段では十分な業務遂行が困難であり、現地での直接対応が不可欠と判断した。対面での業務遂行により、書面やオンラインでは得られない現場の実態把握・関係者との信頼関係構築・迅速な意思決定を実現する。`];
-                detailParts.push(randomChoice(snippets));
+            if (ordered.length === 0 && !otherText) return '';
+
+            const fragments = [];
+            for (const id of ordered) {
+                fragments.push(buildItemFragment(id, 'purpose', dest, partner));
             }
+            if (otherText) fragments.push(otherText + 'を行う');
 
-            let body = '';
-            if (detailParts.length > 1) {
-                body = detailParts.map((part, i) => `${i + 1}. ${part}`).join('\n\n');
+            let text = '';
+            if (fragments.length === 1) {
+                text = fragments[0] + 'ため。';
+            } else if (fragments.length === 2) {
+                text = fragments[0] + 'とともに、' + fragments[1] + 'ため。';
             } else {
-                body = detailParts[0];
+                text = fragments.slice(0, -1).join('。\nあわせて、') + '。\nまた、' + fragments[fragments.length - 1] + 'ため。';
             }
 
-            let detailSentence = '';
-            if (purposeDetail && purposeDetail.trim()) {
-                detailSentence = `\n\n【出張の具体的内容】\n${purposeDetail.trim()}。\n上記の業務は、取引先・関係先との直接的な対面協議、現場の実地確認、および機密情報を含む資料の授受等を伴うものであり、電話・メール・オンライン会議等の非対面手段では十分な成果が得られないため、現地での直接対応が業務遂行上必要不可欠と判断した。`;
-            }
-
-            const necessity = randomChoice([
-                `\n\n【出張の必要性】\n本出張は、上記業務の遂行にあたり現地での対面実施が不可欠であるため、${nights}泊${days}日の日程で実施する。出張期間は業務内容に照らして必要最小限の日数であり、効率的なスケジュール編成により移動時間の最小化と業務密度の最大化を図る。当社旅費規程に基づき、宿泊費・日当・交通費を支給する。なお、本出張に係る費用は、出張の業務上の必要性および法人の事業目的との関連性に鑑み、法人の損金として処理する。`,
-                `\n\n【出張の必要性】\n上記業務はいずれも現地確認・対面協議を要するものであり、リモート対応では業務目的の達成が困難である。効率的な業務遂行のため${nights}泊${days}日の出張とし、当社旅費規程に定める基準に従い旅費を支給する。出張日程は業務の遂行に必要な最小限の期間とし、宿泊地は業務遂行上の利便性を考慮して選定する。本出張は法人の事業遂行に直接関連する業務活動であり、旅費規程に基づく適正な経費処理を行う。`,
-                `\n\n【出張の必要性】\n本出張は当社の事業計画および業務遂行上の合理的必要性に基づくものであり、${nights}泊${days}日の日程は業務内容に対して必要かつ適正な期間である。現地での直接的な業務対応により、オンラインや書面では得られない質の高い成果（現場の実態把握・関係者との信頼構築・迅速な意思決定等）を確保する。旅費は当社旅費規程に定める支給基準に従い、宿泊費・日当・交通費の実費または定額を支給するものとし、社会通念上妥当な範囲内での支出とする。`,
-            ]);
-
-            return body + detailSentence + necessity;
+            if (supplement) text += '\n' + supplement;
+            return text;
         }
 
-        function _generateTripReport(purposes, destination, nights, purposeDetail) {
-            const days = nights + 1;
-            const reportSnippets = {
-                '不動産会社周り': [
-                    `${destination}所在の不動産仲介業者${Math.max(2, nights + 1)}社を訪問し、投資用物件に関する包括的な情報収集および現地視察を実施した。各仲介業者から、当該エリアの最新の市場動向（取引価格の推移・賃料相場の変動・需給バランス・今後の開発計画等）について詳細なブリーフィングを受けるとともに、現在流通中の複数の候補物件について、立地条件（最寄り駅からの実測徒歩距離・周辺商業施設の充実度・治安状況・騒音レベル）、建物状態（構造の健全性・築年数に対する劣化度合い・修繕履歴・設備仕様のグレード）、収益性（現行賃料と相場との比較・想定空室率・管理費用・修繕積立金の適正性）等を実地に確認した。書面・写真資料では把握困難な建物の実際の管理水準、入居者の質、共用部の使用状況等について直接確認することができ、投資判断の精度向上に資する有益な一次情報を多数取得した。また、仲介業者各社との対面での関係強化により、今後の非公開優良案件の優先紹介について前向きな合意を得ることができた。`,
-                    `${destination}の不動産仲介業者を訪問し、当社の投資方針に合致する収益物件の調査および市場分析を実施した。訪問先の各社から、地域特有の不動産市場の特性、入居需要の季節変動、競合物件の動向、地元の開発計画が賃貸市場に与える影響等について、現地でしか得られない実務的な情報を詳細に聴取した。併せて、候補物件の内覧を行い、建物のメンテナンス状態・設備の経年劣化・周辺環境の実態を五感で確認した。インターネット上の物件情報や仲介業者からの書面レポートだけでは判断し得ない重要な情報を多数収集でき、今後の投資意思決定において極めて有益な出張であった。`,
-                ],
-                'クライアント相談': [
-                    `${destination}在住の不動産オーナー・投資家クライアント${Math.max(2, nights + 1)}名との対面コンサルティングを実施した。各クライアントの保有不動産ポートフォリオの現状分析（物件別収益率・空室率・修繕積立金の充足状況・減価償却スケジュール等）に基づき、資産運用戦略の見直しと最適化について包括的な助言を行った。特に、築年数の経過に伴う大規模修繕の時期・費用見積もりと、修繕後の賃料改定・バリューアップ戦略について、具体的な事例データを用いながら詳細に検討した。また、相続・事業承継を見据えた不動産資産の組み替え（低収益物件の売却と高収益物件への入替え）、法人化による税務メリットの試算、借入金の借り換えによるキャッシュフロー改善策等、クライアント各自の資産状況と将来計画に即した個別具体的な提案を行った。対面での相談により、クライアントの潜在的な不安や要望を丁寧にヒアリングすることができ、オンラインでは得られない深い信頼関係の構築と高い顧客満足度の獲得に成功した。`,
-                    `${destination}のクライアント（不動産投資家・資産管理法人代表者）を訪問し、保有物件の運用状況レビューおよび今後の投資戦略に関する対面コンサルティングを実施した。各クライアントの保有物件について、直近の入居率・賃料収入の推移・管理費用の妥当性・周辺相場との乖離等を詳細に分析し、物件ごとの改善策（リノベーション投資・賃料見直し・管理会社の変更検討等）を具体的に提案した。また、新規物件取得に関心を持つクライアントに対しては、当該エリアの市場動向・融資環境・投資採算シミュレーションを提示し、投資判断に必要な情報を網羅的に提供した。対面でのきめ細かな相談対応により、クライアントから今後の資産運用全般にわたる継続的なアドバイザリー契約の更新について前向きな意向を確認することができた。`,
-                ],
-                '企業訪問': [
-                    `${destination}所在の不動産関連企業${Math.max(2, nights + 1)}社を訪問し、事業提携・情報交換に関する対面打ち合わせを実施した。訪問先はデベロッパー・建設会社・リフォーム会社・金融機関・税理士事務所等、不動産コンサルティング業務に関連する多岐にわたる企業であり、各社の最新の事業動向・市場認識・今後の事業計画等について詳細なヒアリングを行った。デベロッパーからは当該エリアの新規開発案件・分譲マンション供給計画・土地仕入れ動向等の最新情報を聴取し、建設会社からはリノベーション工事の最新コスト動向・工期・施工品質に関する実務的な知見を得た。金融機関からは不動産融資の最新審査基準・金利動向・融資枠の見通しについて実務担当者から直接説明を受けた。対面での訪問により、各企業の経営層・実務担当者との人的ネットワークを強化し、クライアントへのコンサルティング品質向上に直結する有益な業界情報と協力関係を構築することができた。`,
-                    `${destination}の不動産関連企業への訪問を実施し、業界動向の調査および業務提携先との関係強化を図った。不動産仲介大手・地域密着型管理会社・リフォーム専門会社・損害保険代理店等を訪問し、各社の得意分野・対応エリア・サービス品質・価格体系等を直接確認した。各訪問先との意見交換を通じて、不動産市場の実態（取引件数の推移・価格交渉の難易度・買主の購買意欲・融資付けの状況等）について現場感のある情報を多数収集した。これらの情報は、当社がクライアントに提供するコンサルティングサービスの品質向上と、具体的な物件紹介・管理会社選定・リフォーム提案等の実務面での提案力強化に直接的に寄与するものであり、極めて有意義な出張であった。`,
-                ],
-                'コンサル案件': [
-                    `不動産コンサルティング契約に基づき、${destination}のクライアント（不動産オーナー・投資法人）を訪問し、保有不動産のデューデリジェンス報告および投資戦略に関する対面コンサルティングを実施した。対象物件${Math.max(2, nights + 1)}件について、事前に実施した建物診断・法務調査・収益分析の結果を報告するとともに、現地にて実物を確認しながら改善提案の詳細を協議した。具体的には、各物件のエンジニアリングレポート（建物劣化診断・修繕優先順位・概算費用）、マーケットレポート（周辺賃料相場・競合物件分析・需要予測）、フィナンシャルレポート（キャッシュフロー分析・IRR試算・出口戦略シミュレーション）の内容をクライアントに説明し、投資判断に必要な情報を網羅的に提供した。また、クライアントの今後の資産拡大計画に対し、物件取得候補のフィージビリティスタディ（事業採算性調査）の実施方針について合意を得た。現地での対面協議により、クライアントの投資方針・リスク許容度・資金計画等について深い理解を得ることができ、より精度の高いコンサルティング提案の策定に必要な知見を確保した。`,
-                    `${destination}において、不動産コンサルティング案件に係る現地調査および関係者との協議を実施した。クライアントから委託を受けた不動産の有効活用プランの策定にあたり、対象地の現地確認（土地形状・接道状況・日照条件・近隣建築物の状況・インフラ整備状況等）、行政機関での法規制調査（用途地域・建蔽率容積率・開発許可要件・条例制限等）、地元不動産業者からの市場ヒアリング（想定賃料・入居需要・競合状況等）を詳細に行った。収集したデータに基づき、複数の活用プラン（賃貸住宅開発・商業施設誘致・駐車場経営・等価交換方式等）の比較検討資料を作成するための基礎情報を確保した。現地を実際に歩いて確認することで、地図や航空写真では読み取れない周辺環境の実態（交通量・騒音・振動・臭気・景観等）を把握でき、クライアントに対するより実態に即した提案の策定に大きく寄与する出張となった。`,
-                ],
-                'セミナー・研修': [
-                    `${destination}で開催された不動産投資・資産運用に関するセミナーに参加し、不動産コンサルティング業務に直結する最新の専門知識の習得を行った。プログラムでは、不動産鑑定士・税理士・弁護士・金融機関の融資担当者等の各分野専門家による講演が実施され、最新の不動産市場動向（地価公示・路線価の動向・取引件数の推移・外国人投資家の動向等）、不動産関連税制の改正情報（減価償却制度の変更・譲渡所得課税の特例・相続税評価の見直し等）、不動産投資における法務リスク管理（契約書作成の留意点・瑕疵担保責任の実務・借地借家法の最新判例等）、建物の長寿命化技術と修繕計画の最適化手法等について、実務的かつ体系的な知識を効率的に取得した。セミナー後の懇親会では、参加した不動産オーナー・投資家・同業コンサルタント・金融機関関係者等との情報交換を通じて、市場の実態情報や実務上の課題・ノウハウを多数収集するとともに、今後のコンサルティング業務に資する人的ネットワークを構築・強化した。取得した知見はクライアントへの助言品質の向上に直接活用する。`,
-                    `${destination}にて開催された不動産実務研修プログラムに参加した。研修テーマは不動産の適正評価手法（DCF法・直接還元法・取引事例比較法の実務適用）、収益物件のバリューアップ戦略（リノベーション投資の費用対効果分析・テナントミックス最適化・管理コスト削減手法）、不動産テック（PropTech）の最新動向（AI査定ツール・VR内覧・スマートロック・IoTを活用した建物管理等）、および不動産ファンド・REIT市場の動向と私募ファンド組成実務であった。各テーマについて、第一線で活躍する実務家講師からケーススタディを交えた実践的な講義を受け、当社のコンサルティングサービスに即座に適用可能な最新の知見・手法を多数習得した。また、研修参加者（不動産AM会社・PM会社・デベロッパー・金融機関等の実務者）との意見交換を通じて、業界各社の最新の取り組みと課題認識を把握し、当社のサービス差別化に向けた有益な示唆を得た。`,
-                ],
-                '契約締結・交渉': [
-                    `${destination}において、不動産売買契約に関する対面交渉および契約締結業務を実施した。クライアントの代理人として、売主側（不動産業者・個人オーナー）との間で、売買価格・引渡し条件・瑕疵担保責任（契約不適合責任）の範囲・手付金の額と解除条件・ローン特約の内容・固定資産税等の精算方法・境界確認の方法と費用負担・残置物の処理・引渡し前の修繕対応等の各条項について逐条で詳細な交渉を行った。対面での交渉により、相手方の売却動機・希望条件の優先順位・価格交渉の余地等を正確に把握することができ、クライアントにとって有利な条件での合意形成に成功した。併せて、仲介業者・司法書士・金融機関（融資担当）との間で、決済・登記・融資実行のスケジュール調整を行い、取引の円滑な進行に向けた体制を整備した。対面での直接交渉が契約条件の最適化と迅速な意思決定に大きく寄与した。`,
-                    `${destination}にて、賃貸借契約・管理委託契約に関する交渉および締結業務を実施した。クライアント所有物件の新規テナント誘致に係る賃貸借契約について、借主側との間で賃料・共益費・敷金・礼金・契約期間・更新条件・原状回復義務の範囲・禁止事項・解約予告期間等の各条項を詳細に協議し、クライアントの収益確保と長期安定入居の両立を図る契約条件での合意に達した。また、管理委託契約の更新交渉では、管理会社との間で管理手数料率の見直し・業務範囲の明確化（日常清掃・設備点検・入居者対応・退去立会い・原状回復工事の手配等）・報告義務の頻度と内容・契約解除条件等について改善を求め、クライアントの利益に資する条件改善を実現した。不動産取引特有の専門的な契約条項について、現場で関係者と直接協議することにより、書面のやり取りでは解決困難な細部の調整を効率的に完了することができた。`,
-                ],
-                '物件視察': [
-                    `${destination}所在の保有物件を訪問し、総合的な現地視察および管理状況の確認を実施した。建物外観の劣化状況（外壁・屋上防水・基礎部分等）、共用部の管理水準（清掃状態・照明・掲示物・植栽の手入れ・駐輪場の整理状況等）、設備の動作確認（エレベーター・消防設備・給排水設備・インターホン等）、空室の現況（室内の状態確認・原状回復工事の必要性判定）、および周辺環境の変化（新規建築物・道路工事・商業施設の開閉業等）を詳細に確認した。写真や管理会社からの書面報告では把握しにくい経年変化の微細な兆候や、入居者の生活動線に影響する細部の状況を直接確認でき、今後の修繕計画の優先順位付けおよび中長期的な資産価値維持戦略の立案に極めて有益な情報を得ることができた。視察結果に基づく具体的な改善指示を管理会社に伝達し、対応スケジュールについて合意した。`,
-                    `${destination}における保有物件の定期視察を実施した。前回視察時からの変化点を重点的に確認し、建物の経年劣化の進行度合い、設備の更新必要性、入居者の利用状況等を詳細に把握した。現地確認の結果、書面報告では報告されていなかった軽微な不具合を複数発見し、早期対応を指示することで大規模修繕への発展を未然に防止することができた。物件オーナーとして現地を自らの目で確認する重要性を改めて認識し、資産の適正管理と収益性の維持に必要な措置を講じた。`,
-                ],
-                '収益物件調査': [
-                    `${destination}において、収益不動産の取得検討に伴う現地調査を実施した。候補物件${Math.max(2, nights + 1)}件の内覧を行い、各物件の立地環境（最寄り駅からの実測徒歩距離・周辺の生活利便施設・騒音レベル・日照条件等）、建物状態（外壁・屋根・基礎の健全性・室内設備のグレードと経年状況・共用部の管理水準）、収益性（現行賃料の相場との乖離・空室リスク・修繕積立金の充足度・管理費用の妥当性）等を詳細に確認した。併せて、周辺の賃貸市場動向（競合物件の家賃設定・入居率・ターゲット層の特性）を実地で調査し、投資採算性の検証に必要な定量・定性の両面からデータを収集した。現地確認により、物件紹介資料やインターネット上の情報だけでは把握できない重要な判断材料を多数取得でき、投資判断の精度向上に大きく寄与する成果を得た。`,
-                ],
-                '管理会社打合せ': [
-                    `${destination}の物件管理会社を訪問し、管理業務に関する定期総合打ち合わせを実施した。物件ごとの入居率推移・家賃収納状況・滞納案件の対応経過・入居者からの要望およびクレーム対応の詳細報告を受け、各事案について管理会社の対応の適正性を検証した。空室対策（募集条件の見直し・リフォーム提案・広告戦略の改善）、修繕計画（優先順位の見直し・予算配分の調整・施工業者の選定基準）、および管理費用の費用対効果について詳細な協議を行い、管理品質の維持・向上に向けた具体的な改善事項と対応スケジュールについて合意を得た。対面での協議により、書面では伝えきれない当社の経営方針と管理に対する考え方を直接共有でき、管理会社との認識統一と協力体制の強化を図ることができた。`,
-                ],
-            };
+        function generateReportText() {
+            const dest = document.getElementById('destination').value || '現地';
+            const confirmed = Array.from(reportConfirmed).filter(id => selectedItems.has(id));
+            const supplement = document.getElementById('purposeDetail')?.value?.trim() || '';
+            const resultNote = document.getElementById('resultNote')?.value?.trim() || '';
+            const nextAction = document.getElementById('nextAction')?.value?.trim() || '';
+            const otherText = document.getElementById('purposeOther')?.value?.trim() || '';
+            const partner = getPartnerName();
 
-            const parts = [];
-            for (const p of purposes) {
-                const snippets = reportSnippets[p] || [`${p}に関する業務を${destination}にて遂行し、所期の目的を達成した。現地での直接対応により、リモートや書面のみでは得られない詳細な情報・知見を多数取得することができた。対面でのコミュニケーションにより関係者との信頼関係が深化し、今後の業務推進に必要な協力体制の基盤を構築することができた。`];
-                parts.push(randomChoice(snippets));
+            if (confirmed.length === 0 && !otherText) return '';
+
+            const fragments = [];
+            for (const id of confirmed) {
+                fragments.push(buildItemFragment(id, 'report', dest, partner));
             }
+            if (otherText) fragments.push(otherText + 'を行った');
 
-            let reportBody;
-            if (parts.length > 1) {
-                reportBody = parts.map((part, i) => `${i + 1}. ${part}`).join('\n\n');
-            } else {
-                reportBody = parts[0];
-            }
+            let text = fragments.join('。\n') + '。';
 
-            let detailSection = '';
-            if (purposeDetail && purposeDetail.trim()) {
-                detailSection = `\n\n【活動詳細】\n${purposeDetail.trim()}について、現地にて直接対応を行った。事前にオンラインや書面で確認していた内容に加え、現場でしか確認できない実態や課題を多数発見し、事前の想定を大きく上回る有益な情報・成果を得ることができた。現地での直接的な業務対応の重要性を改めて確認する結果となった。`;
-            }
+            if (supplement) text += '\n' + supplement;
+            if (resultNote) text += '\n\n【確認事項・成果】\n' + resultNote;
+            if (nextAction) text += '\n\n【今後の対応】\n' + nextAction;
 
-            const closing = randomChoice([
-                `\n\n【成果と今後の対応】\n本出張により、当初設定した全ての業務目的を達成し、今後の事業推進に必要な重要な情報・合意・関係構築の成果を得ることができた。出張成果を踏まえ、以下のとおり対応を進める。\n・取得した情報・データの整理・分析および社内関係者への共有\n・関係先との追加協議・フォローアップの速やかな実施（出張後1週間以内を目途）\n・出張成果に基づく具体的なアクションプランの策定と実行\n・必要に応じた次回訪問の計画策定（時期・目的・期待成果の整理）\n以上のとおり、本出張は業務遂行上必要不可欠な活動であり、所期の目的を十分に達成することができた。出張に係る費用は、業務上の成果に照らして合理的かつ適正な支出であったと認められる。`,
-                `\n\n【成果と今後の対応】\n本出張では、計画していた全ての業務を滞りなく遂行し、以下の成果を得た。\n・現地でしか確認できない実態情報の収集と、それに基づく経営判断材料の確保\n・関係先との対面での信頼関係の構築・強化と、今後の協力体制に関する合意形成\n・課題の早期発見と対応方針の迅速な決定\n本出張で得られた成果を基に、速やかに社内検討を行い、具体的なアクションプランを策定する。関係先へのフォローアップについても、出張後速やかに実施する予定である。\n以上のとおり、本出張は当社の事業目的に直接関連する業務活動であり、所期の目的を十分に達成することができた。出張の日程・経費はいずれも業務上の必要性に基づく合理的な範囲内であった。`,
-                `\n\n【成果と今後の対応】\n${nights}泊${days}日の出張期間を通じて、予定していた全ての業務を計画どおり遂行し、当初の出張目的を達成した。特に、現地での対面業務により、書面・電話・オンライン等の非対面手段では得ることが困難な質の高い情報と成果を確保できたことは大きな収穫であった。\n帰社後は、出張で得た情報・知見を速やかに整理・分析し、社内共有を行うとともに、関係先へのお礼と今後のスケジュール調整を含むフォローアップを実施する。出張成果を当社の事業戦略に反映し、業務品質の向上と事業発展に活用する。`,
-            ]);
-
-            return reportBody + detailSection + closing;
+            return text;
         }
 
-        function generateReason() {
-            const purposes = getSelectedPurposes();
-            const destination = document.getElementById('destination').value;
-            const nights = document.getElementById('nights').value;
-            const purposeDetail = document.getElementById('purposeDetail').value;
+        function buildItemFragment(id, mode, dest, partner) {
+            const details = getSelectedDetails(id);
+            const isPurpose = mode === 'purpose';
+            const cat = itemCategory[id];
 
-            if (!destination) { alert('出張先を入力してください'); return; }
-            if (purposes.length === 0) { alert('出張目的を1つ以上選択してください'); return; }
+            const partnerForC = (cat.id === 'C' && partner) ? partner + 'と、' : '';
+            const partnerGeneral = (cat.id !== 'C' && partner) ? partner + 'と面談し、' : '';
 
-            const reason = _generateTripReason(purposes, destination, parseInt(nights) || 1, purposeDetail);
-            document.getElementById('tripReason').value = reason;
-        }
-
-        function generateReport() {
-            const purposes = getSelectedPurposes();
-            const destination = document.getElementById('destination').value;
-            const nights = document.getElementById('nights').value;
-            const purposeDetail = document.getElementById('purposeDetail').value;
-
-            if (!destination) { alert('出張先を入力してください'); return; }
-            if (purposes.length === 0) { alert('出張目的を1つ以上選択してください'); return; }
-
-            const report = _generateTripReport(purposes, destination, parseInt(nights) || 1, purposeDetail);
-            document.getElementById('tripReport').value = report;
-        }
-
-        // ============================================================
-        // 肉付け機能（ユーザーが書いた内容を拡張）
-        // ============================================================
-
-        function _expandText(userText, destination, purposes, nights, mode) {
-            const text = userText.trim();
-            const days = nights + 1;
-
-            const formalOpeners = [
-                `${destination}への出張において、以下の業務を遂行した。`,
-                `当社の不動産コンサルティング業務の一環として、${destination}にて以下の業務を実施した。`,
-                `${destination}における業務遂行のため、${nights}泊${days}日の日程で出張を実施し、以下の成果を得た。`,
-            ];
-
-            const contextByPurpose = {
-                '不動産会社周り': '現地の不動産仲介業者との情報交換を通じて、最新の市場動向（取引価格の推移・賃料相場・需給バランス）を把握するとともに、非公開を含む投資用物件情報の収集を行った。',
-                '物件視察': '対象物件の建物状態（外壁・設備・共用部の管理水準）、立地環境（交通アクセス・周辺施設・騒音等）、入居者の状況等を実地に確認し、書面や写真では把握困難な情報を直接確認した。',
-                'クライアント相談': 'クライアント（不動産オーナー・投資家）との対面相談を実施し、保有物件の運用状況レビュー、資産ポートフォリオの最適化、今後の投資戦略について個別具体的な助言を行った。',
-                '企業訪問': '不動産関連企業（デベロッパー・建設会社・リフォーム会社・金融機関・税理士事務所等）を訪問し、業界動向の調査および業務提携に関する協議を行った。',
-                '収益物件調査': '収益不動産の取得検討に伴い、候補物件の内覧・周辺賃貸市場の調査・投資採算性の検証を実地で行い、投資判断に必要な定量・定性データを収集した。',
-                '管理会社打合せ': '物件管理会社との定期打ち合わせを実施し、入居率・家賃収納状況・修繕計画・空室対策等について詳細な協議と改善指示を行った。',
-                'コンサル案件': 'コンサルティング契約に基づき、クライアントの保有不動産に関するデューデリジェンス報告および投資戦略の提案を対面で実施した。',
-                'セミナー・研修': '不動産投資・資産運用に関する専門セミナーに参加し、最新の市場動向・税制改正・法務リスク管理等について実務的知見を習得した。',
-                '契約締結・交渉': '不動産取引に係る契約条件の交渉および締結業務を実施し、売買価格・引渡し条件・瑕疵担保責任等の各条項について詳細な協議を行った。',
-            };
-
-            const reasonClosings = [
-                '上記業務は、取引先・関係先との直接対面での協議、現場の実地確認、および機密性の高い資料の授受を伴うものであり、電話・メール・オンライン会議等の非対面手段では十分な成果を得ることが困難であるため、現地への出張による直接対応が業務遂行上不可欠と判断した。',
-                '本業務は、現地での実物確認・対面交渉・関係者との直接的な信頼構築が不可欠であり、リモート対応では代替し得ない性質のものであるため、出張による現地対応が必要と判断した。',
-                '当該業務は、物件・施設等の現況を五感で確認し、関係者と対面で機微な情報交換を行う必要があるため、現地出張による対応が業務上必要不可欠である。',
-            ];
-
-            const reportClosings = [
-                `\n\n【成果と今後の対応】\n本出張により、所期の業務目的を達成し、今後の事業推進に必要な情報・合意・関係構築の成果を得た。出張成果を踏まえ、取得情報の整理・分析、関係先へのフォローアップ、具体的アクションプランの策定を速やかに実施する。本出張は業務遂行上必要不可欠な活動であり、費用は業務上の成果に照らして合理的かつ適正な支出であった。`,
-                `\n\n【成果と今後の対応】\n${nights}泊${days}日の出張期間を通じて、予定業務を計画どおり遂行し、当初の目的を達成した。現地での対面対応により、非対面では得られない質の高い情報と成果を確保できた。帰社後は出張成果を整理・分析し、社内共有およびフォローアップを実施する。出張の日程・経費はいずれも業務上の必要性に基づく合理的な範囲内であった。`,
-            ];
-
-            const purposeContexts = purposes
-                .map(p => contextByPurpose[p])
-                .filter(Boolean);
-
-            let expanded = randomChoice(formalOpeners) + '\n\n';
-
-            expanded += text;
-
-            if (purposeContexts.length > 0) {
-                expanded += '\n\n' + purposeContexts.join('\n');
+            switch (id) {
+                case 'beichin': {
+                    const d = details.length > 0 ? details.join('、') + 'について' : '';
+                    if (isPurpose) return `${dest}にて、沖縄の米軍関係者向け賃貸事業${d ? 'の' + d : 'について'}${partnerGeneral}相談する`;
+                    return `${dest}にて、沖縄の米軍関係者向け賃貸事業${d ? 'の' + d : 'について'}${partnerGeneral}相談した`;
+                }
+                case 'gunyouchi': {
+                    const d = details.length > 0 ? details.join('、') + 'について' : '';
+                    if (isPurpose) return `軍用地の活用${d ? 'に関して' + d : 'について'}相談する`;
+                    return `軍用地の活用${d ? 'に関して' + d : 'について'}相談した`;
+                }
+                case 'okinawa_hoyuu': {
+                    const d = details.length > 0 ? details.join('や') + 'を確認し、' : '';
+                    if (isPurpose) return `沖縄に資産を保有する意義について、${d}相談する`;
+                    return `沖縄に資産を保有する意義について、${d}相談した`;
+                }
+                case 'shisan_unyou': {
+                    const d = details.length > 0 ? '、' + details.join('や') + 'を含めて' : '';
+                    if (isPurpose) return `保有資産の運用方針${d}見直しの相談を行う`;
+                    return `保有資産の運用方針${d}見直しについて相談した`;
+                }
+                case 'zeimu': {
+                    const d = details.length > 0 ? details.join('や') + 'について、' : '';
+                    if (isPurpose) return `${d}税務上の課題整理と対策について相談する`;
+                    return `${d}税務上の課題整理と対策について相談した`;
+                }
+                case 'souzoku': {
+                    const d = details.length > 0 ? details.join('、') + 'を含めて' : '';
+                    if (isPurpose) return `相続・資産承継について、${d}課題の整理と方針の相談を行う`;
+                    return `相続・資産承継について、${d}課題の整理と方針を相談した`;
+                }
+                case 'kizon_follow': {
+                    const d = details.length > 0 ? '、' + details.join('や') + 'の確認を含めて' : '';
+                    if (isPurpose) return `${dest}にて既存顧客のフォローアップ面談${d}を行う`;
+                    return `${dest}にて既存顧客とフォローアップ面談${d}を行った`;
+                }
+                case 'fudousan_houmon': {
+                    const d = details.length > 0 ? details.join('、') + 'のため、' : '';
+                    if (isPurpose) return `${d}現地の不動産業者を訪問する`;
+                    return `${d}現地の不動産業者を訪問した`;
+                }
+                case 'bukken_shisatsu': {
+                    const d = details.length > 0 ? '物件の' + details.join('や') + 'を確認する' : '物件を視察する';
+                    if (isPurpose) return d;
+                    return d.replace(/する$/, 'した');
+                }
+                case 'bukken_chousa': {
+                    const d = details.length > 0 ? details.join('、') + 'を調査する' : '物件の調査を行う';
+                    if (isPurpose) return d;
+                    return d.replace(/する$/, 'した');
+                }
+                case 'tochi_chousa': {
+                    const d = details.length > 0 ? '土地の' + details.join('、') + 'を調査する' : '土地の調査を行う';
+                    if (isPurpose) return d;
+                    return d.replace(/する$/, 'した');
+                }
+                case 'souba_chousa': {
+                    if (isPurpose) return `${dest}周辺の賃貸・売買相場を調査する`;
+                    return `${dest}周辺の賃貸・売買相場を調査した`;
+                }
+                case 'torihiki_kyougi': {
+                    const d = details.length > 0 ? details.join('、') + 'について' : '';
+                    if (isPurpose) return `取引条件・契約内容${d ? 'に関して' + d : 'について'}関係者と協議する`;
+                    return `取引条件・契約内容${d ? 'に関して' + d : 'について'}関係者と協議した`;
+                }
+                case 'kenchiku_uchiawase': {
+                    const d = details.length > 0 ? details.join('や') + 'について' : '';
+                    if (isPurpose) return `${partnerForC}建築業者と${d}打ち合わせを行う`;
+                    return `${partnerForC}建築業者と${d}打ち合わせを行った`;
+                }
+                case 'sekkei_uchiawase': {
+                    const d = details.length > 0 ? details.join('や') + 'について' : '';
+                    if (isPurpose) return `${partnerForC}設計担当者と${d}打ち合わせを行う`;
+                    return `${partnerForC}設計担当者と${d}打ち合わせを行った`;
+                }
+                case 'kouzou_keisan': {
+                    const d = details.length > 0 ? '、' + details.join('や') + 'に関する' : 'の';
+                    if (isPurpose) return `${partnerForC}構造計算${d}打ち合わせを行う`;
+                    return `${partnerForC}構造計算${d}打ち合わせを行った`;
+                }
+                case 'beast_kouhou': {
+                    const d = details.length > 0 ? '、' + details.join('や') + 'について' : 'の採用検討について';
+                    if (isPurpose) return `${partnerForC}ビースト工法${d}打ち合わせを行う`;
+                    return `${partnerForC}ビースト工法${d}打ち合わせを行った`;
+                }
+                case 'kenchikuhi_kyougi': {
+                    const d = details.length > 0 ? details.join('と') + 'について' : '';
+                    if (isPurpose) return `建築費${d ? 'の' + d : 'と見積内容について'}協議する`;
+                    return `建築費${d ? 'の' + d : 'と見積内容について'}協議した`;
+                }
+                case 'kouji_kakunin': {
+                    if (isPurpose) return `工事現場の進捗状況を確認する`;
+                    return `工事現場の進捗状況を確認した`;
+                }
+                case 'kinyu_kikan': {
+                    const d = details.length > 0 ? details.join('、') + 'について' : '';
+                    if (isPurpose) return `金融機関と${d}打ち合わせを行う`;
+                    return `金融機関と${d}打ち合わせを行った`;
+                }
+                case 'zeirishi': {
+                    const d = details.length > 0 ? details.join('、') + 'について' : '';
+                    if (isPurpose) return `税理士・士業と${d}打ち合わせを行う`;
+                    return `税理士・士業と${d}打ち合わせを行った`;
+                }
+                case 'shoukaisha': {
+                    const d = details.length > 0 ? details.join('、') + 'のため、' : '';
+                    if (isPurpose) return `${d}紹介者・提携先と面談する`;
+                    return `${d}紹介者・提携先と面談した`;
+                }
+                case 'gyousei': {
+                    const d = details.length > 0 ? details.join('、') + 'について' : '';
+                    if (isPurpose) return `行政窓口にて${d}確認を行う`;
+                    return `行政窓口にて${d}確認を行った`;
+                }
+                case 'seminar': {
+                    if (isPurpose) return `${dest}にてセミナーへの登壇または相談会を実施する`;
+                    return `${dest}にてセミナーへの登壇または相談会を実施した`;
+                }
+                case 'benkyoukai': {
+                    if (isPurpose) return `${dest}で開催される勉強会・研修に参加する`;
+                    return `${dest}で開催された勉強会・研修に参加した`;
+                }
+                case 'shukuhaku_shisatsu': {
+                    if (isPurpose) return `宿泊施設の取得・活用の検討のため視察を行う`;
+                    return `宿泊施設の取得・活用を検討するため視察を行った`;
+                }
+                default: {
+                    const item = itemById[id];
+                    const label = item ? item.label : id;
+                    if (isPurpose) return `${label}を行う`;
+                    return `${label}を行った`;
+                }
             }
-
-            if (mode === 'reason') {
-                expanded += '\n\n' + randomChoice(reasonClosings);
-            } else {
-                expanded += randomChoice(reportClosings);
-            }
-
-            return expanded;
         }
 
-        function expandReason() {
-            const textarea = document.getElementById('tripReason');
-            const userText = textarea.value.trim();
-            if (!userText) {
-                alert('まず出張理由の概要を記入してください。\n例：「東京で不動産会社3社を回り、投資物件の情報収集を行った」');
-                return;
-            }
-            const destination = document.getElementById('destination').value || '出張先';
-            const purposes = getSelectedPurposes();
-            const nights = parseInt(document.getElementById('nights').value) || 1;
-            textarea.value = _expandText(userText, destination, purposes, nights, 'reason');
-        }
+        // Legacy wrappers for collectPayload auto-generation fallback
+        function _generateTripReason() { return generatePurposeText(); }
+        function _generateTripReport() { return generateReportText(); }
+        function generateReason() { regenerateText('reason'); }
+        function generateReport() { regenerateText('report'); }
 
-        function expandReport() {
-            const textarea = document.getElementById('tripReport');
-            const userText = textarea.value.trim();
-            if (!userText) {
-                alert('まず出張報告の概要を記入してください。\n例：「物件3件を内覧し、管理会社と修繕計画について打ち合わせした」');
-                return;
-            }
-            const destination = document.getElementById('destination').value || '出張先';
-            const purposes = getSelectedPurposes();
-            const nights = parseInt(document.getElementById('nights').value) || 1;
-            textarea.value = _expandText(userText, destination, purposes, nights, 'report');
-        }
-
-        // ============================================================
         // Date formatting helpers (Japanese era)
         // ============================================================
 
@@ -2054,6 +2563,70 @@
                 page.drawText(text || '', { x, y: yp, size, font: jpFont, color: opts.color || rgb(0,0,0) });
             }
 
+            // Helper: wrap text to fit within maxWidth (points)
+            function wrapTextLines(text, fontSize, maxWidth) {
+                const rawLines = (text || '').split('\n');
+                const wrapped = [];
+                for (const rawLine of rawLines) {
+                    if (!rawLine) { wrapped.push(''); continue; }
+                    const w = jpFont.widthOfTextAtSize(rawLine, fontSize);
+                    if (w <= maxWidth) { wrapped.push(rawLine); continue; }
+                    let cur = '';
+                    for (const ch of rawLine) {
+                        const test = cur + ch;
+                        if (jpFont.widthOfTextAtSize(test, fontSize) > maxWidth) {
+                            if (cur) wrapped.push(cur);
+                            cur = ch;
+                        } else {
+                            cur = test;
+                        }
+                    }
+                    if (cur) wrapped.push(cur);
+                }
+                return wrapped;
+            }
+
+            // Helper: draw wrapped text block in a bordered rectangle (handles page breaks)
+            function drawTextBlock(text, fontSize, lineH, padX, padY) {
+                const maxTextW = CW - padX * 2;
+                const lines = wrapTextLines(text, fontSize, maxTextW);
+                const blockH = Math.max(30, lines.length * lineH + padY * 2);
+                const pageBottom = 50;
+                const avail = y - pageBottom;
+                if (blockH <= avail) {
+                    page.drawRectangle({ x: ML, y: y - blockH, width: CW, height: blockH,
+                        borderColor: rgb(0.5, 0.5, 0.5), borderWidth: 0.5 });
+                    lines.forEach((line, i) => {
+                        const ly = y - padY - (i + 1) * lineH + (lineH - fontSize) / 2;
+                        drawText(line, ML + padX, ly, fontSize);
+                    });
+                    y -= blockH;
+                } else {
+                    // Draw line by line across pages with border segments
+                    let rectStartY = y;
+                    let lineIdx = 0;
+                    y -= padY;
+                    while (lineIdx < lines.length) {
+                        if (y - lineH < pageBottom) {
+                            // Close current rectangle segment
+                            page.drawRectangle({ x: ML, y: pageBottom, width: CW, height: rectStartY - pageBottom,
+                                borderColor: rgb(0.5, 0.5, 0.5), borderWidth: 0.5 });
+                            page = pdfDoc.addPage([W, H]);
+                            y = H - MT;
+                            rectStartY = y;
+                            y -= padY;
+                        }
+                        const ly = y - lineH + (lineH - fontSize) / 2;
+                        drawText(lines[lineIdx], ML + padX, ly, fontSize);
+                        y -= lineH;
+                        lineIdx++;
+                    }
+                    y -= padY;
+                    page.drawRectangle({ x: ML, y: y, width: CW, height: rectStartY - y,
+                        borderColor: rgb(0.5, 0.5, 0.5), borderWidth: 0.5 });
+                }
+            }
+
             // Helper: draw table
             function drawTable(rows, colWidths, startY, opts = {}) {
                 const rowH = opts.rowHeight || 22;
@@ -2152,14 +2725,8 @@
             y -= 16;
             let reasonText = payload.trip_reason || '';
             if (payload.purpose_detail) reasonText += `\n【詳細】${payload.purpose_detail}`;
-            const reasonLines = reasonText.split('\n');
-            const reasonH = Math.max(30, reasonLines.length * 14 + 10);
-            page.drawRectangle({ x: ML, y: y - reasonH, width: CW, height: reasonH,
-                borderColor: rgb(0.5, 0.5, 0.5), borderWidth: 0.5 });
-            reasonLines.forEach((line, i) => {
-                drawText(line, ML + 6, y - 12 - i * 14, 9);
-            });
-            y -= reasonH + 12;
+            drawTextBlock(reasonText, 9, 14, 6, 8);
+            y -= 12;
 
             // === Expense details ===
             checkPage(30);
@@ -2220,14 +2787,8 @@
             drawText('■ 出張報告', ML, y, 11);
             y -= 16;
             const reportText = payload.trip_report || '';
-            const reportLines = reportText.split('\n');
-            const reportH = Math.max(30, reportLines.length * 14 + 10);
-            page.drawRectangle({ x: ML, y: y - reportH, width: CW, height: reportH,
-                borderColor: rgb(0.5, 0.5, 0.5), borderWidth: 0.5 });
-            reportLines.forEach((line, i) => {
-                drawText(line, ML + 6, y - 12 - i * 14, 9);
-            });
-            y -= reportH + 12;
+            drawTextBlock(reportText, 9, 14, 6, 8);
+            y -= 12;
 
             // Approval
             checkPage(50);
@@ -2391,7 +2952,7 @@
                 destination: document.getElementById('destination').value,
                 purpose: purposes.join('\u30FB'),
                 purposes: purposes,
-                purpose_detail: document.getElementById('purposeDetail').value,
+                purpose_detail: document.getElementById('purposeDetail')?.value || '',
                 start_date: document.getElementById('startDate').value,
                 end_date: document.getElementById('endDate').value,
                 nights: parseInt(document.getElementById('nights').value),
@@ -2400,12 +2961,18 @@
                 transport_details: getTransportDetails(),
                 trip_reason: document.getElementById('tripReason').value,
                 trip_report: document.getElementById('tripReport').value,
+                result_note: document.getElementById('resultNote')?.value || '',
+                next_action: document.getElementById('nextAction')?.value || '',
+                meeting_partner: getPartnerName(),
+                selected_items: Array.from(selectedItems),
+                selected_details: {...selectedDetails},
+                primary_purpose: primaryPurpose,
             };
             if (!payload.trip_reason) {
-                payload.trip_reason = _generateTripReason(purposes, payload.destination, payload.nights, payload.purpose_detail);
+                payload.trip_reason = generatePurposeText();
             }
             if (!payload.trip_report) {
-                payload.trip_report = _generateTripReport(purposes, payload.destination, payload.nights, payload.purpose_detail);
+                payload.trip_report = generateReportText();
             }
             return payload;
         }
@@ -2605,20 +3172,17 @@
             document.getElementById('nights').value = d.nights || 1;
             document.getElementById('purposeDetail').value = d.purpose_detail || '';
 
-            const purposes = d.purposes || (d.purpose ? d.purpose.split('\u30FB') : []);
-            document.querySelectorAll('#purposeCheckboxes input').forEach(cb => {
-                cb.checked = purposes.includes(cb.value);
-                toggleCheckbox(cb);
-            });
-            const otherCb = document.querySelector('#purposeCheckboxes input[value="その他"]');
-            if (otherCb && otherCb.checked) {
-                const knownPurposes = ['不動産会社周り', '物件視察', '企業訪問', '収益物件調査', '管理会社打合せ', 'コンサル案件', 'セミナー・研修', '契約締結・交渉', 'その他'];
-                const customPurpose = purposes.find(p => !knownPurposes.includes(p));
-                if (customPurpose) {
-                    document.getElementById('purposeOther').value = customPurpose;
-                    document.getElementById('purposeOther').style.display = 'block';
-                }
-            }
+            if (document.getElementById('resultNote')) document.getElementById('resultNote').value = d.result_note || '';
+            if (document.getElementById('nextAction')) document.getElementById('nextAction').value = d.next_action || '';
+            if (document.getElementById('meetingPartnerGeneral')) document.getElementById('meetingPartnerGeneral').value = d.meeting_partner || '';
+
+            selectedItems = new Set(d.selected_items || []);
+            selectedDetails = d.selected_details ? {...d.selected_details} : {};
+            primaryPurpose = d.primary_purpose || (selectedItems.size > 0 ? Array.from(selectedItems)[0] : null);
+            reportConfirmed = new Set(d.selected_items || []);
+            document.getElementById('purposeOther').value = '';
+            manualEdited = { reason: true, report: true };
+            renderAll();
 
             document.getElementById('accommodationFee').value = d.accommodation_fee || 20000;
             document.getElementById('dailyAllowance').value = d.daily_allowance || 2000;
@@ -2694,6 +3258,8 @@
 
         // Init
         loadProfile();
+        renderAll();
+        addTransport();
         updateCalc();
         updateFeeChips();
         updateNightsChips();
