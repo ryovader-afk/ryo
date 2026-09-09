@@ -1564,6 +1564,8 @@
             const key = group + ':' + detail;
             selectedDetails[key] = !selectedDetails[key];
             if (!selectedDetails[key]) delete selectedDetails[key];
+            manualEdited.reason = false;
+            manualEdited.report = false;
             renderDetails();
             autoGenerate();
         }
@@ -2007,12 +2009,32 @@
                 const allDetails = [...new Set([...getSelectedDetails('kouzou_keisan'), ...getSelectedDetails('beast_kouhou')])]
                     .filter(d => d !== '工法の採用検討' && d !== '構造計算');
                 if (allDetails.length > 0) {
-                    const d = allDetails.join('や');
-                    if (isPurpose) return `${partnerPrefix}ビースト工法の採用検討に伴う構造計算や${d}について打ち合わせを行う`;
-                    return `${partnerPrefix}ビースト工法の採用検討に伴う構造計算や${d}について打ち合わせを行った`;
+                    const clauses = allDetails.map(d => {
+                        switch (d) {
+                            case '計画・仕様': return isPurpose
+                                ? `建築計画の仕様条件を確認する`
+                                : `建築計画の仕様条件を確認した`;
+                            case '施工条件': return isPurpose
+                                ? `現場の施工条件や制約事項を整理する`
+                                : `現場の施工条件や制約事項を整理した`;
+                            case '見積・費用': return isPurpose
+                                ? `工事費用の見積内容を精査し、在来工法との比較を行う`
+                                : `工事費用の見積内容を精査し、在来工法との比較を行った`;
+                            case '工期・工程': return isPurpose
+                                ? `施工スケジュールを確認し、工期短縮の効果を検討する`
+                                : `施工スケジュールを確認し、工期短縮の効果を検討した`;
+                            default: return isPurpose
+                                ? `${d}について確認する`
+                                : `${d}について確認した`;
+                        }
+                    });
+                    const base = isPurpose
+                        ? `${partnerPrefix}ビースト工法の採用検討に伴う構造計算の内容や安全性を確認する`
+                        : `${partnerPrefix}ビースト工法の採用検討に伴う構造計算の内容や安全性を確認した`;
+                    return base + 'とともに、' + connectClauses(clauses, true);
                 }
-                if (isPurpose) return `${partnerPrefix}構造計算とビースト工法の採用検討について打ち合わせを行う`;
-                return `${partnerPrefix}構造計算とビースト工法の採用検討について打ち合わせを行った`;
+                if (isPurpose) return `${partnerPrefix}ビースト工法の採用を見据えた構造計算について、技術的な適合性やコスト面を含めた打ち合わせを行う`;
+                return `${partnerPrefix}ビースト工法の採用を見据えた構造計算について、技術的な適合性やコスト面を含めた打ち合わせを行った`;
             }
 
             // A: 米賃貸 + 軍用地
@@ -2020,16 +2042,63 @@
                 const allDetails = [...new Set([...getSelectedDetails('beichin'), ...getSelectedDetails('gunyouchi')])];
                 if (allDetails.includes('仕組みの説明') && allDetails.length > 1) {
                     const other = allDetails.filter(d => d !== '仕組みの説明');
-                    if (isPurpose) return `${dest}にて、米軍関係者向け賃貸事業と軍用地の仕組みを説明し、${other.join('や')}について相談する`;
-                    return `${dest}にて、米軍関係者向け賃貸事業と軍用地の仕組みを説明し、${other.join('や')}について相談した`;
+                    const otherClauses = other.map(d => {
+                        switch (d) {
+                            case '収支の確認': return isPurpose
+                                ? `それぞれの事業における収支状況や投資利回りの見通しについて確認する`
+                                : `それぞれの事業における収支状況や投資利回りの見通しについて確認した`;
+                            case '資金調達': return isPurpose
+                                ? `取得に必要な資金計画や融資条件について相談する`
+                                : `取得に必要な資金計画や融資条件について相談した`;
+                            case '保有方法': return isPurpose
+                                ? `最適な保有形態や名義構成について検討する`
+                                : `最適な保有形態や名義構成について検討した`;
+                            case '運用の見直し': return isPurpose
+                                ? `現在の運用方針について見直しの方向性を相談する`
+                                : `現在の運用方針について見直しの方向性を相談した`;
+                            case '売却・承継': return isPurpose
+                                ? `売却時期や承継方法について方針を相談する`
+                                : `売却時期や承継方法について方針を相談した`;
+                            default: return isPurpose
+                                ? `${d}について相談する`
+                                : `${d}について相談した`;
+                        }
+                    });
+                    const base = isPurpose
+                        ? `${dest}にて、米軍関係者向け賃貸事業の運営体制と軍用地の売買・借地の仕組みについて説明する`
+                        : `${dest}にて、米軍関係者向け賃貸事業の運営体制と軍用地の売買・借地の仕組みについて説明した`;
+                    return base + 'とともに、' + connectClauses(otherClauses, true);
                 }
                 if (allDetails.length > 0) {
-                    const d = allDetails.join('や');
-                    if (isPurpose) return `${dest}にて、米軍関係者向け賃貸事業と軍用地の活用について${d}を相談する`;
-                    return `${dest}にて、米軍関係者向け賃貸事業と軍用地の活用について${d}を相談した`;
+                    const clauses = allDetails.map(d => {
+                        switch (d) {
+                            case '仕組みの説明': return isPurpose
+                                ? `米軍関係者向け賃貸事業と軍用地それぞれの仕組みや運営体制について説明する`
+                                : `米軍関係者向け賃貸事業と軍用地それぞれの仕組みや運営体制について説明した`;
+                            case '収支の確認': return isPurpose
+                                ? `賃貸事業と軍用地の収支状況を確認し、投資効果を比較検討する`
+                                : `賃貸事業と軍用地の収支状況を確認し、投資効果を比較検討した`;
+                            case '資金調達': return isPurpose
+                                ? `両事業への投資に必要な資金計画や融資条件を相談する`
+                                : `両事業への投資に必要な資金計画や融資条件を相談した`;
+                            case '保有方法': return isPurpose
+                                ? `賃貸物件と軍用地それぞれの最適な保有形態を検討する`
+                                : `賃貸物件と軍用地それぞれの最適な保有形態を検討した`;
+                            case '運用の見直し': return isPurpose
+                                ? `保有資産全体のポートフォリオとして運用方針の見直しを行う`
+                                : `保有資産全体のポートフォリオとして運用方針の見直しを行った`;
+                            case '売却・承継': return isPurpose
+                                ? `保有資産の売却判断や次世代への承継方法について方針を整理する`
+                                : `保有資産の売却判断や次世代への承継方法について方針を整理した`;
+                            default: return isPurpose
+                                ? `${d}について相談する`
+                                : `${d}について相談した`;
+                        }
+                    });
+                    return `${dest}にて、米軍関係者向け賃貸事業と軍用地の活用について、` + connectClauses(clauses);
                 }
-                if (isPurpose) return `${dest}にて、米軍関係者向け賃貸事業と軍用地の活用について相談する`;
-                return `${dest}にて、米軍関係者向け賃貸事業と軍用地の活用について相談した`;
+                if (isPurpose) return `${dest}にて、米軍関係者向け賃貸事業の運営状況と軍用地の取得・活用方法について総合的に相談する`;
+                return `${dest}にて、米軍関係者向け賃貸事業の運営状況と軍用地の取得・活用方法について総合的に相談した`;
             }
 
             // C: 建築業者 + 建築費
@@ -2038,15 +2107,48 @@
                 const meetingTopics = allDetails.filter(d => d === '計画・仕様' || d === '施工条件');
                 const costTopics = allDetails.filter(d => d === '見積・費用' || d === '工期・工程');
                 if (meetingTopics.length > 0 && costTopics.length > 0) {
-                    if (isPurpose) return `${partnerPrefix}建築業者と${meetingTopics.join('や')}を確認し、${costTopics.join('や')}について協議する`;
-                    return `${partnerPrefix}建築業者と${meetingTopics.join('や')}を確認し、${costTopics.join('や')}について協議した`;
+                    const meetClauses = meetingTopics.map(d => {
+                        if (d === '計画・仕様') return isPurpose
+                            ? `建築計画の全体構成や仕上げ仕様の詳細を確認する`
+                            : `建築計画の全体構成や仕上げ仕様の詳細を確認した`;
+                        return isPurpose
+                            ? `現場の施工条件や近隣対応等の制約事項を整理する`
+                            : `現場の施工条件や近隣対応等の制約事項を整理した`;
+                    });
+                    const costClauses = costTopics.map(d => {
+                        if (d === '見積・費用') return isPurpose
+                            ? `見積書の項目ごとの費用妥当性を精査し、減額交渉の余地を検討する`
+                            : `見積書の項目ごとの費用妥当性を精査し、減額交渉の余地を検討した`;
+                        return isPurpose
+                            ? `着工から竣工までの工程表を確認し、工期やマイルストーンを整理する`
+                            : `着工から竣工までの工程表を確認し、工期やマイルストーンを整理した`;
+                    });
+                    return `${partnerPrefix}建築業者と打ち合わせを行い、` + connectClauses(meetClauses) + '。あわせて、' + connectClauses(costClauses);
                 }
                 if (allDetails.length > 0) {
-                    if (isPurpose) return `${partnerPrefix}建築業者と${allDetails.join('や')}を確認し、建築費について協議する`;
-                    return `${partnerPrefix}建築業者と${allDetails.join('や')}を確認し、建築費について協議した`;
+                    const clauses = allDetails.map(d => {
+                        switch (d) {
+                            case '計画・仕様': return isPurpose
+                                ? `建築計画の仕様や設計条件の詳細を確認する`
+                                : `建築計画の仕様や設計条件の詳細を確認した`;
+                            case '施工条件': return isPurpose
+                                ? `現場の施工条件について制約事項を整理する`
+                                : `現場の施工条件について制約事項を整理した`;
+                            case '見積・費用': return isPurpose
+                                ? `見積内容を精査し、建築費の妥当性を検討する`
+                                : `見積内容を精査し、建築費の妥当性を検討した`;
+                            case '工期・工程': return isPurpose
+                                ? `工程表を確認し、全体工期の妥当性を検討する`
+                                : `工程表を確認し、全体工期の妥当性を検討した`;
+                            default: return isPurpose
+                                ? `${d}について確認する`
+                                : `${d}について確認した`;
+                        }
+                    });
+                    return `${partnerPrefix}建築業者と打ち合わせを行い、` + connectClauses(clauses) + (isPurpose ? '。あわせて、建築費全体の妥当性について協議する' : '。あわせて、建築費全体の妥当性について協議した');
                 }
-                if (isPurpose) return `${partnerPrefix}建築業者と打ち合わせを行い、建築費と見積内容について協議する`;
-                return `${partnerPrefix}建築業者と打ち合わせを行い、建築費と見積内容について協議した`;
+                if (isPurpose) return `${partnerPrefix}建築業者と建築計画の進捗について打ち合わせを行い、あわせて建築費の見積内容や工事費用の妥当性について協議する`;
+                return `${partnerPrefix}建築業者と建築計画の進捗について打ち合わせを行い、あわせて建築費の見積内容や工事費用の妥当性について協議した`;
             }
 
             // B: 不動産業者訪問 + 物件視察
@@ -2054,22 +2156,124 @@
                 const fDetails = getSelectedDetails('fudousan_houmon');
                 const bDetails = getSelectedDetails('bukken_shisatsu');
                 if (fDetails.length > 0 && bDetails.length > 0) {
-                    if (isPurpose) return `現地の不動産業者を訪問して${fDetails.join('や')}を行うとともに、物件の${bDetails.join('や')}を視察する`;
-                    return `現地の不動産業者を訪問して${fDetails.join('や')}を行い、物件の${bDetails.join('や')}を視察した`;
+                    const fClauses = fDetails.map(d => {
+                        switch (d) {
+                            case '案件紹介の相談': return isPurpose
+                                ? `新規案件の紹介について相談を行い、条件に合う物件の有無を確認する`
+                                : `新規案件の紹介について相談を行い、条件に合う物件の有無を確認した`;
+                            case '物件情報の収集': return isPurpose
+                                ? `非公開物件を含めた最新の物件情報を幅広く収集する`
+                                : `非公開物件を含めた最新の物件情報を幅広く収集した`;
+                            case '地域動向の情報交換': return isPurpose
+                                ? `地域の開発計画や不動産市況について情報交換を行う`
+                                : `地域の開発計画や不動産市況について情報交換を行った`;
+                            case '管理・募集の相談': return isPurpose
+                                ? `保有物件の管理業務や入居者募集について相談する`
+                                : `保有物件の管理業務や入居者募集について相談した`;
+                            case '提携の相談': return isPurpose
+                                ? `今後の業務提携について意見交換を行う`
+                                : `今後の業務提携について意見交換を行った`;
+                            default: return isPurpose
+                                ? `${d}を行う`
+                                : `${d}を行った`;
+                        }
+                    });
+                    const bClauses = bDetails.map(d => {
+                        switch (d) {
+                            case '立地・周辺環境': return isPurpose
+                                ? `立地条件や周辺の生活環境を確認する`
+                                : `立地条件や周辺の生活環境を確認した`;
+                            case '建物・設備': return isPurpose
+                                ? `建物の構造・仕様や設備の状況を視察する`
+                                : `建物の構造・仕様や設備の状況を視察した`;
+                            case '管理状況': return isPurpose
+                                ? `共用部分の清掃状態や管理運営状況を確認する`
+                                : `共用部分の清掃状態や管理運営状況を確認した`;
+                            case '改修の必要性': return isPurpose
+                                ? `改修工事の必要性や概算費用を検討する`
+                                : `改修工事の必要性や概算費用を検討した`;
+                            default: return isPurpose
+                                ? `物件の${d}を視察する`
+                                : `物件の${d}を視察した`;
+                        }
+                    });
+                    return '現地の不動産業者を訪問し、' + connectClauses(fClauses) + '。あわせて対象物件を視察し、' + connectClauses(bClauses);
                 }
                 if (fDetails.length > 0) {
-                    if (isPurpose) return `現地の不動産業者を訪問して${fDetails.join('や')}を行うとともに、物件を視察する`;
-                    return `現地の不動産業者を訪問して${fDetails.join('や')}を行い、物件を視察した`;
+                    const fClauses = fDetails.map(d => {
+                        switch (d) {
+                            case '案件紹介の相談': return isPurpose
+                                ? `新規案件の紹介について相談する`
+                                : `新規案件の紹介について相談した`;
+                            case '物件情報の収集': return isPurpose
+                                ? `最新の物件情報を収集する`
+                                : `最新の物件情報を収集した`;
+                            case '地域動向の情報交換': return isPurpose
+                                ? `地域の不動産市況について情報交換を行う`
+                                : `地域の不動産市況について情報交換を行った`;
+                            case '管理・募集の相談': return isPurpose
+                                ? `管理業務や入居者募集について相談する`
+                                : `管理業務や入居者募集について相談した`;
+                            case '提携の相談': return isPurpose
+                                ? `業務提携について意見交換を行う`
+                                : `業務提携について意見交換を行った`;
+                            default: return isPurpose
+                                ? `${d}を行う`
+                                : `${d}を行った`;
+                        }
+                    });
+                    return '現地の不動産業者を訪問し、' + connectClauses(fClauses) + (isPurpose ? '。あわせて、対象物件の現地視察を行う' : '。あわせて、対象物件の現地視察を行った');
                 }
                 if (bDetails.length > 0) {
-                    if (isPurpose) return `現地の不動産業者を訪問するとともに、物件の${bDetails.join('や')}を視察する`;
-                    return `現地の不動産業者を訪問し、物件の${bDetails.join('や')}を視察した`;
+                    const bClauses = bDetails.map(d => {
+                        switch (d) {
+                            case '立地・周辺環境': return isPurpose
+                                ? `立地条件や周辺環境を確認する`
+                                : `立地条件や周辺環境を確認した`;
+                            case '建物・設備': return isPurpose
+                                ? `建物の構造や設備の状況を視察する`
+                                : `建物の構造や設備の状況を視察した`;
+                            case '管理状況': return isPurpose
+                                ? `現在の管理運営状況を確認する`
+                                : `現在の管理運営状況を確認した`;
+                            case '改修の必要性': return isPurpose
+                                ? `改修工事の必要性を検討する`
+                                : `改修工事の必要性を検討した`;
+                            default: return isPurpose
+                                ? `${d}を視察する`
+                                : `${d}を視察した`;
+                        }
+                    });
+                    return '現地の不動産業者を訪問し、取扱い物件の情報収集や地域動向の確認を行う' + (isPurpose ? 'とともに、対象物件を視察し、' : '。あわせて対象物件を視察し、') + connectClauses(bClauses);
                 }
-                if (isPurpose) return `現地の不動産業者を訪問するとともに、物件を視察する`;
-                return `現地の不動産業者を訪問し、物件を視察した`;
+                if (isPurpose) return `現地の不動産業者を訪問して取扱い物件の情報収集や地域の不動産市況について相談するとともに、対象物件の立地環境や建物の状態を視察する`;
+                return `現地の不動産業者を訪問して取扱い物件の情報収集や地域の不動産市況について相談し、あわせて対象物件の立地環境や建物の状態を視察した`;
             }
 
             return null;
+        }
+
+        function connectClauses(clauses, skipTotomoni) {
+            if (clauses.length === 0) return '';
+            if (clauses.length === 1) return clauses[0];
+            const isPast = /[たっ]$/.test(clauses[0]);
+            if (skipTotomoni || isPast) {
+                const connectors = isPast
+                    ? ['また、', 'さらに、', 'あわせて、']
+                    : ['さらに、', 'あわせて、', '加えて、'];
+                let result = clauses[0];
+                for (let i = 1; i < clauses.length; i++) {
+                    result += '。' + connectors[Math.min(i - 1, connectors.length - 1)] + clauses[i];
+                }
+                return result;
+            }
+            if (clauses.length === 2) return clauses[0] + 'とともに、' + clauses[1];
+            const connectors = ['さらに、', 'あわせて、', '加えて、'];
+            let result = clauses[0] + 'とともに、' + clauses[1];
+            for (let i = 2; i < clauses.length; i++) {
+                result += '。' + connectors[Math.min(i - 2, connectors.length - 1)] + clauses[i];
+            }
+            return result;
         }
 
         function buildItemFragment(id, mode, dest, partner) {
@@ -2081,223 +2285,656 @@
             switch (id) {
                 case 'beichin': {
                     if (details.length > 0) {
-                        const d = details.join('や');
-                        if (isPurpose) return `${dest}にて、米軍関係者向け賃貸事業の${d}について相談する`;
-                        return `${dest}にて、米軍関係者向け賃貸事業の${d}について相談した`;
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '仕組みの説明': return isPurpose
+                                    ? `${dest}にて米軍関係者向け賃貸事業の仕組みや運営体制について説明を行う`
+                                    : `${dest}にて米軍関係者向け賃貸事業の仕組みや運営体制について説明を行った`;
+                                case '収支の確認': return isPurpose
+                                    ? `現在の賃貸事業における収支状況や入居率を確認し、今後の収益見通しについて検討する`
+                                    : `現在の賃貸事業における収支状況や入居率を確認し、今後の収益見通しについて検討した`;
+                                case '資金調達': return isPurpose
+                                    ? `米軍関係者向け賃貸事業に必要な資金調達の方法や条件について相談する`
+                                    : `米軍関係者向け賃貸事業に必要な資金調達の方法や条件について相談した`;
+                                case '保有方法': return isPurpose
+                                    ? `物件の保有形態や名義、法的構成について最適な方法を検討する`
+                                    : `物件の保有形態や名義、法的構成について最適な方法を検討した`;
+                                case '運用の見直し': return isPurpose
+                                    ? `既存物件の賃料設定や管理体制を含め、運用方針の見直しを行う`
+                                    : `既存物件の賃料設定や管理体制を含め、運用方針の見直しを行った`;
+                                case '売却・承継': return isPurpose
+                                    ? `保有物件の売却時期や承継方法について方針を相談する`
+                                    : `保有物件の売却時期や承継方法について方針を相談した`;
+                                default: return isPurpose
+                                    ? `${dest}にて米軍関係者向け賃貸事業の${d}について相談する`
+                                    : `${dest}にて米軍関係者向け賃貸事業の${d}について相談した`;
+                            }
+                        });
+                        return connectClauses(clauses);
                     }
-                    if (isPurpose) return `${dest}にて、沖縄の米軍関係者向け賃貸事業について相談する`;
-                    return `${dest}にて、沖縄の米軍関係者向け賃貸事業について相談した`;
+                    if (isPurpose) return `${dest}にて、沖縄の米軍関係者向け賃貸事業について市場動向や運営体制を含めた相談を行う`;
+                    return `${dest}にて、沖縄の米軍関係者向け賃貸事業について市場動向や運営体制を含めた相談を行った`;
                 }
                 case 'gunyouchi': {
                     if (details.length > 0) {
-                        const d = details.join('や');
-                        if (isPurpose) return `軍用地の活用について、${d}を相談する`;
-                        return `軍用地の活用について、${d}を相談した`;
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '仕組みの説明': return isPurpose
+                                    ? `軍用地の売買や借地の仕組み、返還リスクを含めた全体像について説明する`
+                                    : `軍用地の売買や借地の仕組み、返還リスクを含めた全体像について説明した`;
+                                case '収支の確認': return isPurpose
+                                    ? `軍用地の年間借地料や収支状況を確認し、投資利回りの見通しについて検討する`
+                                    : `軍用地の年間借地料や収支状況を確認し、投資利回りの見通しについて検討した`;
+                                case '資金調達': return isPurpose
+                                    ? `軍用地取得に必要な資金計画や融資条件について金融機関との連携を含め相談する`
+                                    : `軍用地取得に必要な資金計画や融資条件について金融機関との連携を含め相談した`;
+                                case '保有方法': return isPurpose
+                                    ? `軍用地の保有形態や登記上の名義構成について最適な方法を検討する`
+                                    : `軍用地の保有形態や登記上の名義構成について最適な方法を検討した`;
+                                case '運用の見直し': return isPurpose
+                                    ? `保有中の軍用地について、借地料の推移や将来見通しを踏まえた運用方針の見直しを行う`
+                                    : `保有中の軍用地について、借地料の推移や将来見通しを踏まえた運用方針の見直しを行った`;
+                                case '売却・承継': return isPurpose
+                                    ? `軍用地の売却タイミングや次世代への承継方法について相談する`
+                                    : `軍用地の売却タイミングや次世代への承継方法について相談した`;
+                                default: return isPurpose
+                                    ? `軍用地の活用について${d}を相談する`
+                                    : `軍用地の活用について${d}を相談した`;
+                            }
+                        });
+                        return connectClauses(clauses);
                     }
-                    if (isPurpose) return `軍用地の活用について相談する`;
-                    return `軍用地の活用について相談した`;
+                    if (isPurpose) return `軍用地の取得・活用に関する市場動向や投資条件について相談する`;
+                    return `軍用地の取得・活用に関する市場動向や投資条件について相談した`;
                 }
                 case 'okinawa_hoyuu': {
                     if (details.length > 0) {
-                        const d = details.join('や');
-                        if (isPurpose) return `沖縄に資産を保有する意義について、${d}を確認しながら相談する`;
-                        return `沖縄に資産を保有する意義について、${d}を確認しながら相談した`;
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '仕組みの説明': return isPurpose
+                                    ? `沖縄における不動産保有の仕組みや税制上の優位性について説明する`
+                                    : `沖縄における不動産保有の仕組みや税制上の優位性について説明した`;
+                                case '収支の確認': return isPurpose
+                                    ? `沖縄保有資産の収支実績を確認し、今後の収益性について見通しを立てる`
+                                    : `沖縄保有資産の収支実績を確認し、今後の収益性について見通しを立てた`;
+                                case '資金調達': return isPurpose
+                                    ? `沖縄での資産取得に向けた資金調達の手法や金融機関との交渉方針を相談する`
+                                    : `沖縄での資産取得に向けた資金調達の手法や金融機関との交渉方針を相談した`;
+                                case '保有方法': return isPurpose
+                                    ? `沖縄資産の保有名義や法人活用を含めた最適な保有形態を検討する`
+                                    : `沖縄資産の保有名義や法人活用を含めた最適な保有形態を検討した`;
+                                case '運用の見直し': return isPurpose
+                                    ? `沖縄の保有資産について賃料水準や管理体制の見直しを含めた運用方針を再検討する`
+                                    : `沖縄の保有資産について賃料水準や管理体制の見直しを含めた運用方針を再検討した`;
+                                case '売却・承継': return isPurpose
+                                    ? `沖縄保有資産の売却判断や次世代への承継方法について方針を整理する`
+                                    : `沖縄保有資産の売却判断や次世代への承継方法について方針を整理した`;
+                                default: return isPurpose
+                                    ? `沖縄に資産を保有する意義について${d}を確認する`
+                                    : `沖縄に資産を保有する意義について${d}を確認した`;
+                            }
+                        });
+                        return connectClauses(clauses);
                     }
-                    if (isPurpose) return `沖縄に資産を保有する意義について相談する`;
-                    return `沖縄に資産を保有する意義について相談した`;
+                    if (isPurpose) return `沖縄に資産を保有する意義について、地域の市場環境や税制面の優位性を踏まえて相談する`;
+                    return `沖縄に資産を保有する意義について、地域の市場環境や税制面の優位性を踏まえて相談した`;
                 }
                 case 'shisan_unyou': {
                     if (details.length > 0) {
-                        const d = details.join('や');
-                        if (isPurpose) return `保有資産の${d}を含めた運用方針の見直しを相談する`;
-                        return `保有資産の${d}を含めた運用方針の見直しを相談した`;
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '仕組みの説明': return isPurpose
+                                    ? `保有資産の運用における基本的な仕組みや方針について説明し、理解を深める`
+                                    : `保有資産の運用における基本的な仕組みや方針について説明し、理解を深めた`;
+                                case '収支の確認': return isPurpose
+                                    ? `保有資産全体の収支バランスやキャッシュフローの状況を精査し、改善点を洗い出す`
+                                    : `保有資産全体の収支バランスやキャッシュフローの状況を精査し、改善点を洗い出した`;
+                                case '資金調達': return isPurpose
+                                    ? `資産運用の拡大に向けた追加融資や借換えの可能性について検討する`
+                                    : `資産運用の拡大に向けた追加融資や借換えの可能性について検討した`;
+                                case '保有方法': return isPurpose
+                                    ? `法人・個人間の資産配分や保有名義の最適化について方針を見直す`
+                                    : `法人・個人間の資産配分や保有名義の最適化について方針を見直した`;
+                                case '運用の見直し': return isPurpose
+                                    ? `現在の運用方針を市場環境の変化に照らして再評価し、中長期的な方針を再設定する`
+                                    : `現在の運用方針を市場環境の変化に照らして再評価し、中長期的な方針を再設定した`;
+                                case '売却・承継': return isPurpose
+                                    ? `保有資産の一部売却や組み替え、将来の承継を見据えた出口戦略について相談する`
+                                    : `保有資産の一部売却や組み替え、将来の承継を見据えた出口戦略について相談した`;
+                                default: return isPurpose
+                                    ? `保有資産の${d}を含めた運用方針の見直しを相談する`
+                                    : `保有資産の${d}を含めた運用方針の見直しを相談した`;
+                            }
+                        });
+                        return connectClauses(clauses);
                     }
-                    if (isPurpose) return `保有資産の運用方針について見直しの相談を行う`;
-                    return `保有資産の運用方針について見直しの相談を行った`;
+                    if (isPurpose) return `保有資産全体の運用方針について、現在の市場環境を踏まえた見直しの相談を行う`;
+                    return `保有資産全体の運用方針について、現在の市場環境を踏まえた見直しの相談を行った`;
                 }
                 case 'zeimu': {
                     if (details.length > 0) {
-                        const d = details.join('や');
-                        if (isPurpose) return `${d}を踏まえ、税務上の課題整理と対策について相談する`;
-                        return `${d}を踏まえ、税務上の課題整理と対策について相談した`;
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '個別案件の相談': return isPurpose
+                                    ? `個別の不動産取引に伴う税務上の取扱いや申告方法について専門家と相談する`
+                                    : `個別の不動産取引に伴う税務上の取扱いや申告方法について専門家と相談した`;
+                                case '条件確認': return isPurpose
+                                    ? `特例措置の適用条件や控除要件について最新の制度内容を確認する`
+                                    : `特例措置の適用条件や控除要件について最新の制度内容を確認した`;
+                                case '資料確認': return isPurpose
+                                    ? `確定申告や法人決算に必要な資料の整備状況を確認し、不足書類を整理する`
+                                    : `確定申告や法人決算に必要な資料の整備状況を確認し、不足書類を整理した`;
+                                case '役割分担': return isPurpose
+                                    ? `税理士との間で申告業務や資料準備の役割分担を明確にする`
+                                    : `税理士との間で申告業務や資料準備の役割分担を明確にした`;
+                                case '次回対応': return isPurpose
+                                    ? `今後の税務申告スケジュールや対応事項を確認し、次回までの準備計画を立てる`
+                                    : `今後の税務申告スケジュールや対応事項を確認し、次回までの準備計画を立てた`;
+                                default: return isPurpose
+                                    ? `${d}を踏まえ税務上の課題について相談する`
+                                    : `${d}を踏まえ税務上の課題について相談した`;
+                            }
+                        });
+                        return connectClauses(clauses);
                     }
-                    if (isPurpose) return `税務上の課題整理と対策について相談する`;
-                    return `税務上の課題整理と対策について相談した`;
+                    if (isPurpose) return `不動産保有・取引に関する税務上の課題整理と節税対策について専門家と相談する`;
+                    return `不動産保有・取引に関する税務上の課題整理と節税対策について専門家と相談した`;
                 }
                 case 'souzoku': {
                     if (details.length > 0) {
-                        const d = details.join('や');
-                        if (isPurpose) return `相続・資産承継について、${d}を含めた課題整理と方針の相談を行う`;
-                        return `相続・資産承継について、${d}を含めた課題整理と方針を相談した`;
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '個別案件の相談': return isPurpose
+                                    ? `相続・資産承継に関する個別案件の進捗状況を確認し、今後の対応方針を相談する`
+                                    : `相続・資産承継に関する個別案件の進捗状況を確認し、今後の対応方針を相談した`;
+                                case '条件確認': return isPurpose
+                                    ? `相続税の特例措置や控除制度の適用条件について最新情報を確認する`
+                                    : `相続税の特例措置や控除制度の適用条件について最新情報を確認した`;
+                                case '資料確認': return isPurpose
+                                    ? `相続対策に必要な財産目録や評価資料の整備状況を確認する`
+                                    : `相続対策に必要な財産目録や評価資料の整備状況を確認した`;
+                                case '役割分担': return isPurpose
+                                    ? `相続対策における各専門家や家族間の役割分担を明確にする`
+                                    : `相続対策における各専門家や家族間の役割分担を明確にした`;
+                                case '次回対応': return isPurpose
+                                    ? `相続対策の今後のスケジュールと次回までの対応事項を確認する`
+                                    : `相続対策の今後のスケジュールと次回までの対応事項を確認した`;
+                                default: return isPurpose
+                                    ? `相続・資産承継の${d}について相談する`
+                                    : `相続・資産承継の${d}について相談した`;
+                            }
+                        });
+                        return connectClauses(clauses);
                     }
-                    if (isPurpose) return `相続・資産承継に関する課題の整理と方針について相談する`;
-                    return `相続・資産承継に関する課題の整理と方針について相談した`;
+                    if (isPurpose) return `相続・資産承継に関する課題を整理し、中長期的な対策方針について専門家と相談する`;
+                    return `相続・資産承継に関する課題を整理し、中長期的な対策方針について専門家と相談した`;
                 }
                 case 'kizon_follow': {
                     if (details.length > 0) {
-                        const d = details.join('や');
-                        if (isPurpose) return `既存顧客を訪問し、${d}の確認を含めたフォローアップを行う`;
-                        return `既存顧客を訪問し、${d}の確認を含めたフォローアップを行った`;
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '個別案件の相談': return isPurpose
+                                    ? `顧客の保有物件に関する個別案件の進捗を確認し、今後の対応方針を相談する`
+                                    : `顧客の保有物件に関する個別案件の進捗を確認し、今後の対応方針を相談した`;
+                                case '条件確認': return isPurpose
+                                    ? `現行の契約条件や管理状況について詳細を確認し、見直しの必要性を検討する`
+                                    : `現行の契約条件や管理状況について詳細を確認し、見直しの必要性を検討した`;
+                                case '資料確認': return isPurpose
+                                    ? `顧客へ提出する報告資料や提案書の内容を確認し、最新情報に更新する`
+                                    : `顧客へ提出する報告資料や提案書の内容を確認し、最新情報に更新した`;
+                                case '役割分担': return isPurpose
+                                    ? `顧客対応における社内外の役割分担を整理し、連携体制を確認する`
+                                    : `顧客対応における社内外の役割分担を整理し、連携体制を確認した`;
+                                case '次回対応': return isPurpose
+                                    ? `顧客への次回訪問時期や対応内容を確認し、フォローアップの計画を立てる`
+                                    : `顧客への次回訪問時期や対応内容を確認し、フォローアップの計画を立てた`;
+                                default: return isPurpose
+                                    ? `既存顧客の${d}を確認する`
+                                    : `既存顧客の${d}を確認した`;
+                            }
+                        });
+                        return '既存顧客を訪問し、' + connectClauses(clauses);
                     }
-                    if (isPurpose) return `既存顧客のフォローアップのため訪問する`;
-                    return `既存顧客のフォローアップのため訪問した`;
+                    if (isPurpose) return `既存顧客を訪問し、保有資産の状況確認や今後の運用方針に関するフォローアップを行う`;
+                    return `既存顧客を訪問し、保有資産の状況確認や今後の運用方針に関するフォローアップを行った`;
                 }
                 case 'fudousan_houmon': {
                     if (details.length > 0) {
-                        const d = details.join('や');
-                        if (isPurpose) return `現地の不動産業者を訪問し、${d}を行う`;
-                        return `現地の不動産業者を訪問し、${d}を行った`;
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '案件紹介の相談': return isPurpose
+                                    ? `新規の売買・賃貸案件の紹介について相談を行い、条件に合う物件の有無を確認する`
+                                    : `新規の売買・賃貸案件の紹介について相談を行い、条件に合う物件の有無を確認した`;
+                                case '物件情報の収集': return isPurpose
+                                    ? `地元業者が保有する非公開物件を含めた最新の物件情報を幅広く収集する`
+                                    : `地元業者が保有する非公開物件を含めた最新の物件情報を幅広く収集した`;
+                                case '地域動向の情報交換': return isPurpose
+                                    ? `地域の開発計画や人口動態、賃貸需要の変化など不動産市況に関する情報交換を行う`
+                                    : `地域の開発計画や人口動態、賃貸需要の変化など不動産市況に関する情報交換を行った`;
+                                case '管理・募集の相談': return isPurpose
+                                    ? `保有物件の入居者募集や管理業務の委託について条件や方針を相談する`
+                                    : `保有物件の入居者募集や管理業務の委託について条件や方針を相談した`;
+                                case '提携の相談': return isPurpose
+                                    ? `今後の業務提携や紹介ネットワークの構築について意見交換を行う`
+                                    : `今後の業務提携や紹介ネットワークの構築について意見交換を行った`;
+                                default: return isPurpose
+                                    ? `不動産業者と${d}について相談する`
+                                    : `不動産業者と${d}について相談した`;
+                            }
+                        });
+                        return '現地の不動産業者を訪問し、' + connectClauses(clauses);
                     }
-                    if (isPurpose) return `現地の不動産業者を訪問する`;
-                    return `現地の不動産業者を訪問した`;
+                    if (isPurpose) return `現地の不動産業者を訪問し、取扱い物件の情報収集や地域の不動産市況について相談する`;
+                    return `現地の不動産業者を訪問し、取扱い物件の情報収集や地域の不動産市況について相談した`;
                 }
                 case 'bukken_shisatsu': {
                     if (details.length > 0) {
-                        const d = details.join('や');
-                        if (isPurpose) return `物件の${d}を視察する`;
-                        return `物件の${d}を視察した`;
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '立地・周辺環境': return isPurpose
+                                    ? `物件の立地条件や最寄り駅からのアクセス、周辺の商業施設・生活環境を確認する`
+                                    : `物件の立地条件や最寄り駅からのアクセス、周辺の商業施設・生活環境を確認した`;
+                                case '建物・設備': return isPurpose
+                                    ? `建物の外観や構造、室内の設備仕様および劣化状況を視察する`
+                                    : `建物の外観や構造、室内の設備仕様および劣化状況を視察した`;
+                                case '管理状況': return isPurpose
+                                    ? `共用部分の清掃状態や修繕履歴を含め、現在の管理運営状況を確認する`
+                                    : `共用部分の清掃状態や修繕履歴を含め、現在の管理運営状況を確認した`;
+                                case '改修の必要性': return isPurpose
+                                    ? `建物や設備の経年劣化を踏まえ、改修工事の必要性や概算費用を検討する`
+                                    : `建物や設備の経年劣化を踏まえ、改修工事の必要性や概算費用を検討した`;
+                                default: return isPurpose
+                                    ? `物件の${d}を視察する`
+                                    : `物件の${d}を視察した`;
+                            }
+                        });
+                        return connectClauses(clauses);
                     }
-                    if (isPurpose) return `物件を視察する`;
-                    return `物件を視察した`;
+                    if (isPurpose) return `投資対象物件の立地環境や建物の状態を視察し、取得の可否を現地で判断する`;
+                    return `投資対象物件の立地環境や建物の状態を視察し、取得の可否を現地で判断した`;
                 }
                 case 'bukken_chousa': {
                     if (details.length > 0) {
-                        const docDetails = details.filter(d => d === '確認済証・検査済証' || d === '権利関係');
-                        const otherDetails = details.filter(d => d !== '確認済証・検査済証' && d !== '権利関係');
-                        if (otherDetails.length > 0 && docDetails.length > 0) {
-                            const od = otherDetails.join('や');
-                            const dd = docDetails.join('や');
-                            if (isPurpose) return `物件の${od}を確認するとともに、${dd}を調査する`;
-                            return `物件の${od}を確認し、${dd}を調査した`;
-                        }
-                        if (docDetails.length > 0) {
-                            if (isPurpose) return `物件の${docDetails.join('や')}を調査する`;
-                            return `物件の${docDetails.join('や')}を調査した`;
-                        }
-                        if (isPurpose) return `物件の${otherDetails.join('や')}を確認する`;
-                        return `物件の${otherDetails.join('や')}を確認した`;
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '権利関係': return isPurpose
+                                    ? `登記簿謄本等を基に物件の所有権や抵当権、借地権等の権利関係を調査する`
+                                    : `登記簿謄本等を基に物件の所有権や抵当権、借地権等の権利関係を調査した`;
+                                case '賃貸・入居状況': return isPurpose
+                                    ? `現在の賃貸借契約の内容や入居率、テナント構成を確認し、収益性を評価する`
+                                    : `現在の賃貸借契約の内容や入居率、テナント構成を確認し、収益性を評価した`;
+                                case '収支資料': return isPurpose
+                                    ? `過去の収支実績やレントロールを精査し、将来の収支見込みを検証する`
+                                    : `過去の収支実績やレントロールを精査し、将来の収支見込みを検証した`;
+                                case '修繕履歴': return isPurpose
+                                    ? `これまでの大規模修繕や設備更新の履歴を確認し、今後の修繕計画を把握する`
+                                    : `これまでの大規模修繕や設備更新の履歴を確認し、今後の修繕計画を把握した`;
+                                case '確認済証・検査済証': return isPurpose
+                                    ? `建築確認済証や検査済証の有無を調査し、建物の適法性を確認する`
+                                    : `建築確認済証や検査済証の有無を調査し、建物の適法性を確認した`;
+                                default: return isPurpose
+                                    ? `物件の${d}を調査する`
+                                    : `物件の${d}を調査した`;
+                            }
+                        });
+                        return connectClauses(clauses);
                     }
-                    if (isPurpose) return `物件の調査を行う`;
-                    return `物件の調査を行った`;
+                    if (isPurpose) return `投資対象物件の権利関係や収支状況を含めた詳細調査を行い、取得判断の材料を整理する`;
+                    return `投資対象物件の権利関係や収支状況を含めた詳細調査を行い、取得判断の材料を整理した`;
                 }
                 case 'tochi_chousa': {
                     if (details.length > 0) {
-                        const d = details.join('や');
-                        if (isPurpose) return `土地の${d}を調査する`;
-                        return `土地の${d}を調査した`;
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '接道': return isPurpose
+                                    ? `対象地の接道状況や道路幅員を確認し、建築基準法上の要件を満たすか調査する`
+                                    : `対象地の接道状況や道路幅員を確認し、建築基準法上の要件を満たすか調査した`;
+                                case '境界': return isPurpose
+                                    ? `隣地との境界位置や境界標の有無を確認し、面積の整合性を調査する`
+                                    : `隣地との境界位置や境界標の有無を確認し、面積の整合性を調査した`;
+                                case '用途地域・建築制限': return isPurpose
+                                    ? `用途地域や建ぺい率・容積率等の建築制限を確認し、計画建物の適合性を検討する`
+                                    : `用途地域や建ぺい率・容積率等の建築制限を確認し、計画建物の適合性を検討した`;
+                                case '上下水道': return isPurpose
+                                    ? `上下水道の引込み状況や配管経路を調査し、インフラ整備の必要性を確認する`
+                                    : `上下水道の引込み状況や配管経路を調査し、インフラ整備の必要性を確認した`;
+                                case '地盤・造成': return isPurpose
+                                    ? `地盤の強度や造成の履歴を調査し、基礎工事や地盤改良の要否を検討する`
+                                    : `地盤の強度や造成の履歴を調査し、基礎工事や地盤改良の要否を検討した`;
+                                default: return isPurpose
+                                    ? `土地の${d}を調査する`
+                                    : `土地の${d}を調査した`;
+                            }
+                        });
+                        return connectClauses(clauses);
                     }
-                    if (isPurpose) return `土地の調査を行う`;
-                    return `土地の調査を行った`;
+                    if (isPurpose) return `対象地の法的条件やインフラ状況を含めた土地の詳細調査を行う`;
+                    return `対象地の法的条件やインフラ状況を含めた土地の詳細調査を行った`;
                 }
                 case 'souba_chousa': {
-                    if (isPurpose) return `${dest}周辺の賃貸・売買相場を調査する`;
-                    return `${dest}周辺の賃貸・売買相場を調査した`;
+                    if (isPurpose) return `${dest}周辺の賃貸相場や売買取引事例を調査し、適正価格の見極めに必要な情報を収集する`;
+                    return `${dest}周辺の賃貸相場や売買取引事例を調査し、適正価格の見極めに必要な情報を収集した`;
                 }
                 case 'torihiki_kyougi': {
                     if (details.length > 0) {
-                        const d = details.join('や');
-                        if (isPurpose) return `取引条件や契約内容について、${d}を関係者と協議する`;
-                        return `取引条件や契約内容について、${d}を関係者と協議した`;
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '個別案件の相談': return isPurpose
+                                    ? `進行中の取引案件について、条件面の課題や交渉の方向性を関係者と協議する`
+                                    : `進行中の取引案件について、条件面の課題や交渉の方向性を関係者と協議した`;
+                                case '条件確認': return isPurpose
+                                    ? `売買価格や引渡し条件、特約事項等の取引条件を精査し、合意内容を確認する`
+                                    : `売買価格や引渡し条件、特約事項等の取引条件を精査し、合意内容を確認した`;
+                                case '資料確認': return isPurpose
+                                    ? `契約書案や重要事項説明書等の書類内容を確認し、記載内容の正確性を検証する`
+                                    : `契約書案や重要事項説明書等の書類内容を確認し、記載内容の正確性を検証した`;
+                                case '役割分担': return isPurpose
+                                    ? `取引完了までの各関係者の担当業務やスケジュールを明確にし、連携体制を整える`
+                                    : `取引完了までの各関係者の担当業務やスケジュールを明確にし、連携体制を整えた`;
+                                case '次回対応': return isPurpose
+                                    ? `取引の次のステップとなる対応事項を確認し、期限や担当を設定する`
+                                    : `取引の次のステップとなる対応事項を確認し、期限や担当を設定した`;
+                                default: return isPurpose
+                                    ? `取引条件の${d}について関係者と協議する`
+                                    : `取引条件の${d}について関係者と協議した`;
+                            }
+                        });
+                        return connectClauses(clauses);
                     }
-                    if (isPurpose) return `取引条件・契約内容について関係者と協議する`;
-                    return `取引条件・契約内容について関係者と協議した`;
+                    if (isPurpose) return `取引条件や契約内容について関係者間で詳細を確認し、合意形成に向けた協議を行う`;
+                    return `取引条件や契約内容について関係者間で詳細を確認し、合意形成に向けた協議を行った`;
                 }
                 case 'kenchiku_uchiawase': {
                     if (details.length > 0) {
-                        const d = details.join('や');
-                        if (isPurpose) return `${partnerForC}建築業者と${d}について打ち合わせを行う`;
-                        return `${partnerForC}建築業者と${d}について打ち合わせを行った`;
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '計画・仕様': return isPurpose
+                                    ? `建築計画の全体構成や仕上げ仕様について建築業者と詳細を詰める`
+                                    : `建築計画の全体構成や仕上げ仕様について建築業者と詳細を詰めた`;
+                                case '構造計算': return isPurpose
+                                    ? `構造計算の前提条件や計算結果について確認し、安全性を検証する`
+                                    : `構造計算の前提条件や計算結果について確認し、安全性を検証した`;
+                                case '工法の採用検討': return isPurpose
+                                    ? `建物の工法選定について、コストや工期への影響を含め比較検討する`
+                                    : `建物の工法選定について、コストや工期への影響を含め比較検討した`;
+                                case '施工条件': return isPurpose
+                                    ? `現場の施工条件や近隣対応、搬入経路等の制約事項を確認する`
+                                    : `現場の施工条件や近隣対応、搬入経路等の制約事項を確認した`;
+                                case '見積・費用': return isPurpose
+                                    ? `建築工事の見積内容を精査し、項目ごとの費用妥当性を確認する`
+                                    : `建築工事の見積内容を精査し、項目ごとの費用妥当性を確認した`;
+                                case '工期・工程': return isPurpose
+                                    ? `着工から竣工までの工程表を確認し、各工程の所要期間やマイルストーンを整理する`
+                                    : `着工から竣工までの工程表を確認し、各工程の所要期間やマイルストーンを整理した`;
+                                default: return isPurpose
+                                    ? `建築業者と${d}について打ち合わせる`
+                                    : `建築業者と${d}について打ち合わせた`;
+                            }
+                        });
+                        return `${partnerForC}建築業者と打ち合わせを行い、` + connectClauses(clauses);
                     }
-                    if (isPurpose) return `${partnerForC}建築業者と打ち合わせを行う`;
-                    return `${partnerForC}建築業者と打ち合わせを行った`;
+                    if (isPurpose) return `${partnerForC}建築業者と建築計画の進捗や施工内容について打ち合わせを行う`;
+                    return `${partnerForC}建築業者と建築計画の進捗や施工内容について打ち合わせを行った`;
                 }
                 case 'sekkei_uchiawase': {
                     if (details.length > 0) {
-                        const d = details.join('や');
-                        if (isPurpose) return `${partnerForC}設計担当者と${d}について打ち合わせを行う`;
-                        return `${partnerForC}設計担当者と${d}について打ち合わせを行った`;
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '計画・仕様': return isPurpose
+                                    ? `設計図面の内容や仕上げ仕様について設計担当者と詳細を確認する`
+                                    : `設計図面の内容や仕上げ仕様について設計担当者と詳細を確認した`;
+                                case '構造計算': return isPurpose
+                                    ? `構造設計の計算条件や耐震性能について設計担当者と確認する`
+                                    : `構造設計の計算条件や耐震性能について設計担当者と確認した`;
+                                case '工法の採用検討': return isPurpose
+                                    ? `採用する工法の技術的要件や設計への影響を検討する`
+                                    : `採用する工法の技術的要件や設計への影響を検討した`;
+                                case '施工条件': return isPurpose
+                                    ? `設計上の施工条件や制約事項について整理し、対応方針を協議する`
+                                    : `設計上の施工条件や制約事項について整理し、対応方針を協議した`;
+                                case '見積・費用': return isPurpose
+                                    ? `設計変更に伴うコストへの影響を確認し、予算内での対応方針を検討する`
+                                    : `設計変更に伴うコストへの影響を確認し、予算内での対応方針を検討した`;
+                                case '工期・工程': return isPurpose
+                                    ? `設計スケジュールの進捗を確認し、確認申請や施工開始までの工程を整理する`
+                                    : `設計スケジュールの進捗を確認し、確認申請や施工開始までの工程を整理した`;
+                                default: return isPurpose
+                                    ? `設計担当者と${d}について打ち合わせる`
+                                    : `設計担当者と${d}について打ち合わせた`;
+                            }
+                        });
+                        return `${partnerForC}設計担当者と打ち合わせを行い、` + connectClauses(clauses);
                     }
-                    if (isPurpose) return `${partnerForC}設計担当者と打ち合わせを行う`;
-                    return `${partnerForC}設計担当者と打ち合わせを行った`;
+                    if (isPurpose) return `${partnerForC}設計担当者と設計内容や図面の詳細について打ち合わせを行う`;
+                    return `${partnerForC}設計担当者と設計内容や図面の詳細について打ち合わせを行った`;
                 }
                 case 'kouzou_keisan': {
                     if (details.length > 0) {
-                        const d = details.join('や');
-                        if (isPurpose) return `${partnerForC}構造計算について、${d}に関する打ち合わせを行う`;
-                        return `${partnerForC}構造計算について、${d}に関する打ち合わせを行った`;
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '計画・仕様': return isPurpose
+                                    ? `構造計算に関わる建築計画の前提条件や仕様を確認する`
+                                    : `構造計算に関わる建築計画の前提条件や仕様を確認した`;
+                                case '構造計算': return isPurpose
+                                    ? `構造計算書の内容を精査し、荷重条件や安全率の妥当性を検証する`
+                                    : `構造計算書の内容を精査し、荷重条件や安全率の妥当性を検証した`;
+                                case '工法の採用検討': return isPurpose
+                                    ? `構造計算の結果を踏まえ、最適な工法の選定について検討する`
+                                    : `構造計算の結果を踏まえ、最適な工法の選定について検討した`;
+                                case '施工条件': return isPurpose
+                                    ? `構造上の施工条件や現場制約について確認し、対応策を協議する`
+                                    : `構造上の施工条件や現場制約について確認し、対応策を協議した`;
+                                case '見積・費用': return isPurpose
+                                    ? `構造計算に基づく工事費用の見積内容を確認し、コスト面の妥当性を検討する`
+                                    : `構造計算に基づく工事費用の見積内容を確認し、コスト面の妥当性を検討した`;
+                                case '工期・工程': return isPurpose
+                                    ? `構造関連の工程スケジュールを確認し、全体工期への影響を整理する`
+                                    : `構造関連の工程スケジュールを確認し、全体工期への影響を整理した`;
+                                default: return isPurpose
+                                    ? `構造計算の${d}について確認する`
+                                    : `構造計算の${d}について確認した`;
+                            }
+                        });
+                        return `${partnerForC}` + connectClauses(clauses);
                     }
-                    if (isPurpose) return `${partnerForC}構造計算の打ち合わせを行う`;
-                    return `${partnerForC}構造計算の打ち合わせを行った`;
+                    if (isPurpose) return `${partnerForC}構造計算の内容や安全性について確認し、技術的な課題を整理するための打ち合わせを行う`;
+                    return `${partnerForC}構造計算の内容や安全性について確認し、技術的な課題を整理するための打ち合わせを行った`;
                 }
                 case 'beast_kouhou': {
                     if (details.length > 0) {
-                        const d = details.join('や');
-                        if (isPurpose) return `${partnerForC}ビースト工法の${d}について打ち合わせを行う`;
-                        return `${partnerForC}ビースト工法の${d}について打ち合わせを行った`;
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '計画・仕様': return isPurpose
+                                    ? `ビースト工法を前提とした建築計画の仕様や設計条件を確認する`
+                                    : `ビースト工法を前提とした建築計画の仕様や設計条件を確認した`;
+                                case '構造計算': return isPurpose
+                                    ? `ビースト工法に対応した構造計算の内容や安全性を検証する`
+                                    : `ビースト工法に対応した構造計算の内容や安全性を検証した`;
+                                case '工法の採用検討': return isPurpose
+                                    ? `ビースト工法の採用にあたり、技術的な適合性やコスト面のメリットを比較検討する`
+                                    : `ビースト工法の採用にあたり、技術的な適合性やコスト面のメリットを比較検討した`;
+                                case '施工条件': return isPurpose
+                                    ? `ビースト工法の施工に必要な現場条件や資材搬入の制約を確認する`
+                                    : `ビースト工法の施工に必要な現場条件や資材搬入の制約を確認した`;
+                                case '見積・費用': return isPurpose
+                                    ? `ビースト工法を採用した場合の工事費見積を確認し、在来工法との費用比較を行う`
+                                    : `ビースト工法を採用した場合の工事費見積を確認し、在来工法との費用比較を行った`;
+                                case '工期・工程': return isPurpose
+                                    ? `ビースト工法による施工スケジュールを確認し、工期短縮の効果を検討する`
+                                    : `ビースト工法による施工スケジュールを確認し、工期短縮の効果を検討した`;
+                                default: return isPurpose
+                                    ? `ビースト工法の${d}について確認する`
+                                    : `ビースト工法の${d}について確認した`;
+                            }
+                        });
+                        return `${partnerForC}` + connectClauses(clauses);
                     }
-                    if (isPurpose) return `${partnerForC}ビースト工法の採用検討について打ち合わせを行う`;
-                    return `${partnerForC}ビースト工法の採用検討について打ち合わせを行った`;
+                    if (isPurpose) return `${partnerForC}ビースト工法の採用検討について、技術面やコスト面の比較を含めた打ち合わせを行う`;
+                    return `${partnerForC}ビースト工法の採用検討について、技術面やコスト面の比較を含めた打ち合わせを行った`;
                 }
                 case 'kenchikuhi_kyougi': {
                     if (details.length > 0) {
-                        const d = details.join('や');
-                        if (isPurpose) return `${partnerForC}${d}について協議する`;
-                        return `${partnerForC}${d}について協議した`;
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '計画・仕様': return isPurpose
+                                    ? `建築計画の仕様変更がコストに与える影響を精査する`
+                                    : `建築計画の仕様変更がコストに与える影響を精査した`;
+                                case '構造計算': return isPurpose
+                                    ? `構造計算の見直しに伴う建築費への影響を確認する`
+                                    : `構造計算の見直しに伴う建築費への影響を確認した`;
+                                case '工法の採用検討': return isPurpose
+                                    ? `工法の選択による建築コストの変動幅を比較検討する`
+                                    : `工法の選択による建築コストの変動幅を比較検討した`;
+                                case '施工条件': return isPurpose
+                                    ? `施工条件の変更が費用に与える影響を確認し、追加費用の有無を整理する`
+                                    : `施工条件の変更が費用に与える影響を確認し、追加費用の有無を整理した`;
+                                case '見積・費用': return isPurpose
+                                    ? `建築工事の見積書を項目ごとに精査し、減額交渉の余地を検討する`
+                                    : `建築工事の見積書を項目ごとに精査し、減額交渉の余地を検討した`;
+                                case '工期・工程': return isPurpose
+                                    ? `工期の延長や短縮がコストに及ぼす影響を確認し、最適な工程を協議する`
+                                    : `工期の延長や短縮がコストに及ぼす影響を確認し、最適な工程を協議した`;
+                                default: return isPurpose
+                                    ? `建築費の${d}について協議する`
+                                    : `建築費の${d}について協議した`;
+                            }
+                        });
+                        return `${partnerForC}` + connectClauses(clauses);
                     }
-                    if (isPurpose) return `${partnerForC}建築費と見積内容について協議する`;
-                    return `${partnerForC}建築費と見積内容について協議した`;
+                    if (isPurpose) return `${partnerForC}建築費の見積内容や工事費用の妥当性について詳細な協議を行う`;
+                    return `${partnerForC}建築費の見積内容や工事費用の妥当性について詳細な協議を行った`;
                 }
                 case 'kouji_kakunin': {
-                    if (isPurpose) return `${partnerForC}工事現場の進捗状況を確認する`;
-                    return `${partnerForC}工事現場の進捗状況を確認した`;
+                    if (isPurpose) return `${partnerForC}工事現場を訪問し、施工の進捗状況や品質管理の状態を確認する`;
+                    return `${partnerForC}工事現場を訪問し、施工の進捗状況や品質管理の状態を確認した`;
                 }
                 case 'kinyu_kikan': {
                     if (details.length > 0) {
-                        const d = details.join('や');
-                        if (isPurpose) return `金融機関と${d}について打ち合わせを行う`;
-                        return `金融機関と${d}について打ち合わせを行った`;
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '個別案件の相談': return isPurpose
+                                    ? `個別の融資案件について進捗状況や審査条件を確認し、対応方針を相談する`
+                                    : `個別の融資案件について進捗状況や審査条件を確認し、対応方針を相談した`;
+                                case '条件確認': return isPurpose
+                                    ? `融資条件や金利、返済スケジュール等の詳細について金融機関と確認する`
+                                    : `融資条件や金利、返済スケジュール等の詳細について金融機関と確認した`;
+                                case '資料確認': return isPurpose
+                                    ? `融資審査に必要な提出書類の内容や不足資料を確認し、準備を進める`
+                                    : `融資審査に必要な提出書類の内容や不足資料を確認し、準備を進めた`;
+                                case '役割分担': return isPurpose
+                                    ? `融資手続きにおける各関係者の役割分担やスケジュールを確認する`
+                                    : `融資手続きにおける各関係者の役割分担やスケジュールを確認した`;
+                                case '次回対応': return isPurpose
+                                    ? `次回の金融機関訪問までに準備すべき資料や対応事項を確認する`
+                                    : `次回の金融機関訪問までに準備すべき資料や対応事項を確認した`;
+                                default: return isPurpose
+                                    ? `金融機関と${d}について打ち合わせる`
+                                    : `金融機関と${d}について打ち合わせた`;
+                            }
+                        });
+                        return '金融機関を訪問し、' + connectClauses(clauses);
                     }
-                    if (isPurpose) return `金融機関との打ち合わせを行う`;
-                    return `金融機関との打ち合わせを行った`;
+                    if (isPurpose) return `金融機関を訪問し、融資条件や資金調達の方針について打ち合わせを行う`;
+                    return `金融機関を訪問し、融資条件や資金調達の方針について打ち合わせを行った`;
                 }
                 case 'zeirishi': {
                     if (details.length > 0) {
-                        const d = details.join('や');
-                        if (isPurpose) return `税理士・士業と${d}について打ち合わせを行う`;
-                        return `税理士・士業と${d}について打ち合わせを行った`;
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '個別案件の相談': return isPurpose
+                                    ? `個別の税務案件について進捗や対応方針を税理士と相談する`
+                                    : `個別の税務案件について進捗や対応方針を税理士と相談した`;
+                                case '条件確認': return isPurpose
+                                    ? `税務上の特例措置や適用要件の詳細について専門家と確認する`
+                                    : `税務上の特例措置や適用要件の詳細について専門家と確認した`;
+                                case '資料確認': return isPurpose
+                                    ? `申告に必要な証憑書類や計算資料の整備状況を確認する`
+                                    : `申告に必要な証憑書類や計算資料の整備状況を確認した`;
+                                case '役割分担': return isPurpose
+                                    ? `申告業務や書類作成における税理士との役割分担を明確にする`
+                                    : `申告業務や書類作成における税理士との役割分担を明確にした`;
+                                case '次回対応': return isPurpose
+                                    ? `次回の打ち合わせまでに準備すべき資料や確認事項を整理する`
+                                    : `次回の打ち合わせまでに準備すべき資料や確認事項を整理した`;
+                                default: return isPurpose
+                                    ? `税理士・士業と${d}について打ち合わせる`
+                                    : `税理士・士業と${d}について打ち合わせた`;
+                            }
+                        });
+                        return '税理士・士業と面談し、' + connectClauses(clauses);
                     }
-                    if (isPurpose) return `税理士・士業との打ち合わせを行う`;
-                    return `税理士・士業との打ち合わせを行った`;
+                    if (isPurpose) return `税理士・士業と面談し、税務対策や申告業務に関する打ち合わせを行う`;
+                    return `税理士・士業と面談し、税務対策や申告業務に関する打ち合わせを行った`;
                 }
                 case 'shoukaisha': {
                     if (details.length > 0) {
-                        const d = details.join('や');
-                        if (isPurpose) return `紹介者・提携先と${d}について面談する`;
-                        return `紹介者・提携先と${d}について面談した`;
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '個別案件の相談': return isPurpose
+                                    ? `紹介案件の進捗状況を共有し、今後の進め方について相談する`
+                                    : `紹介案件の進捗状況を共有し、今後の進め方について相談した`;
+                                case '条件確認': return isPurpose
+                                    ? `紹介条件や提携内容の詳細について確認し、双方の認識を合わせる`
+                                    : `紹介条件や提携内容の詳細について確認し、双方の認識を合わせた`;
+                                case '資料確認': return isPurpose
+                                    ? `提携先との間で共有すべき資料の内容や提出状況を確認する`
+                                    : `提携先との間で共有すべき資料の内容や提出状況を確認した`;
+                                case '役割分担': return isPurpose
+                                    ? `紹介者・提携先との間で今後の役割分担や連携方法を整理する`
+                                    : `紹介者・提携先との間で今後の役割分担や連携方法を整理した`;
+                                case '次回対応': return isPurpose
+                                    ? `次回の面談時期や対応事項を確認し、連携のスケジュールを立てる`
+                                    : `次回の面談時期や対応事項を確認し、連携のスケジュールを立てた`;
+                                default: return isPurpose
+                                    ? `紹介者・提携先と${d}について面談する`
+                                    : `紹介者・提携先と${d}について面談した`;
+                            }
+                        });
+                        return '紹介者・提携先と面談し、' + connectClauses(clauses);
                     }
-                    if (isPurpose) return `紹介者・提携先と面談する`;
-                    return `紹介者・提携先と面談した`;
+                    if (isPurpose) return `紹介者・提携先と面談し、案件の紹介状況や今後の連携方針について意見交換を行う`;
+                    return `紹介者・提携先と面談し、案件の紹介状況や今後の連携方針について意見交換を行った`;
                 }
                 case 'gyousei': {
                     if (details.length > 0) {
-                        const d = details.join('や');
-                        if (isPurpose) return `行政窓口にて${d}の確認を行う`;
-                        return `行政窓口にて${d}の確認を行った`;
+                        const clauses = details.map(d => {
+                            switch (d) {
+                                case '個別案件の相談': return isPurpose
+                                    ? `行政窓口にて個別案件に関する許認可や届出の要件について相談する`
+                                    : `行政窓口にて個別案件に関する許認可や届出の要件について相談した`;
+                                case '条件確認': return isPurpose
+                                    ? `行政手続きに必要な条件や規制の詳細について窓口で確認する`
+                                    : `行政手続きに必要な条件や規制の詳細について窓口で確認した`;
+                                case '資料確認': return isPurpose
+                                    ? `申請に必要な書類の記載内容や添付資料の要件を確認する`
+                                    : `申請に必要な書類の記載内容や添付資料の要件を確認した`;
+                                case '役割分担': return isPurpose
+                                    ? `行政手続きにおける申請者側の対応事項と専門家への委託範囲を整理する`
+                                    : `行政手続きにおける申請者側の対応事項と専門家への委託範囲を整理した`;
+                                case '次回対応': return isPurpose
+                                    ? `行政窓口での確認結果を踏まえ、次回の申請・届出に向けた準備事項を整理する`
+                                    : `行政窓口での確認結果を踏まえ、次回の申請・届出に向けた準備事項を整理した`;
+                                default: return isPurpose
+                                    ? `行政窓口にて${d}の確認を行う`
+                                    : `行政窓口にて${d}の確認を行った`;
+                            }
+                        });
+                        return connectClauses(clauses);
                     }
-                    if (isPurpose) return `行政窓口での確認を行う`;
-                    return `行政窓口での確認を行った`;
+                    if (isPurpose) return `行政窓口にて、法規制や許認可に関する確認および相談を行う`;
+                    return `行政窓口にて、法規制や許認可に関する確認および相談を行った`;
                 }
                 case 'seminar': {
-                    if (isPurpose) return `セミナーへの登壇または相談会を実施する`;
-                    return `セミナーへの登壇または相談会を実施した`;
+                    if (isPurpose) return `不動産や資産運用に関するセミナーへ登壇し、参加者への情報提供や個別相談会を実施する`;
+                    return `不動産や資産運用に関するセミナーへ登壇し、参加者への情報提供や個別相談会を実施した`;
                 }
                 case 'benkyoukai': {
-                    if (isPurpose) return `勉強会・研修に参加する`;
-                    return `勉強会・研修に参加した`;
+                    if (isPurpose) return `不動産投資や資産管理に関する勉強会・研修に参加し、最新の知見や事例を学ぶ`;
+                    return `不動産投資や資産管理に関する勉強会・研修に参加し、最新の知見や事例を学んだ`;
                 }
                 case 'shukuhaku_shisatsu': {
-                    if (isPurpose) return `宿泊施設の取得・活用を検討するため視察を行う`;
-                    return `宿泊施設の取得・活用を検討するため視察を行った`;
+                    if (isPurpose) return `宿泊施設の取得・活用を検討するため、立地環境や施設の状態、運営体制を含めた現地視察を行う`;
+                    return `宿泊施設の取得・活用を検討するため、立地環境や施設の状態、運営体制を含めた現地視察を行った`;
                 }
                 default: {
                     const item = itemById[id];
