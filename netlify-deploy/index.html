@@ -133,7 +133,8 @@
 
         textarea {
             resize: vertical;
-            min-height: 80px;
+            min-height: 150px;
+            overflow-y: hidden;
         }
 
         select {
@@ -1205,7 +1206,7 @@
             <div id="reasonModePanel">
                 <div class="form-group full-width">
                     <label>出張目的</label>
-                    <textarea id="tripReason" rows="6" placeholder="上のボタンを選択すると自動生成されます" oninput="markEdited('reason')"></textarea>
+                    <textarea id="tripReason" rows="10" placeholder="上のボタンを選択すると自動生成されます" oninput="markEdited('reason'); autoResizeTextarea(this)"></textarea>
                     <div class="btn-group">
                         <button class="btn btn-ai" onclick="regenerateText('reason')">再生成</button>
                     </div>
@@ -1217,7 +1218,7 @@
                 <div id="reportItemsConfirm"></div>
                 <div class="form-group full-width" style="margin-top: 12px;">
                     <label>出張報告</label>
-                    <textarea id="tripReport" rows="8" placeholder="実施した項目を選択して再生成してください" oninput="markEdited('report')"></textarea>
+                    <textarea id="tripReport" rows="14" placeholder="実施した項目を選択して再生成してください" oninput="markEdited('report'); autoResizeTextarea(this)"></textarea>
                     <div class="btn-group">
                         <button class="btn btn-ai" onclick="regenerateText('report')">再生成</button>
                     </div>
@@ -1372,6 +1373,135 @@
             construction: ['計画・仕様', '構造計算', '工法の採用検討', '施工条件', '見積・費用', '工期・工程'],
             stakeholder: ['個別案件の相談', '条件確認', '資料確認', '役割分担', '次回対応'],
         };
+
+        const CATEGORY_CONTEXT = {
+            'A': {
+                bg: '合同会社燈は、沖縄の不動産を活用した資産形成コンサルティング事業を展開しており、顧客の資産状況や市場環境に応じた提案を行っている',
+                purposeApp: '顧客への資産形成に関する提案や今後の事業方針の検討に活用する',
+                reportPurpose: '顧客の資産状況に応じた提案を行うため、最新の市場動向や事業環境を把握することを目的とした',
+                reportClose: '今回の相談で得られた情報は、今後の顧客への提案や事業方針の検討において参考とする',
+            },
+            'B': {
+                bg: '合同会社燈の不動産コンサルティング業務では、顧客への物件提案や投資判断に必要な情報を得るため、現地の不動産市場の動向把握と物件の実地確認を重視している',
+                purposeApp: '顧客への物件提案や投資検討の判断材料として活用する',
+                reportPurpose: '顧客への物件提案の精度を高めるため、現地での情報収集と物件の状態確認を行うことを目的とした',
+                reportClose: '今回の調査・視察で得られた情報は、今後の顧客への物件提案や投資判断の検討において参考とする',
+            },
+            'C': {
+                bg: '合同会社燈が関与する不動産案件において、建築計画の推進にあたり、設計・構造・施工に関する技術的な検討と関係者間の方針確認が必要となっている',
+                purposeApp: '建築計画の方針決定やコスト管理の検討に反映する',
+                reportPurpose: '建築計画を適切に進めるため、技術面やコスト面の課題を関係者間で共有し方針を確認することを目的とした',
+                reportClose: '今回の打ち合わせ内容は、建築計画の今後の進め方を検討する上での参考とする',
+            },
+            'D': {
+                bg: '合同会社燈の不動産取引や資産管理業務を円滑に進めるにあたり、専門家や関係機関との情報共有と方針の確認が不可欠である',
+                purposeApp: '関連する案件の判断や今後の業務方針の整理に活かす',
+                reportPurpose: '不動産取引や資産管理に関する専門的な事項について関係者と方針を確認することを目的とした',
+                reportClose: '今回の打ち合わせで確認した内容は、関連する案件の今後の対応を検討する際の参考とする',
+            },
+            'E': {
+                bg: '合同会社燈では、不動産および資産運用に関する専門知識の拡充を通じ、顧客向けサービスの質の維持・向上に取り組んでいる',
+                purposeApp: '今後の事業活動や顧客対応の充実に活かす',
+                reportPurpose: '業務に関する専門知識の拡充と実務への応用を図ることを目的とした',
+                reportClose: '今回得られた知見は、今後の業務や顧客対応を検討する上での参考とする',
+            },
+        };
+
+        const ITEM_TOPIC = {
+            'beichin': '米軍関係者向け賃貸事業に関する相談',
+            'gunyouchi': '軍用地の活用に関する相談',
+            'okinawa_hoyuu': '沖縄における資産保有に関する相談',
+            'shisan_unyou': '保有資産の運用方針の見直し',
+            'zeimu': '税務対策に関する相談',
+            'souzoku': '相続・資産承継に関する相談',
+            'kizon_follow': '既存顧客へのフォローアップ訪問',
+            'fudousan_houmon': '不動産業者への訪問',
+            'bukken_shisatsu': '物件の現地視察',
+            'bukken_chousa': '物件の詳細調査',
+            'tochi_chousa': '土地の調査',
+            'souba_chousa': '周辺の賃貸・売買相場の調査',
+            'torihiki_kyougi': '取引条件・契約内容の協議',
+            'kenchiku_uchiawase': '建築業者との打ち合わせ',
+            'sekkei_uchiawase': '設計に関する打ち合わせ',
+            'kouzou_keisan': '構造計算に関する打ち合わせ',
+            'beast_kouhou': 'ビースト工法の採用検討に関する打ち合わせ',
+            'kenchikuhi_kyougi': '建築費・見積内容の協議',
+            'kouji_kakunin': '工事現場の進捗確認',
+            'kinyu_kikan': '金融機関との打ち合わせ',
+            'zeirishi': '税理士・士業との打ち合わせ',
+            'shoukaisha': '紹介者・提携先との面談',
+            'gyousei': '行政窓口での確認・相談',
+            'seminar': 'セミナー登壇・相談会の実施',
+            'benkyoukai': '勉強会・研修への参加',
+            'shukuhaku_shisatsu': '宿泊施設の視察',
+        };
+
+        const COMBINED_TOPIC = {
+            'beichin+gunyouchi': '米軍関係者向け賃貸事業および軍用地の活用に関する相談',
+            'fudousan_houmon+bukken_shisatsu': '不動産業者への訪問および物件の現地視察',
+            'kouzou_keisan+beast_kouhou': '構造計算およびビースト工法の採用検討に関する打ち合わせ',
+            'kenchiku_uchiawase+kenchikuhi_kyougi': '建築業者との打ち合わせおよび建築費の協議',
+        };
+
+        function buildTopicSummary(itemIds, otherText) {
+            const parts = [];
+            const used = new Set();
+            for (let i = 0; i < itemIds.length; i++) {
+                if (used.has(itemIds[i])) continue;
+                let found = false;
+                for (let j = i + 1; j < itemIds.length; j++) {
+                    if (used.has(itemIds[j])) continue;
+                    const k1 = itemIds[i] + '+' + itemIds[j];
+                    const k2 = itemIds[j] + '+' + itemIds[i];
+                    if (COMBINED_TOPIC[k1] || COMBINED_TOPIC[k2]) {
+                        parts.push(COMBINED_TOPIC[k1] || COMBINED_TOPIC[k2]);
+                        used.add(itemIds[i]);
+                        used.add(itemIds[j]);
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    parts.push(ITEM_TOPIC[itemIds[i]] || itemById[itemIds[i]]?.label);
+                    used.add(itemIds[i]);
+                }
+            }
+            if (otherText) parts.push(otherText);
+            if (parts.length <= 2) return parts.join('および');
+            return parts.slice(0, -1).join('、') + '、ならびに' + parts[parts.length - 1];
+        }
+
+        function buildFragments(itemIds, mode, dest, partner, otherText) {
+            const fragments = [];
+            const used = new Set();
+            for (let i = 0; i < itemIds.length; i++) {
+                if (used.has(itemIds[i])) continue;
+                const id = itemIds[i];
+                const cat = itemCategory[id];
+                let combined = null;
+                let combinedWith = null;
+                for (let j = i + 1; j < itemIds.length; j++) {
+                    const otherId = itemIds[j];
+                    if (used.has(otherId)) continue;
+                    if (itemCategory[otherId].id === cat.id) {
+                        combined = buildCombinedFragment([id, otherId], mode, dest, partner);
+                        if (combined) { combinedWith = otherId; break; }
+                    }
+                }
+                if (combined && combinedWith) {
+                    fragments.push(combined);
+                    used.add(id);
+                    used.add(combinedWith);
+                } else {
+                    fragments.push(buildItemFragment(id, mode, dest, partner));
+                    used.add(id);
+                }
+            }
+            if (otherText) {
+                fragments.push(otherText + (mode === 'purpose' ? 'を行う' : 'を行った'));
+            }
+            return fragments;
+        }
 
         const FAVORITE_IDS = ['beichin', 'gunyouchi', 'fudousan_houmon', 'bukken_shisatsu', 'bukken_chousa', 'kenchiku_uchiawase', 'kouzou_keisan', 'beast_kouhou'];
 
@@ -1597,23 +1727,36 @@
 
         function markEdited(which) { manualEdited[which] = true; }
 
+        function autoResizeTextarea(el) {
+            el.style.height = 'auto';
+            el.style.height = el.scrollHeight + 'px';
+        }
+
         function onSupplementChange() { autoGenerate(); }
 
         function autoGenerate() {
             if (!manualEdited.reason) {
-                document.getElementById('tripReason').value = generatePurposeText();
+                const el = document.getElementById('tripReason');
+                el.value = generatePurposeText();
+                autoResizeTextarea(el);
             }
             if (!manualEdited.report && currentMode === 'report') {
-                document.getElementById('tripReport').value = generateReportText();
+                const el = document.getElementById('tripReport');
+                el.value = generateReportText();
+                autoResizeTextarea(el);
             }
         }
 
         function regenerateText(which) {
             manualEdited[which] = false;
             if (which === 'reason') {
-                document.getElementById('tripReason').value = generatePurposeText();
+                const el = document.getElementById('tripReason');
+                el.value = generatePurposeText();
+                autoResizeTextarea(el);
             } else {
-                document.getElementById('tripReport').value = generateReportText();
+                const el = document.getElementById('tripReport');
+                el.value = generateReportText();
+                autoResizeTextarea(el);
             }
         }
 
@@ -1908,46 +2051,23 @@
 
             if (ordered.length === 0 && !otherText) return '';
 
-            const fragments = [];
-            const used = new Set();
+            const primaryCat = ordered.length > 0 ? itemCategory[ordered[0]]?.id : 'A';
+            const ctx = CATEGORY_CONTEXT[primaryCat] || CATEGORY_CONTEXT['A'];
+            const topicSummary = buildTopicSummary(ordered, otherText);
+            const fragments = buildFragments(ordered, 'purpose', dest, partner, otherText);
 
-            for (let i = 0; i < ordered.length; i++) {
-                if (used.has(ordered[i])) continue;
-                const id = ordered[i];
-                const cat = itemCategory[id];
-                let combined = null;
-                let combinedWith = null;
-                for (let j = i + 1; j < ordered.length; j++) {
-                    const otherId = ordered[j];
-                    if (used.has(otherId)) continue;
-                    if (itemCategory[otherId].id === cat.id) {
-                        combined = buildCombinedFragment([id, otherId], 'purpose', dest, partner);
-                        if (combined) { combinedWith = otherId; break; }
-                    }
-                }
-                if (combined && combinedWith) {
-                    fragments.push(combined);
-                    used.add(id);
-                    used.add(combinedWith);
-                } else {
-                    fragments.push(buildItemFragment(id, 'purpose', dest, partner));
-                    used.add(id);
-                }
-            }
-            if (otherText) fragments.push(otherText + 'を行う');
-
-            let text = '';
-            if (fragments.length === 1) {
-                text = fragments[0] + 'ため。';
-            } else if (fragments.length === 2) {
-                text = fragments[0] + 'とともに、' + fragments[1] + 'ため。';
+            let para1 = ctx.bg + '。';
+            if (dest !== '現地') {
+                para1 += '今回、' + dest + 'において' + topicSummary + 'を実施する。';
             } else {
-                const last = fragments[fragments.length - 1];
-                const rest = fragments.slice(0, -1);
-                text = rest.join('。\n') + '。\nまた、' + last + 'ため。';
+                para1 += '今回、' + topicSummary + 'を実施する。';
             }
-            if (supplement) text += '\n' + supplement;
-            return text;
+
+            let para2 = '具体的には、' + connectClauses(fragments) + '。';
+            if (supplement) para2 += 'なお、' + supplement + '。';
+            para2 += 'これらの結果を' + ctx.purposeApp + 'ものである。';
+
+            return para1 + '\n\n' + para2;
         }
 
         function generateReportText() {
@@ -1961,41 +2081,39 @@
 
             if (confirmed.length === 0 && !otherText) return '';
 
-            const fragments = [];
-            const used = new Set();
+            const primaryCat = confirmed.length > 0 ? itemCategory[confirmed[0]]?.id : 'A';
+            const ctx = CATEGORY_CONTEXT[primaryCat] || CATEGORY_CONTEXT['A'];
+            const topicSummary = buildTopicSummary(confirmed, otherText);
+            const fragments = buildFragments(confirmed, 'report', dest, partner, otherText);
 
-            for (let i = 0; i < confirmed.length; i++) {
-                if (used.has(confirmed[i])) continue;
-                const id = confirmed[i];
-                const cat = itemCategory[id];
-                let combined = null;
-                let combinedWith = null;
-                for (let j = i + 1; j < confirmed.length; j++) {
-                    const otherId = confirmed[j];
-                    if (used.has(otherId)) continue;
-                    if (itemCategory[otherId].id === cat.id) {
-                        combined = buildCombinedFragment([id, otherId], 'report', dest, partner);
-                        if (combined) { combinedWith = otherId; break; }
-                    }
-                }
-                if (combined && combinedWith) {
-                    fragments.push(combined);
-                    used.add(id);
-                    used.add(combinedWith);
-                } else {
-                    fragments.push(buildItemFragment(id, 'report', dest, partner));
-                    used.add(id);
-                }
+            let para1 = ctx.bg + '。';
+            if (dest !== '現地') {
+                para1 += '今回、' + dest + 'にて' + ctx.reportPurpose + '出張を実施した。';
+            } else {
+                para1 += '今回、' + ctx.reportPurpose + '出張を実施した。';
             }
-            if (otherText) fragments.push(otherText + 'を行った');
+            para1 += '主な実施内容は、' + topicSummary + 'である。';
 
-            let text = fragments.join('。\n') + '。';
+            let para2Intro = '出張では、';
+            if (partner) {
+                para2Intro = '出張では、' + partner + 'との協議において、';
+            }
+            let para2 = para2Intro + connectClauses(fragments) + '。';
+            if (supplement) para2 += 'なお、' + supplement + '。';
 
-            if (supplement) text += '\n' + supplement;
-            if (resultNote) text += '\n\n【確認事項・成果】\n' + resultNote;
-            if (nextAction) text += '\n\n【今後の対応】\n' + nextAction;
+            let para3 = '';
+            const actSummary = '以上の活動を通じ、当初の目的であった' + topicSummary + 'について、今後の業務遂行に必要な情報の収集と方針の確認を行うことができた。';
+            if (resultNote && nextAction) {
+                para3 = '以上の活動を通じ、' + resultNote + '。' + ctx.reportClose + '。今後は、' + nextAction + '。';
+            } else if (resultNote) {
+                para3 = '以上の活動を通じ、' + resultNote + '。' + ctx.reportClose + '。';
+            } else if (nextAction) {
+                para3 = actSummary + ctx.reportClose + '。今後は、' + nextAction + '。';
+            } else {
+                para3 = actSummary + ctx.reportClose + '。';
+            }
 
-            return text;
+            return para1 + '\n\n' + para2 + '\n\n' + para3;
         }
 
         function buildCombinedFragment(ids, mode, dest, partner) {
@@ -2031,7 +2149,10 @@
                     const base = isPurpose
                         ? `${partnerPrefix}ビースト工法の採用検討に伴う構造計算の内容や安全性を確認する`
                         : `${partnerPrefix}ビースト工法の採用検討に伴う構造計算の内容や安全性を確認した`;
-                    return base + 'とともに、' + connectClauses(clauses, true);
+                    if (isPurpose) {
+                        return base + 'とともに、' + connectClauses(clauses, true);
+                    }
+                    return base + '。あわせて、' + connectClauses(clauses, true);
                 }
                 if (isPurpose) return `${partnerPrefix}ビースト工法の採用を見据えた構造計算について、技術的な適合性やコスト面を含めた打ち合わせを行う`;
                 return `${partnerPrefix}ビースト工法の採用を見据えた構造計算について、技術的な適合性やコスト面を含めた打ち合わせを行った`;
@@ -2067,7 +2188,10 @@
                     const base = isPurpose
                         ? `${dest}にて、米軍関係者向け賃貸事業の運営体制と軍用地の売買・借地の仕組みについて説明する`
                         : `${dest}にて、米軍関係者向け賃貸事業の運営体制と軍用地の売買・借地の仕組みについて説明した`;
-                    return base + 'とともに、' + connectClauses(otherClauses, true);
+                    if (isPurpose) {
+                        return base + 'とともに、' + connectClauses(otherClauses, true);
+                    }
+                    return base + '。あわせて、' + connectClauses(otherClauses, true);
                 }
                 if (allDetails.length > 0) {
                     const clauses = allDetails.map(d => {
@@ -4067,6 +4191,8 @@
 
             document.getElementById('tripReason').value = d.trip_reason || '';
             document.getElementById('tripReport').value = d.trip_report || '';
+            autoResizeTextarea(document.getElementById('tripReason'));
+            autoResizeTextarea(document.getElementById('tripReport'));
 
             updateCalc();
             updateFeeChips();
